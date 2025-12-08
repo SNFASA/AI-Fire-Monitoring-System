@@ -322,7 +322,7 @@
         <mxCell id="FeEVbvXfXebkwkF8SUWB-80" parent="FeEVbvXfXebkwkF8SUWB-79" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+id:varchar(5)" vertex="1">
           <mxGeometry height="26" width="160" y="26" as="geometry" />
         </mxCell>
-        <mxCell id="FeEVbvXfXebkwkF8SUWB-83" parent="FeEVbvXfXebkwkF8SUWB-79" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+Sensor_id: Varchar(5)" vertex="1">
+        <mxCell id="yP9aJZV2OsqerQ2YAT7y-0" parent="FeEVbvXfXebkwkF8SUWB-79" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+owner:varchar(5)" vertex="1">
           <mxGeometry height="26" width="160" y="52" as="geometry" />
         </mxCell>
         <mxCell id="FeEVbvXfXebkwkF8SUWB-84" parent="FeEVbvXfXebkwkF8SUWB-79" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+Details:Varchar(100)" vertex="1">
@@ -440,9 +440,9 @@
             <mxPoint x="-107" y="227" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FJc1-cuMiDt2isQjIsb5-41" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="FeEVbvXfXebkwkF8SUWB-83" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;rounded=0;fontSize=12;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;" target="FeEVbvXfXebkwkF8SUWB-9" value="">
+        <mxCell id="FJc1-cuMiDt2isQjIsb5-41" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;rounded=0;fontSize=12;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;" target="FeEVbvXfXebkwkF8SUWB-9" value="">
           <mxGeometry relative="1" width="160" as="geometry">
-            <mxPoint x="740" y="340" as="sourcePoint" />
+            <mxPoint x="960" y="411" as="sourcePoint" />
             <mxPoint x="900" y="340" as="targetPoint" />
           </mxGeometry>
         </mxCell>
