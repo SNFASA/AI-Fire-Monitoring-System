@@ -9,7 +9,7 @@ import json
 from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address
 from ml_engine.predictor import FirePredictor
 from django.core.serializers.json import DjangoJSONEncoder
-from .forms import SignUpForm
+from .forms import SignUpForm, UserUpdateForm, ProfileUpdateForm, AddressUpdateForm
 
 # Init brain once
 predictor = FirePredictor()
@@ -175,31 +175,44 @@ def get_live_data(request):
 
 @login_required(login_url='login')
 def profile(request):
-    """User profile view and picture upload"""
-    try:
-        user_profile = UserProfile.objects.get(user=request.user)
-    except UserProfile.DoesNotExist:
-        user_profile = UserProfile.objects.create(user=request.user)
-    
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    current_address = user_profile.address
     if request.method == 'POST':
-        # Handle profile picture upload
-        if 'profile_picture' in request.FILES:
-            try:
-                # Delete old picture if exists
-                if user_profile.profile_picture:
-                    user_profile.profile_picture.delete()
-                
-                user_profile.profile_picture = request.FILES['profile_picture']
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=user_profile)
+        a_form = AddressUpdateForm(request.POST, instance=user_profile.address)
+        if u_form.is_valid() and p_form.is_valid() and a_form.is_valid():
+            if 'profile_picture' in request.FILES and user_profile.profile_picture:
+                try:
+                    user_profile.profile_picture.delete(save=False)
+                except Exception:
+                    pass
+            u_form.save()
+            p_form.save()
+            address_instance = a_form.save()
+            if not user_profile.address:
+                user_profile.address = address_instance
                 user_profile.save()
-                messages.success(request, '✅ Profile picture uploaded successfully!')
-            except Exception as e:
-                messages.error(request, f'❌ Error uploading picture: {str(e)}')
+            messages.success(request, 'Your Profile updated successfully!')
             return redirect('profile')
-    
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        u_form = UserUpdateForm(instance=request.user)
+        p_form = ProfileUpdateForm(instance=user_profile)
+        a_form = AddressUpdateForm(instance=current_address)
+
     context = {
+        'u_form': u_form,
+        'p_form': p_form,
+        'a_form': a_form,
         'user_profile': user_profile,
     }
+    
     return render(request, 'sensors/profile.html', context)
+# ==========================================
+# CHANGE PASSWORD VIEW
+# ==========================================
 
 @login_required(login_url='login')
 def change_password(request):
