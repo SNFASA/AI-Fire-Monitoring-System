@@ -18,10 +18,14 @@ predictor = FirePredictor()
 # ==========================================
 
 def logout_view(request):
-    """Custom logout view that handles both GET and POST requests"""
-    logout(request)
-    messages.success(request, 'You have been logged out successfully!')
-    return redirect('login')
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request, 'You have been logged out successfully!')
+        return redirect('login')
+    
+    # Optional: Handle GET request if someone types /logout/ manually
+    # You can either allow it (less secure) or redirect them back
+    return redirect('home')
 
 @csrf_exempt
 def receive_sensor_data(request):
