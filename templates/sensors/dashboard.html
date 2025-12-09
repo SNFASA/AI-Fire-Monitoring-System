@@ -1,0 +1,187 @@
+{% extends "sensors/layout/master.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Fire Monitoring System{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <h1 class="display-4 fw-bold text-primary">Fire Monitoring Dashboard</h1>
+            <p class="text-muted">Real-time monitoring and management system</p>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Active Sensors</h5>
+                    <h2 class="text-primary">{{ sensors_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Maintenance Pending</h5>
+                    <h2 class="text-warning">{{ maintenance_pending }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Reports Filed</h5>
+                    <h2 class="text-danger">{{ reports_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Fire Stations</h5>
+                    <h2 class="text-info">{{ stations_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Sensors Section -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Active Sensors</h4>
+                </div>
+                <div class="card-body">
+                    {% if sensors %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Sensor Name</th>
+                                        <th>Status</th>
+                                        <th>Location</th>
+                                        <th>Last Reading</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sensor in sensors|slice:":5" %}
+                                    <tr>
+                                        <td>{{ sensor.name }}</td>
+                                        <td>
+                                            {% if sensor.is_active %}
+                                                <span class="badge badge-success">Active</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ sensor.latitude|floatformat:2 }}, {{ sensor.longitude|floatformat:2 }}</td>
+                                        <td>
+                                            {% if sensor.readings.first %}
+                                                {{ sensor.readings.first.timestamp|date:"M d, H:i" }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No sensors available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Recent Reports</h4>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                        <ul class="list-unstyled">
+                            {% for report in recent_reports|slice:":5" %}
+                            <li class="mb-3 pb-3 border-bottom">
+                                <h6 class="mb-1">{{ report.fire_type }}</h6>
+                                <small class="text-muted">
+                                    {{ report.timestamp|date:"M d, H:i" }} at {{ report.address }}
+                                </small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No reports available</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h4 class="mb-0">Maintenance Status</h4>
+                </div>
+                <div class="card-body">
+                    {% if maintenance_items %}
+                        <ul class="list-unstyled">
+                            {% for item in maintenance_items|slice:":5" %}
+                            <li class="mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ item.sensor.name }}</span>
+                                    <span class="badge 
+                                        {% if item.status == 'Pending' %}badge-warning
+                                        {% elif item.status == 'InProgress' %}badge-info
+                                        {% elif item.status == 'Completed' %}badge-success
+                                        {% else %}badge-danger{% endif %}">
+                                        {{ item.status }}
+                                    </span>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No maintenance items</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'home' %}" class="btn btn-primary w-100">View All Sensors</a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'maintenance' %}" class="btn btn-primary w-100">Manage Maintenance</a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'reports' %}" class="btn btn-primary w-100">View Reports</a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'profile' %}" class="btn btn-primary w-100">My Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "sensors/layout/master.html" %}
+{% load static %}
+
+{% block title %}Fire Reports{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Messages/Alerts -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <h2 class="display-6 fw-bold text-danger mb-2">🚒 Fire Reports</h2>
+            <p class="text-muted">Complete record of all fire incidents and responses</p>
+        </div>
+        <div class="col-lg-4 text-end">
+            <a href="{% url 'create_report' %}" class="btn btn-danger">
+                ➕ Create New Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Reports Grid -->
+    <div class="row">
+        {% if reports %}
+            {% for report in reports %}
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <div class="card border-danger h-100 shadow-sm transition">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">🔥 {{ report.fire_type }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Fire Type & Cause -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Cause</small>
+                                <p class="mb-0 text-dark fw-bold">{{ report.cause }}</p>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block">📍 Location</small>
+                                <p class="mb-0 text-dark">{{ report.address }}</p>
+                            </div>
+
+                            <!-- Station & Officer -->
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Fire Station</small>
+                                    <span class="badge bg-secondary">🏢 {{ report.station.name }}</span>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Officer In Charge</small>
+                                    <span class="badge bg-secondary">👤 {{ report.in_charge.username }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Image -->
+                            {% if report.picture %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-2">Scene Documentation</small>
+                                    <img src="{{ report.picture.url }}" alt="Fire incident scene" 
+                                         class="img-fluid rounded" style="max-height: 200px; object-fit: cover; border: 2px solid #df2020;">
+                                </div>
+                            {% else %}
+                                <div class="mb-3 p-3 bg-light rounded text-center">
+                                    <small class="text-muted">No scene photo attached</small>
+                                </div>
+                            {% endif %}
+
+                            <!-- Date & Time -->
+                            <div class="text-sm">
+                                <small class="text-muted d-block">Date & Time</small>
+                                <small class="text-dark fw-bold">📅 {{ report.timestamp|date:"M d, Y - H:i A" }}</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top border-danger">
+                            <a href="{% url 'report_detail' report.id %}" class="btn btn-sm btn-danger w-100">
+                                View Full Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="col-lg-8 offset-lg-2">
+                <div class="alert alert-info text-center py-5">
+                    <h4 class="alert-heading mb-3">📭 No Reports Yet</h4>
+                    <p class="mb-3">No fire reports have been created yet. When incidents occur, they will appear here.</p>
+                    <a href="{% url 'create_report' %}" class="btn btn-danger">
+                        Create First Report
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Statistics Footer -->
+    {% if reports %}
+        <div class="row mt-5">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card border-secondary bg-light">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3 mb-3">
+                                <h5 class="text-danger fw-bold">{{ reports|length }}</h5>
+                                <small class="text-muted">Total Reports</small>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <h5 class="text-warning fw-bold">
+                                    {% widthratio building_fires reports|length 1 %}%
+                                </h5>
+                                <small class="text-muted">Building Fires</small>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <h5 class="text-info fw-bold">
+                                    {% widthratio vehicle_fires reports|length 1 %}%
+                                </h5>
+                                <small class="text-muted">Vehicle Fires</small>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <h5 class="text-success fw-bold">
+                                    {% widthratio other_fires reports|length 1 %}%
+                                </h5>
+                                <small class="text-muted">Other Incidents</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

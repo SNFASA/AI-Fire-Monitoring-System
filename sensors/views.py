@@ -1,13 +1,27 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt 
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib import messages
 import json
-from .models import Sensor, SensorDataLog
+from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address
 from ml_engine.predictor import FirePredictor
 from django.core.serializers.json import DjangoJSONEncoder
 
 # Init brain once
 predictor = FirePredictor()
+
+# ==========================================
+#  AUTHENTICATION VIEWS
+# ==========================================
+
+def logout_view(request):
+    """Custom logout view that handles both GET and POST requests"""
+    logout(request)
+    messages.success(request, 'You have been logged out successfully!')
+    return redirect('login')
 
 @csrf_exempt
 def receive_sensor_data(request):
@@ -66,7 +80,27 @@ def receive_sensor_data(request):
 # 1. The Main Page Load
 def dashboard(request):
     # This renders the HTML file initially
-    return render(request, 'sensors/dashboard.html')
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        user_profile = UserProfile.objects.create(user=request.user)
+    
+    sensors = Sensor.objects.filter(owner=user_profile) if user_profile.role == 'public' else Sensor.objects.all()
+    
+    context = {
+        'sensors_count': sensors.count(),
+        'sensors': sensors,
+        'maintenance_pending': Maintenance.objects.filter(status='Pending').count(),
+        'maintenance_items': Maintenance.objects.all().order_by('-timestamp'),
+        'reports_count': Report.objects.count(),
+        'recent_reports': Report.objects.all().order_by('-timestamp'),
+        'stations_count': FireStation.objects.count(),
+    }
+    
+    return render(request, 'sensors/dashboard.html', context)
 
 #The Live Data API (JavaScript calls this every 2 seconds)
 def get_live_data(request):
@@ -104,3 +138,194 @@ def get_live_data(request):
         'map_data': map_data,
         'table_data': table_data
     })
+
+# ==========================================
+# USER PROFILE VIEWS
+# ==========================================
+
+@login_required(login_url='login')
+def profile(request):
+    """User profile view and picture upload"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        user_profile = UserProfile.objects.create(user=request.user)
+    
+    if request.method == 'POST':
+        # Handle profile picture upload
+        if 'profile_picture' in request.FILES:
+            try:
+                # Delete old picture if exists
+                if user_profile.profile_picture:
+                    user_profile.profile_picture.delete()
+                
+                user_profile.profile_picture = request.FILES['profile_picture']
+                user_profile.save()
+                messages.success(request, '✅ Profile picture uploaded successfully!')
+            except Exception as e:
+                messages.error(request, f'❌ Error uploading picture: {str(e)}')
+            return redirect('profile')
+    
+    context = {
+        'user_profile': user_profile,
+    }
+    return render(request, 'sensors/profile.html', context)
+
+@login_required(login_url='login')
+def change_password(request):
+    """Change password view"""
+    if request.method == 'POST':
+        old_password = request.POST.get('old_password', '')
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        
+        # Validation
+        if not all([old_password, new_password, confirm_password]):
+            messages.error(request, '❌ All fields are required.')
+            return render(request, 'sensors/change_password.html')
+        
+        if not request.user.check_password(old_password):
+            messages.error(request, '❌ Current password is incorrect.')
+            return render(request, 'sensors/change_password.html')
+        
+        if new_password != confirm_password:
+            messages.error(request, '❌ New passwords do not match.')
+            return render(request, 'sensors/change_password.html')
+        
+        if len(new_password) < 8:
+            messages.error(request, '❌ Password must be at least 8 characters long.')
+            return render(request, 'sensors/change_password.html')
+        
+        if new_password == old_password:
+            messages.error(request, '❌ New password cannot be the same as current password.')
+            return render(request, 'sensors/change_password.html')
+        
+        try:
+            request.user.set_password(new_password)
+            request.user.save()
+            messages.success(request, '✅ Password changed successfully! Please log in again.')
+            return redirect('login')
+        except Exception as e:
+            messages.error(request, f'❌ Error changing password: {str(e)}')
+            return render(request, 'sensors/change_password.html')
+    
+    return render(request, 'sensors/change_password.html')
+
+# ==========================================
+# MAINTENANCE VIEWS
+# ==========================================
+
+@login_required(login_url='login')
+def maintenance(request):
+    """List all maintenance records"""
+    maintenance_items = Maintenance.objects.all().order_by('-timestamp')
+    
+    context = {
+        'maintenance_items': maintenance_items,
+    }
+    return render(request, 'sensors/maintenance.html', context)
+
+@login_required(login_url='login')
+def maintenance_detail(request, maintenance_id):
+    """Maintenance detail view with picture upload"""
+    try:
+        maintenance = get_object_or_404(Maintenance, id=maintenance_id)
+        
+        if request.method == 'POST':
+            # Handle picture upload
+            if 'picture' in request.FILES:
+                try:
+                    # Delete old picture if exists
+                    if maintenance.picture:
+                        maintenance.picture.delete()
+                    
+                    maintenance.picture = request.FILES['picture']
+                    maintenance.save()
+                    messages.success(request, '✅ Maintenance picture uploaded successfully!')
+                except Exception as e:
+                    messages.error(request, f'❌ Error uploading picture: {str(e)}')
+                return redirect('maintenance_detail', maintenance_id=maintenance.id)
+        
+        context = {
+            'maintenance': maintenance,
+        }
+        return render(request, 'sensors/maintenance_detail.html', context)
+    except Exception as e:
+        messages.error(request, f'❌ Error loading maintenance record: {str(e)}')
+        return redirect('maintenance')
+
+# ==========================================
+# REPORTS VIEWS
+# ==========================================
+
+@login_required(login_url='login')
+def reports(request):
+    """List all fire reports"""
+    reports_list = Report.objects.all().order_by('-timestamp')
+    
+    context = {
+        'reports': reports_list,
+    }
+    return render(request, 'sensors/reports.html', context)
+
+@login_required(login_url='login')
+def report_detail(request, report_id):
+    """Report detail view"""
+    report = get_object_or_404(Report, id=report_id)
+    
+    context = {
+        'report': report,
+    }
+    return render(request, 'sensors/report_detail.html', context)
+
+@login_required(login_url='login')
+def create_report(request):
+    """Create new fire report"""
+    stations = FireStation.objects.all()
+    addresses = Address.objects.all()
+    
+    if request.method == 'POST':
+        fire_type = request.POST.get('fire_type', '').strip()
+        cause = request.POST.get('cause', '').strip()
+        station_id = request.POST.get('station', '')
+        address_id = request.POST.get('address', '')
+        
+        # Validation
+        if not fire_type or not cause or not station_id:
+            messages.error(request, '❌ Fire type, cause, and station are required.')
+            context = {'stations': stations, 'addresses': addresses}
+            return render(request, 'sensors/create_report.html', context)
+        
+        try:
+            station = FireStation.objects.get(id=station_id)
+            address = Address.objects.get(id=address_id) if address_id else None
+            
+            report = Report.objects.create(
+                fire_type=fire_type,
+                cause=cause,
+                station=station,
+                address=address,
+                in_charge=request.user,
+            )
+            
+            # Handle picture upload
+            if 'picture' in request.FILES:
+                try:
+                    report.picture = request.FILES['picture']
+                    report.save()
+                except Exception as e:
+                    messages.warning(request, f'⚠️ Report created but picture upload failed: {str(e)}')
+            
+            messages.success(request, '✅ Fire report created successfully!')
+            return redirect('report_detail', report_id=report.id)
+        
+        except FireStation.DoesNotExist:
+            messages.error(request, '❌ Selected fire station does not exist.')
+        except Exception as e:
+            messages.error(request, f'❌ Error creating report: {str(e)}')
+    
+    context = {
+        'stations': stations,
+        'addresses': addresses,
+    }
+    return render(request, 'sensors/create_report.html', context)

@@ -1,0 +1,147 @@
+{% extends "sensors/layout/master.html" %}
+{% load static %}
+
+{% block title %}Maintenance Records{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Messages/Alerts -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <h2 class="display-6 fw-bold text-danger mb-2">🔧 Maintenance Records</h2>
+            <p class="text-muted">View and manage equipment maintenance logs</p>
+        </div>
+        <div class="col-lg-4 text-end">
+            <a href="{% url 'home' %}" class="btn btn-outline-danger">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Maintenance Records -->
+    <div class="row">
+        {% if maintenance_items %}
+            {% for item in maintenance_items %}
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <div class="card border-danger h-100 shadow-sm transition">
+                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">🛠️ {{ item.sensor.name }}</h5>
+                            </div>
+                            <span class="badge bg-light text-danger fw-bold">
+                                {% if item.status == 'Pending' %}⏳ Pending
+                                {% elif item.status == 'InProgress' %}🔄 In Progress
+                                {% elif item.status == 'Completed' %}✅ Completed
+                                {% else %}{{ item.status }}{% endif %}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <!-- Status -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Status</small>
+                                {% if item.status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark">⏳ Pending</span>
+                                {% elif item.status == 'InProgress' %}
+                                    <span class="badge bg-info text-white">🔄 In Progress</span>
+                                {% elif item.status == 'Completed' %}
+                                    <span class="badge bg-success text-white">✅ Completed</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ item.status }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Details -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Details</small>
+                                <p class="mb-0 text-dark">{{ item.details|truncatewords:25 }}</p>
+                            </div>
+
+                            <!-- In Charge -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Assigned To</small>
+                                <span class="badge bg-secondary">👤 {{ item.in_charge.username }}</span>
+                            </div>
+
+                            <!-- Image -->
+                            {% if item.picture %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-2">Photo Evidence</small>
+                                    <img src="{{ item.picture.url }}" alt="Maintenance Photo" 
+                                         class="img-fluid rounded" style="max-height: 200px; object-fit: cover; border: 2px solid #df2020;"
+                                         onerror="this.alt='Image not found'">
+                                </div>
+                            {% else %}
+                                <div class="mb-3 p-3 bg-light rounded text-center">
+                                    <small class="text-muted">No image attached</small>
+                                </div>
+                            {% endif %}
+
+                            <!-- Dates -->
+                            <div class="row text-sm">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Date Reported</small>
+                                    <small class="text-dark fw-bold">{{ item.timestamp|date:"M d, Y" }}</small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Time</small>
+                                    <small class="text-dark fw-bold">{{ item.timestamp|date:"H:i A" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top border-danger">
+                            <a href="{% url 'maintenance_detail' item.id %}" class="btn btn-sm btn-danger w-100">
+                                View Details & Update
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="col-lg-8 offset-lg-2">
+                <div class="alert alert-info text-center py-5">
+                    <h4 class="alert-heading mb-3">📭 No Maintenance Records</h4>
+                    <p class="mb-0">There are currently no maintenance records. All equipment is in good condition!</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Statistics Footer -->
+    {% if maintenance_items %}
+        <div class="row mt-5">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card border-secondary bg-light">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4 mb-3">
+                                <h5 class="text-danger fw-bold">{{ maintenance_items|length }}</h5>
+                                <small class="text-muted">Total Records</small>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <h5 class="text-success fw-bold">
+                                    {% widthratio completed_count maintenance_items|length 1 %}%
+                                </h5>
+                                <small class="text-muted">Completion Rate</small>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <h5 class="text-warning fw-bold">{{ pending_count }}</h5>
+                                <small class="text-muted">Pending</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

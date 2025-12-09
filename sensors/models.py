@@ -40,6 +40,7 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=20, choices=ROLES, default='public')
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     
     # Firefighter Specific
     station = models.ForeignKey(FireStation, on_delete=models.SET_NULL, null=True, blank=True)
@@ -104,8 +105,15 @@ class Maintenance(models.Model):
     details = models.TextField()
     in_charge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'userprofile__role': 'firefighter'})
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    picture = models.ImageField(upload_to='maintenance/', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"Maintenance for {self.sensor.name} - {self.status}"
 
 class Report(models.Model):
     station = models.ForeignKey(FireStation, on_delete=models.CASCADE)
@@ -113,5 +121,12 @@ class Report(models.Model):
     cause = models.CharField(max_length=100)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
     in_charge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'userprofile__role': 'firefighter'})
+    picture = models.ImageField(upload_to='reports/', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"{self.fire_type} at {self.address}"
