@@ -9,6 +9,7 @@ import json
 from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address
 from ml_engine.predictor import FirePredictor
 from django.core.serializers.json import DjangoJSONEncoder
+from .forms import SignUpForm
 
 # Init brain once
 predictor = FirePredictor()
@@ -26,7 +27,32 @@ def logout_view(request):
     # Optional: Handle GET request if someone types /logout/ manually
     # You can either allow it (less secure) or redirect them back
     return redirect('home')
+#============================
+# REGISTER VIEW
+#============================
+def register(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            
+            user = form.save(commit=False)
+            user.first_name = form.cleaned_data.get('first_name')
+            user.last_name = form.cleaned_data.get('last_name')
+            user.email = form.cleaned_data.get('email')
+            user.save()
 
+            messages.success(request, f'Account created for {user.username}!')
+            return redirect('login')
+        else:
+            messages.error(request, 'Registration failed. Please check errors.')
+    else:
+        form = SignUpForm()
+    
+    return render(request, 'sensors/register.html', {'form': form})
+
+# ==========================================
+#  API VIEWS FOR ESP32 DEVICE
+# ==========================================
 @csrf_exempt
 def receive_sensor_data(request):
     if request.method == 'POST':

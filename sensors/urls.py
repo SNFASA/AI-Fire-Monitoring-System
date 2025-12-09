@@ -10,6 +10,7 @@ urlpatterns = [
     # Authentication
     path('login/', LoginView.as_view(template_name='sensors/login.html'), name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register, name='register'),
     
     # User Profile
     path('profile/', views.profile, name='profile'),

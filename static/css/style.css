@@ -141,7 +141,7 @@ h6 {
 p {
     margin-bottom: 1rem;
     font-size: clamp(14px, 1.2vw, 16px);
-    color: var(--white);
+    color: var(--text-primary);
 }
 
 a {
@@ -154,9 +154,15 @@ a:hover {
     color: var(--primary-dark);
     text-decoration: underline;
 }
-
 [data-theme="dark"] a {
     color: #ff6b6b;
+}
+ p, span, label, li {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] p, [data-theme="dark"] span, [data-theme="dark"] label, [data-theme="dark"] li {
+    color: var(--white);
 }
 
 /* ================================
@@ -682,9 +688,12 @@ main {
 }
 
 .text-muted {
-    color: var(--secondary-color) !important;
+    color: var(--text-primary) !important;
 }
 
+[data-theme="dark"] .text-muted {
+    color: var(--dark-text) !important;
+}
 .text-center {
     text-align: center;
 }
