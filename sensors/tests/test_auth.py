@@ -36,27 +36,36 @@ class LoginTest(TestCase):
 
     def setUp(self):
         self.password = 'secret_login_pass'
-        self.user = UserFactory(password=self.password)
+        
+        # 1. Create the user using the Factory
+        self.user = UserFactory()
+        
+        # 2. 🔴 CRITICAL FIX: Hash the password manually
+        # Without this, the password in the DB is plain text and login fails.
+        self.user.set_password(self.password)
+        self.user.save()
+        
         self.url = reverse('login')
 
     def test_login_success(self):
-            response = self.client.post(self.url, {
-                'username': self.user.username,
-                'password': self.password
-            })
-            
-            # --- ADD THIS DEBUG BLOCK ---
-            if response.status_code == 200:
-                print("\n⚠️  LOGIN FAILED - DEBUG INFO:")
-                # This prints the error the page is showing (e.g., "Enter a correct username...")
-                if 'form' in response.context:
-                    print(response.context['form'].errors)
-            # -----------------------------
-
-            self.assertEqual(response.status_code, 302)
-            self.assertIn('_auth_user_id', self.client.session)
-            self.assertRedirects(response, reverse('home'))
+        response = self.client.post(self.url, {
+            'username': self.user.username,
+            'password': self.password
+        })
         
+        # Debug block (Optional, you can keep it just in case)
+        if response.status_code == 200:
+            print("\n LOGIN FAILED - DEBUG INFO:")
+            if 'form' in response.context:
+                print(response.context['form'].errors)
+
+        # Check for success redirect (302)
+        self.assertEqual(response.status_code, 302)
+        
+        # Check that the session now has the user ID (meaning they are logged in)
+        self.assertIn('_auth_user_id', self.client.session)
+        self.assertRedirects(response, reverse('home'))
+    
     def test_login_wrong_password(self):
         response = self.client.post(self.url, {
             'username': self.user.username,

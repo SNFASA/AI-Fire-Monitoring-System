@@ -172,31 +172,39 @@ def get_live_data(request):
 # ==========================================
 # USER PROFILE VIEWS
 # ==========================================
-
 @login_required(login_url='login')
 def profile(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     current_address = user_profile.address
+
     if request.method == 'POST':
+        print("\n---- DEBUG START ----")
+        print("FILES Data:", request.FILES) 
+
         u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=user_profile)
         a_form = AddressUpdateForm(request.POST, instance=user_profile.address)
+
         if u_form.is_valid() and p_form.is_valid() and a_form.is_valid():
-            if 'profile_picture' in request.FILES and user_profile.profile_picture:
-                try:
-                    user_profile.profile_picture.delete(save=False)
-                except Exception:
-                    pass
+            print("Forms are valid. Saving...")
             u_form.save()
-            p_form.save()
+            profile_instance = p_form.save()
+            
+            print(f"NEW Saved Image URL: {profile_instance.profile_picture}")
             address_instance = a_form.save()
             if not user_profile.address:
                 user_profile.address = address_instance
                 user_profile.save()
+
+            print("---- DEBUG END (SUCCESS) ----\n")
             messages.success(request, 'Your Profile updated successfully!')
             return redirect('profile')
+
         else:
+            print("\n!!! FORM VALIDATION FAILED !!!")
+            print("Profile Errors:", p_form.errors)
             messages.error(request, 'Please correct the error below.')
+
     else:
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=user_profile)

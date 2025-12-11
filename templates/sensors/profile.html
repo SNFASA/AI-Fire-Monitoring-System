@@ -80,7 +80,6 @@
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-                        
                         <h6 class="text-primary mb-3">Personal Details</h6>
                         <div class="row">
                             <div class="col-md-6">
@@ -171,6 +170,11 @@
                             <label class="form-label fw-bold">Upload New Photo</label>
                             <input type="file" class="form-control" name="profile_picture" accept="image/*" onchange="previewImage(this)">
                             <small class="text-muted">Max 5MB, JPG/PNG only</small>
+                            {% if p_form.profile_picture.errors %}
+                                <div class="text-danger small">
+                                    {{ p_form.profile_picture.errors.0 }}
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div class="d-grid">

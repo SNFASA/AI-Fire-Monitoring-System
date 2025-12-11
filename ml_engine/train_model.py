@@ -30,7 +30,7 @@ X = df.drop('status', axis=1)
 y = df['status']
 
 # Train-test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8, random_state=42, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 print(f"Training samples: {len(X_train)}, Testing samples: {len(X_test)}")
 
 # Model with high sensitivity 
