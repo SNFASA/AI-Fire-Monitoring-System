@@ -8,20 +8,13 @@ class UserProfileViewTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.url = reverse('profile')
-        
-        # 1. Create User with Factory
         self.user = UserFactory()
-        
-        # 🔴 CRITICAL FIX: You MUST hash the password for login to work
         self.user.set_password('password123') 
         self.user.save()
-        
-        # 2. Login
+
         is_logged_in = self.client.login(username=self.user.username, password='password123')
         if not is_logged_in:
             print("⚠️ WARNING: Login failed in setUp!")
-
-        # 3. Build Fake Data
         fake_profile = UserProfileFactory.build()
         fake_address = AddressFactory.build()
         
@@ -42,9 +35,7 @@ class UserProfileViewTest(TestCase):
         print("\n--- Testing Profile Update ---")
         
         response = self.client.post(self.url, self.valid_data)
-
-        # 🔵 DEBUG FUNCTION: If it didn't redirect (302), it means it failed.
-        # This block prints WHY it failed.
+        #  DEBUG 
         if response.status_code == 200:
             print("\n❌ TEST FAILED: Form Validation Errors found:")
             # Check all 3 forms for errors
@@ -54,11 +45,8 @@ class UserProfileViewTest(TestCase):
                 print(f"Profile Form Errors: {response.context['p_form'].errors}")
             if 'a_form' in response.context:
                 print(f"Address Form Errors: {response.context['a_form'].errors}")
-        
-        # Check for success redirect (302)
         self.assertEqual(response.status_code, 302)
-        
-        # Verify Database Updates
+
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, self.valid_data['first_name'])
 
@@ -72,7 +60,7 @@ class UserProfileViewTest(TestCase):
         print("\n--- Testing Profile Page Load ---")
         response = self.client.get(self.url)
         
-        # DEBUG: If we get 302 here, it means the user isn't logged in
+        # DEBUG
         if response.status_code == 302:
             print(f"❌ FAILED: Redirected to {response.url} (Likely Login Failure)")
             

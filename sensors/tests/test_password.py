@@ -1,0 +1,68 @@
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth.models import User
+from sensors.tests.factories import UserFactory
+
+class ChangePasswordTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse('change_password') 
+        self.old_password = 'OldPassword123!'
+        self.user = UserFactory()
+        self.user.set_password(self.old_password)
+        self.user.save()
+        self.client.login(username=self.user.username, password=self.old_password)
+
+    def test_change_password_success(self):
+        new_password = 'NewStrongPassword1!'
+        
+        data = {
+            'old_password': self.old_password,
+            'new_password': new_password,
+            'confirm_password': new_password
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 302)
+        self.client.logout()
+        login_success = self.client.login(username=self.user.username, password=new_password)
+        self.assertTrue(login_success)
+        print("\n✅ Test Passed: Password changed successfully.")
+
+    def test_wrong_old_password(self):
+        """Test that providing the wrong old password fails"""
+        data = {
+            'old_password': 'WrongPassword!!!',
+            'new_password': 'NewPassword123!',
+            'confirm_password': 'NewPassword123!'
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Current password is incorrect")
+        
+        print("✅ Test Passed: Wrong old password blocked.")
+
+    def test_password_mismatch(self):
+        """Test that mismatched new passwords fail"""
+        data = {
+            'old_password': self.old_password,
+            'new_password': 'PasswordA123!',
+            'confirm_password': 'PasswordB999!'
+        }
+        
+        response = self.client.post(self.url, data)
+        
+        self.assertEqual(response.status_code, 200)
+        print("✅ Test Passed: Mismatched passwords blocked.")
+
+    def test_password_too_short(self):
+        """Test backend validation for short passwords"""
+        data = {
+            'old_password': self.old_password,
+            'new_password': '123',
+            'confirm_password': '123'
+        }
+        
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        print("✅ Test Passed: Short password blocked.")
