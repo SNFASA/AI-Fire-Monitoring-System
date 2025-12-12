@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
+import os 
 
+#===========================================
+# Helper (upload layout houses)
+#===========================================
+def user_directory_path(instance, filename):
+    return f'floor_plans/user_{instance.user.id}/{filename}'
 # ==========================================
 # 1. ADDRESS & FIRESTATION 
 # ==========================================
@@ -52,9 +58,19 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.role}"
-
+#==================================
+# 3. House Layout 
+#==================================
+class Houselayout(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=user_directory_path)
+    name = models.CharField(max_length= 100)
+    timestamp = models.DateTimeField(auto_now_add= True)
+    
+    def __str__(self):
+        return f"Layout for {self.user.username}: {self.name}" 
 # ==========================================
-# 3. SENSORS
+# 4. SENSORS
 # ==========================================
 
 class Sensor(models.Model):
@@ -63,6 +79,9 @@ class Sensor(models.Model):
     is_active = models.BooleanField(default=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+    layout = models.ForeignKey(Houselayout, on_delete=models.SET_NULL, null=True, blank=True )
+    x_position = models.FloatField(null=True, blank=True, help_text="Horizontal % on floor plan")
+    y_position = models.FloatField(null=True, blank=True, help_text="Vertical % on floor plan")
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
@@ -130,3 +149,6 @@ class Report(models.Model):
     
     def __str__(self):
         return f"{self.fire_type} at {self.address}"
+
+
+   

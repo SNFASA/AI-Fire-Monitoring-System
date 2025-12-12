@@ -1,0 +1,396 @@
+{% extends "sensors/layout/master.html" %}
+{% load static %}
+
+{% block title %}
+    {% if role == 'firefighter' %}Command Center{% else %}My House Layout{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* --- ANIMATIONS --- */
+    @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+    @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
+
+    /* --- GLOBAL MAP CONTAINER --- */
+    .map-wrapper, .map-container-wrapper { width: 100%; height: 85vh; position: relative; border-radius: 12px; overflow: hidden; background: #222; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    #map { width: 100%; height: 100%; }
+
+    /* --- POPUP TEXT (Black) --- */
+    .maplibregl-popup-content { color: #000; font-weight: bold; font-size: 14px; border: 2px solid #0d6efd; border-radius: 8px; }
+
+    /* --- SENSOR NODES --- */
+    .sensor-node { width: 35px; height: 35px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; position: absolute; z-index: 10; cursor: grab; box-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: transform 0.1s; }
+    .sensor-node:active { transform: scale(1.2); cursor: grabbing; }
+
+    /* --- STATUS COLORS --- */
+    .bg-safe { background: #198754; } 
+    .bg-fire { background: #dc3545; animation: pulse-red 1s infinite; }
+    .bg-warn { background: #ffc107; color: black; animation: pulse-yellow 1s infinite; }
+
+    /* --- MARKERS (Firefighter Map) --- */
+    .marker-fire { width: 40px; height: 40px; background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%); border: 3px solid white; border-radius: 50%; animation: pulse-red 1s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; }
+    .marker-safe { width: 15px; height: 15px; background: #198754; border: 2px solid white; border-radius: 50%; opacity: 0.8; }
+    .marker-warning { width: 30px; height: 30px; background: #ffc107; border: 2px solid white; border-radius: 50%; animation: pulse-yellow 1s infinite; display: flex; justify-content: center; align-items: center; color: black; }
+
+    /* --- BLUEPRINT GRID (Public View) --- */
+    .blueprint-wrapper {
+        width: 100%; height: 600px; position: relative;
+        background-color: #0d1b2a; 
+        border: 4px solid #1b263b; border-radius: 8px; overflow: hidden;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+        box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .blueprint-image {
+        max-width: 100%; max-height: 100%; object-fit: contain; z-index: 1;
+        filter: invert(1) grayscale(1) brightness(1.5) contrast(1.2); /* The Blueprint Effect */
+        opacity: 0.85; mix-blend-mode: screen;
+    }
+    .blueprint-label {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        font-family: 'Courier New', Courier, monospace; font-size: 5rem;
+        color: rgba(255, 255, 255, 0.05); font-weight: bold; pointer-events: none; z-index: 0;
+    }
+</style>
+
+{% if role == 'public' %}
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white d-flex align-items-center">
+                    <i class="fas fa-microchip me-2"></i><h5 class="mb-0">My Sensors</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3"><i class="fas fa-hand-pointer"></i> Drag sensors onto your blueprint.</p>
+                    <ul class="list-group list-group-flush mb-3">
+                        {% for sensor in sensors %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <div><span class="badge bg-secondary rounded-pill me-2" style="width: 25px;">{{ forloop.counter }}</span><span class="fw-bold text-dark">{{ sensor.name }}</span></div>
+                            {% with status=sensor.readings.last.status|default:"Safe" %}
+                            <span class="badge rounded-pill {% if status == 'Fire' %}bg-danger animate-pulse{% elif status == 'Warning' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ status }}</span>
+                            {% endwith %}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted">No sensors active.</li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'upload_layout' %}" class="btn btn-outline-primary w-100">Change Layout</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow h-100">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-project-diagram me-2"></i> Digital Blueprint</h4>
+                    <span class="badge bg-white text-primary">Live</span>
+                </div>
+                <div class="card-body p-3 bg-light">
+                    <div id="user-map-container" class="blueprint-wrapper">
+                        <div class="blueprint-label">HOUSE</div>
+                        {% if layout %}
+                            <img src="{{ layout.image.url }}" class="blueprint-image" alt="Layout">
+                        {% else %}
+                            <div class="text-white-50 text-center" style="z-index:2;"><i class="fas fa-image fa-3x mb-3"></i><br><h3>No Layout</h3></div>
+                        {% endif %}
+                        {% for sensor in sensors %}
+                        <div class="sensor-node {% if sensor.readings.last.status == 'Fire' %}bg-fire{% elif sensor.readings.last.status == 'Warning' %}bg-warn{% else %}bg-safe{% endif %}"
+                             id="sensor-{{ sensor.id }}" draggable="true"
+                             style="left: {{ sensor.x_position|default:0 }}%; top: {{ sensor.y_position|default:0 }}%;">
+                            {{ forloop.counter }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const sensors = document.querySelectorAll('.sensor-node');
+    const container = document.getElementById('user-map-container');
+    sensors.forEach(sensor => {
+        let isDragging = false;
+        sensor.addEventListener('mousedown', (e) => { isDragging = true; e.preventDefault(); });
+        document.addEventListener('mouseup', () => { if(isDragging) { isDragging = false; savePosition(sensor); } });
+        container.addEventListener('mousemove', (e) => {
+            if(!isDragging) return;
+            const rect = container.getBoundingClientRect();
+            let x = ((e.clientX - rect.left) / rect.width) * 100;
+            let y = ((e.clientY - rect.top) / rect.height) * 100;
+            x = Math.max(0, Math.min(x, 96)); y = Math.max(0, Math.min(y, 96));
+            sensor.style.left = x + '%'; sensor.style.top = y + '%';
+        });
+    });
+    function savePosition(sensor) {
+        let id = sensor.id.split('-')[1];
+        fetch("{% url 'update_sensor_pos' %}", {
+            method: "POST",
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({sensor_id: id, x: parseFloat(sensor.style.left), y: parseFloat(sensor.style.top)})
+        });
+    }
+</script>
+
+
+{% elif role == 'firefighter' %}
+
+<style>
+    .map-overlay-top-left { position: absolute; top: 15px; left: 15px; z-index: 10; }
+    .map-overlay-top-right { position: absolute; top: 15px; right: 60px; z-index: 10; }
+    .style-switcher { background: rgba(255,255,255,0.95); padding: 5px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 5px; }
+    .map-btn { padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 5px;color: black; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .map-btn:hover { background: #f8f9fa; } .map-btn.active { background: #0d6efd; color: white; border-color: #0d6efd; }
+    .status-panel { display: flex; gap: 10px; }
+    .status-item { padding: 8px 15px; border-radius: 20px; color: white; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+    .status-fire { background-color: #dc3545; animation: pulse-red 1.5s infinite; }
+    .status-warn { background-color: #ffc107;  animation: pulse-yellow 1.5s infinite; }
+</style>
+
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold ">
+            <i class="fas fa-fire-extinguisher text-danger"></i> Command Center - {{ station_name }}
+        </h4>
+    </div>
+    <div class="map-container-wrapper" id="fullscreen-target">
+        <div id="map">
+            <div class="map-overlay-top-left">
+                <div class="style-switcher">
+                    <button class="map-btn active" onclick="switchStyle('streets', this)"><i class="fas fa-sun text-warning"></i> Light</button>
+                    <button class="map-btn" onclick="switchStyle('dark', this)"><i class="fas fa-moon text-secondary"></i> Dark</button>
+                    <button class="map-btn" onclick="switchStyle('satellite', this)"><i class="fas fa-satellite text-primary"></i> Satellite</button>
+                </div>
+            </div>
+            <div class="map-overlay-top-right">
+                <div class="status-panel">
+                    <div class="status-item status-fire"><i class="fas fa-fire"></i> <span id="fire-count">0</span> Fires</div>
+                    <div class="status-item status-warn"><i class="fas fa-exclamation-triangle"></i> <span id="warning-count">0</span> Warn</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="layoutModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalTitle">Incident Layout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light" style="height: 70vh;">
+                <div class="blueprint-wrapper" style="height: 100%;">
+                    <div class="blueprint-label">VICTIM HOUSE</div>
+                    <img id="modal-layout-img" src="" class="blueprint-image" style="display:none;">
+                    <div id="modal-sensors"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+    // --- 1. CONFIGURATION ---
+    const STATION_LAT = parseFloat("{{ station_lat|default:'1.8548' }}");
+    const STATION_LNG = parseFloat("{{ station_lng|default:'103.0848' }}");
+    const STATION_RADIUS_KM = parseFloat("{{ station_radius|default:'3.0' }}");
+    const STATION_LOC = [STATION_LNG, STATION_LAT];
+    const STATION_NAME = "{{ station_name|default:'HQ' }}";
+
+    const STYLES = {
+        'streets': 'https://tiles.openfreemap.org/styles/liberty', 
+        'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+    };
+
+    // --- 2. INIT MAP ---
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: STYLES.streets,
+        center: STATION_LOC,
+        zoom: 13,
+        pitch: 60,
+        bearing: 0,
+        antialias: true
+    });
+
+    // --- FIX: HANDLE MISSING IMAGES (Stops console errors) ---
+    map.on('styleimagemissing', (e) => {
+        // Load a transparent 1x1 pixel for missing icons like 'office', 'gate', etc.
+        if (!map.hasImage(e.id)) {
+            var image = new Image(1, 1);
+            image.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            map.addImage(e.id, image);
+        }
+    });
+
+    // --- 3. CONTROLS ---
+    map.addControl(new maplibregl.FullscreenControl({ container: document.querySelector('.map-container-wrapper') }), 'top-right');
+    map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+    map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'bottom-right');
+
+    // --- 4. LAYER LOGIC ---
+
+    function createGeoJSONCircle(center, radiusInKm, points = 64) {
+        if(!center) return null;
+        const coords = { latitude: center[1], longitude: center[0] };
+        const ret = [];
+        const distanceX = radiusInKm / (111.320 * Math.cos(coords.latitude * Math.PI / 180));
+        const distanceY = radiusInKm / 110.574;
+        for(let i=0; i<points; i++) {
+            let theta = (i/points)*(2*Math.PI);
+            let x = distanceX * Math.cos(theta);
+            let y = distanceY * Math.sin(theta);
+            ret.push([coords.longitude+x, coords.latitude+y]);
+        }
+        ret.push(ret[0]);
+        return { "type": "geojson", "data": { "type": "FeatureCollection", "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] } };
+    }
+
+    function updateLayers(isDark = false) {
+        // A. FIRE STATION ZONE
+        if(!map.getSource('fire-zone')) {
+            const circle = createGeoJSONCircle(STATION_LOC, STATION_RADIUS_KM);
+            if(circle) map.addSource('fire-zone', circle);
+        }
+        if(map.getSource('fire-zone') && !map.getLayer('zone-fill')) {
+            map.addLayer({ 'id': 'zone-fill', 'type': 'fill', 'source': 'fire-zone', 'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.15 } });
+        }
+        if(map.getSource('fire-zone') && !map.getLayer('zone-line')) {
+            map.addLayer({ 'id': 'zone-line', 'type': 'line', 'source': 'fire-zone', 'paint': { 'line-color': '#0d6efd', 'line-width': 2, 'line-dasharray': [2, 2] } });
+        }
+
+        // B. 3D BUILDINGS (FIXED NULL ERROR)
+        if (!map.getSource('openfreemap')) {
+            map.addSource('openfreemap', { 'type': 'vector', 'tiles': ['https://tiles.openfreemap.org/planet/{z}/{x}/{y}.pbf'] });
+        }
+        
+        if (!map.getLayer('3d-buildings')) {
+            map.addLayer({
+                'id': '3d-buildings', 'source': 'openfreemap', 'source-layer': 'building',
+                'type': 'fill-extrusion', 'minzoom': 15,
+                'paint': {
+                    'fill-extrusion-color': isDark ? '#444' : '#ccc',
+                    // CRITICAL FIX: 'coalesce' handles null values by defaulting to 0
+                    'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 15, 0, 15.05, ['coalesce', ['get', 'render_height'], 0]],
+                    'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 15, 0, 15.05, ['coalesce', ['get', 'render_min_height'], 0]],
+                    'fill-extrusion-opacity': 0.7
+                }
+            });
+        }
+
+        // C. STATION MARKER
+        if(!document.getElementById('station-marker-el')) {
+            const el = document.createElement('div');
+            el.id = 'station-marker-el';
+            el.innerHTML = '<i class="fas fa-building-shield"></i>';
+            el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px;';
+            new maplibregl.Marker({ element: el })
+                .setLngLat(STATION_LOC)
+                .setPopup(new maplibregl.Popup({offset: 25}).setText(STATION_NAME))
+                .addTo(map);
+        }
+    }
+
+    // --- 5. EVENTS ---
+    map.on('load', () => { updateLayers(false); });
+
+    window.switchStyle = function(styleName, btn) {
+        document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (styleName === 'satellite') {
+            map.setStyle({
+                'version': 8,
+                'sources': {
+                    'raster-tiles': {
+                        'type': 'raster',
+                        'tiles': ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+                        'tileSize': 256
+                    }
+                },
+                'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}]
+            });
+        } else {
+            map.setStyle(STYLES[styleName]);
+        }
+
+        map.once('styledata', () => {
+            updateLayers(styleName === 'dark');
+            fetchMapData(); 
+        });
+    };
+
+    // --- 6. REAL-TIME DATA ---
+    const markers = {};
+    function fetchMapData() {
+        fetch("{% url 'map_data' %}")
+        .then(res => res.json())
+        .then(data => {
+            let fireCount = 0, warnCount = 0;
+            data.houses.forEach(house => {
+                if(house.status === 'Fire') fireCount++;
+                if(house.status === 'Warning') warnCount++;
+
+                let cls = 'marker-safe', icon = '';
+                if(house.status === 'Fire') { cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; }
+                else if(house.status === 'Warning') { cls = 'marker-warning'; icon = '<i class="fas fa-exclamation"></i>'; }
+
+                if(markers[house.id]) {
+                    markers[house.id].getElement().className = cls;
+                    markers[house.id].getElement().innerHTML = icon;
+                    markers[house.id].setLngLat([house.lng, house.lat]);
+                } else {
+                    const el = document.createElement('div');
+                    el.className = cls; el.innerHTML = icon;
+                    el.addEventListener('click', () => openLayoutModal(house.id));
+                    markers[house.id] = new maplibregl.Marker({ element: el })
+                        .setLngLat([house.lng, house.lat])
+                        .setPopup(new maplibregl.Popup({ offset: 25 }).setText(house.address))
+                        .addTo(map);
+                }
+            });
+            document.getElementById('fire-count').innerText = fireCount;
+            document.getElementById('warning-count').innerText = warnCount;
+        });
+    }
+    setInterval(fetchMapData, 3000);
+    fetchMapData();
+
+    // --- 7. MODAL ---
+    function openLayoutModal(userId) {
+        const modal = new bootstrap.Modal(document.getElementById('layoutModal'));
+        modal.show();
+        fetch(`/api/get-victim-layout/${userId}/`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                const img = document.getElementById('modal-layout-img');
+                img.src = data.image_url;
+                img.style.display = 'block';
+                const container = document.getElementById('modal-sensors');
+                container.innerHTML = '';
+                data.sensors.forEach((s, i) => {
+                    const node = document.createElement('div');
+                    node.className = `sensor-node ${s.status === 'Fire' ? 'bg-fire' : s.status === 'Warning' ? 'bg-warn' : 'bg-safe'}`;
+                    node.style.left = s.x + '%'; node.style.top = s.y + '%';
+                    node.innerText = i + 1;
+                    container.appendChild(node);
+                });
+            } else { alert("No floor plan."); modal.hide(); }
+        });
+    }
+</script>
+
+{% endif %}
+{% endblock %}

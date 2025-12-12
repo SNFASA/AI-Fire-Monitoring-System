@@ -164,7 +164,12 @@ a:hover {
 [data-theme="dark"] p, [data-theme="dark"] span, [data-theme="dark"] label, [data-theme="dark"] li {
     color: var(--white);
 }
-
+[data-theme="dark"]h1, h2, h3, h4, h5, h6 {
+    color: var(--white);
+}
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+}
 /* ================================
    NAVBAR & HEADER
    ================================ */

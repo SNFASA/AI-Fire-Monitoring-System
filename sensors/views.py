@@ -6,16 +6,18 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 import json
-from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address
+from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address, Houselayout
 from ml_engine.predictor import FirePredictor
 from django.core.serializers.json import DjangoJSONEncoder
-from .forms import SignUpForm, UserUpdateForm, ProfileUpdateForm, AddressUpdateForm
+from .forms import SignUpForm, UserUpdateForm, ProfileUpdateForm, AddressUpdateForm, HouseLayoutForm, SensorPlacementForm
+import leafmap.maplibregl as leafmap
+import math
 
 # Init brain once
 predictor = FirePredictor()
 
 # ==========================================
-#  AUTHENTICATION VIEWS
+#  AUTHENTICATION VIEWS (Done)
 # ==========================================
 
 def logout_view(request):
@@ -28,7 +30,7 @@ def logout_view(request):
     # You can either allow it (less secure) or redirect them back
     return redirect('home')
 #============================
-# REGISTER VIEW
+# REGISTER VIEW (Done)
 #============================
 def register(request):
     if request.method == 'POST':
@@ -170,7 +172,7 @@ def get_live_data(request):
     })
 
 # ==========================================
-# USER PROFILE VIEWS
+# USER PROFILE VIEWS (Done)
 # ==========================================
 @login_required(login_url='login')
 def profile(request):
@@ -219,7 +221,7 @@ def profile(request):
     
     return render(request, 'sensors/profile.html', context)
 # ==========================================
-# CHANGE PASSWORD VIEW
+# CHANGE PASSWORD VIEW (Done)
 # ==========================================
 
 @login_required(login_url='login')
@@ -380,3 +382,175 @@ def create_report(request):
         'addresses': addresses,
     }
     return render(request, 'sensors/create_report.html', context)
+
+#========================================
+# Upload House Layout
+#========================================
+@login_required(login_url='login')
+def upload_layout(request):
+    existing_layout = Houselayout.objects.filter(user=request.user).first()
+    if request.method == "POST":
+        form = HouseLayoutForm(request.POST, request.FILES, instance=existing_layout)
+        if form.is_valid():
+            layout = form.save(commit=False)
+            layout.user = request.user
+            layout.save()
+            return redirect('maps')
+    else:
+        form = HouseLayoutForm(instance=existing_layout)
+        print("\n!!! FORM VALIDATION FAILED !!!")
+        print("Profile Errors:", form.errors)
+        messages.error(request, 'Please correct the error below.')
+    return render(request, 'sensors/upload_layout.html', {'form': form})
+
+# ==========================================
+# THE MAIN MAPS PAGE (Unified)
+# ==========================================
+@login_required(login_url='login')
+def maps(request):
+    try:
+        user_profile = request.user.userprofile
+    except UserProfile.DoesNotExist:
+        return render(request, 'sensors/maps.html', {'role': 'unknown'})
+
+    context = {
+        'role': user_profile.role,
+        'user_profile': user_profile,
+        'sensors': Sensor.objects.all(),
+    }
+    
+    # --- FIRE STATION LOGIC ---
+    try:
+        station = FireStation.objects.first()
+        
+        # Default fallback values
+        lat = 1.8548
+        lng = 103.0848
+        radius_km = 3.0
+        name = "HQ (Default)"
+
+        if station and station.address:
+            # 1. Get Coordinates
+            if station.address.latitude is not None and station.address.longitude is not None:
+                lat = station.address.latitude
+                lng = station.address.longitude # CHANGED to 'lng'
+            
+            # 2. Get Name
+            name = station.name
+
+            # 3. Calculate Radius
+            if station.cover_area_sqm:
+                import math
+                # formula: radius = sqrt(area / pi) / 1000 (for km)
+                radius_meters = math.sqrt(station.cover_area_sqm / math.pi)
+                radius_km = radius_meters / 1000
+
+        # Pass to context with CORRECT keys
+        context['station_lat'] = lat
+        context['station_lng'] = lng  # FIXED: Matches template variable
+        context['station_radius'] = radius_km
+        context['station_name'] = name
+
+    except Exception as e:
+        print(f"Map Error: {e}")
+        # Fallback if DB crashes
+        context['station_lat'] = 1.8548
+        context['station_lng'] = 103.0848
+        context['station_radius'] = 3.0
+        context['station_name'] = "HQ (Error)"
+
+    # PUBLIC USER LOGIC
+    if user_profile.role == 'public':
+        layout = Houselayout.objects.filter(user=request.user).first()
+        sensors = user_profile.sensors.all()
+        context.update({'layout': layout, 'sensors': sensors})
+
+    return render(request, 'sensors/maps.html', context)
+
+# ==========================================
+#  API: Firefighter 3D Map Data
+# ==========================================
+@login_required
+def firefighter_map_data(request):
+    # Only Firefighters
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.role != 'firefighter':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    data = []
+    users = UserProfile.objects.filter(role='public').select_related('address')
+
+    for profile in users:
+        if profile.address and profile.address.latitude and profile.address.longitude:
+            sensors = profile.sensors.all()
+            status = "Safe"
+            
+            # Determine status based on highest threat
+            for s in sensors:
+                last = s.readings.last()
+                if last:
+                    if last.status == 'Fire':
+                        status = 'Fire'
+                        break
+                    elif last.status == 'GasLeak' and status != 'Fire':
+                        status = 'GasLeak'
+
+            data.append({
+                'id': profile.user.id, # We use User ID to fetch layout later
+                'owner': profile.user.username,
+                'lat': profile.address.latitude,
+                'lng': profile.address.longitude,
+                'status': status
+            })
+
+    return JsonResponse({'houses': data})
+
+# ==========================================
+# API: Get Specific Victim Layout
+# ==========================================
+@login_required
+def get_victim_layout(request, user_id):
+    # Security: Only firefighters can see other people's layouts
+    if request.user.userprofile.role != 'firefighter':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    try:
+        layout = Houselayout.objects.get(user_id=user_id)
+        sensors = Sensor.objects.filter(owner__user_id=user_id)
+        
+        sensor_data = []
+        for s in sensors:
+            reading = s.readings.last()
+            status = reading.status if reading else 'Safe'
+            sensor_data.append({
+                'name': s.name,
+                'x': s.x_position,
+                'y': s.y_position,
+                'status': status
+            })
+
+        return JsonResponse({
+            'success': True,
+            'image_url': layout.image.url,
+            'owner': layout.user.username,
+            'sensors': sensor_data
+        })
+    except Houselayout.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'No layout found for this user'})
+
+# ==========================================
+# API: Save Sensor Position (User only)
+# ==========================================
+@csrf_exempt
+@login_required
+def update_sensor_position(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        try:
+            sensor = Sensor.objects.get(id=data['sensor_id'], owner__user=request.user)
+            sensor.x_position = data['x']
+            sensor.y_position = data['y']
+            sensor.save()
+            return JsonResponse({'success': True})
+        except Sensor.DoesNotExist:
+            return JsonResponse({'success': False})
+    return JsonResponse({'success': False})
