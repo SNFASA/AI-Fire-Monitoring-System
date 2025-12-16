@@ -133,8 +133,9 @@ def dashboard(request):
     }
     
     return render(request, 'sensors/dashboard.html', context)
-
+#=========================================  
 #The Live Data API (JavaScript calls this every 2 seconds)
+#=========================================
 def get_live_data(request):
     # Get Map Data (Active Sensors + Current Status)
     active_sensors = Sensor.objects.filter(is_active=True)
@@ -402,9 +403,95 @@ def upload_layout(request):
         print("Profile Errors:", form.errors)
         messages.error(request, 'Please correct the error below.')
     return render(request, 'sensors/upload_layout.html', {'form': form})
+#==========================================
+# ADD SENSOR 
+#==========================================
+@login_required
+def add_sensor(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            sensor_name = data.get('name')
+            
+            if not sensor_name:
+                return JsonResponse({'success': False, 'error': 'Name is required'})
 
+            user_profile = request.user.userprofile
+            user_layout = Houselayout.objects.filter(user=request.user).first()
+
+            # Create the sensor
+            new_sensor = Sensor.objects.create(
+                owner=user_profile,
+                name=sensor_name,
+                layout=user_layout,
+                x_position=5.0,  # Default to top-left
+                y_position=5.0,
+                is_active=True
+            )
+            
+            return JsonResponse({
+                'success': True, 
+                'sensor_id': new_sensor.id, 
+                'name': new_sensor.name
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+            
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 # ==========================================
-# THE MAIN MAPS PAGE (Unified)
+# API: Add New Sensor
+# ==========================================
+@login_required
+def add_sensor(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            sensor_name = data.get('name')
+            
+            if not sensor_name:
+                return JsonResponse({'success': False, 'error': 'Name is required'})
+
+            user_profile = request.user.userprofile
+            user_layout = Houselayout.objects.filter(user=request.user).first()
+
+            # Create the sensor
+            new_sensor = Sensor.objects.create(
+                owner=user_profile,
+                name=sensor_name,
+                layout=user_layout,
+                x_position=5.0,  # Default: Top-left corner (5%)
+                y_position=5.0,  # Default: Top-left corner (5%)
+                is_active=True
+            )
+            
+            return JsonResponse({
+                'success': True, 
+                'sensor_id': new_sensor.id, 
+                'name': new_sensor.name
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+            
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+# ==========================================
+# API: Save Sensor Position (User only)
+# ==========================================
+@csrf_exempt
+@login_required
+def update_sensor_position(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        try:
+            sensor = Sensor.objects.get(id=data['sensor_id'], owner__user=request.user)
+            sensor.x_position = data['x']
+            sensor.y_position = data['y']
+            sensor.save()
+            return JsonResponse({'success': True})
+        except Sensor.DoesNotExist:
+            return JsonResponse({'success': False})
+    return JsonResponse({'success': False})
+# ==========================================
+# THE MAIN MAPS PAGE 
 # ==========================================
 @login_required(login_url='login')
 def maps(request):
@@ -537,89 +624,5 @@ def get_victim_layout(request, user_id):
     except Houselayout.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'No layout found for this user'})
 
-# ==========================================
-# API: Save Sensor Position (User only)
-# ==========================================
-@csrf_exempt
-@login_required
-def update_sensor_position(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        try:
-            sensor = Sensor.objects.get(id=data['sensor_id'], owner__user=request.user)
-            sensor.x_position = data['x']
-            sensor.y_position = data['y']
-            sensor.save()
-            return JsonResponse({'success': True})
-        except Sensor.DoesNotExist:
-            return JsonResponse({'success': False})
-    return JsonResponse({'success': False})
-# sensors/views.py
 
-@login_required
-def add_sensor(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            sensor_name = data.get('name')
-            
-            if not sensor_name:
-                return JsonResponse({'success': False, 'error': 'Name is required'})
 
-            user_profile = request.user.userprofile
-            user_layout = Houselayout.objects.filter(user=request.user).first()
-
-            # Create the sensor
-            new_sensor = Sensor.objects.create(
-                owner=user_profile,
-                name=sensor_name,
-                layout=user_layout,
-                x_position=5.0,  # Default to top-left
-                y_position=5.0,
-                is_active=True
-            )
-            
-            return JsonResponse({
-                'success': True, 
-                'sensor_id': new_sensor.id, 
-                'name': new_sensor.name
-            })
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-            
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
-# ==========================================
-# API: Add New Sensor
-# ==========================================
-@login_required
-def add_sensor(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            sensor_name = data.get('name')
-            
-            if not sensor_name:
-                return JsonResponse({'success': False, 'error': 'Name is required'})
-
-            user_profile = request.user.userprofile
-            user_layout = Houselayout.objects.filter(user=request.user).first()
-
-            # Create the sensor
-            new_sensor = Sensor.objects.create(
-                owner=user_profile,
-                name=sensor_name,
-                layout=user_layout,
-                x_position=5.0,  # Default: Top-left corner (5%)
-                y_position=5.0,  # Default: Top-left corner (5%)
-                is_active=True
-            )
-            
-            return JsonResponse({
-                'success': True, 
-                'sensor_id': new_sensor.id, 
-                'name': new_sensor.name
-            })
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-            
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
