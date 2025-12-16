@@ -31,11 +31,15 @@ urlpatterns = [
     # Live Data API (The Website checks this every 2 seconds)
     path('api/live-data/', views.get_live_data, name='live_data'),
     
-    #maps 
+    # Page Views
     path('maps/', views.maps, name='maps'),
     path('upload-layout/', views.upload_layout, name='upload_layout'),
-    # APIs
-    path('api/map-data/', views.firefighter_map_data, name='map_data'),
-    path('api/get-victim-layout/<int:user_id>/', views.get_victim_layout, name='get_victim_layout'),
+
+    # API Endpoints (These feed the maps)
+    path('api/add-sensor/', views.add_sensor, name='add_sensor'),
     path('api/update-sensor-pos/', views.update_sensor_position, name='update_sensor_pos'),
+    
+    # --- THIS LINE FIXES THE FIREFIGHTER MAP DOTS ---
+    path('api/map-data/', views.firefighter_map_data, name='map_data'), 
+    path('api/get-victim-layout/<int:user_id>/', views.get_victim_layout, name='get_victim_layout'),
 ]

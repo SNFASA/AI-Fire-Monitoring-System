@@ -554,3 +554,72 @@ def update_sensor_position(request):
         except Sensor.DoesNotExist:
             return JsonResponse({'success': False})
     return JsonResponse({'success': False})
+# sensors/views.py
+
+@login_required
+def add_sensor(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            sensor_name = data.get('name')
+            
+            if not sensor_name:
+                return JsonResponse({'success': False, 'error': 'Name is required'})
+
+            user_profile = request.user.userprofile
+            user_layout = Houselayout.objects.filter(user=request.user).first()
+
+            # Create the sensor
+            new_sensor = Sensor.objects.create(
+                owner=user_profile,
+                name=sensor_name,
+                layout=user_layout,
+                x_position=5.0,  # Default to top-left
+                y_position=5.0,
+                is_active=True
+            )
+            
+            return JsonResponse({
+                'success': True, 
+                'sensor_id': new_sensor.id, 
+                'name': new_sensor.name
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+            
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+# ==========================================
+# API: Add New Sensor
+# ==========================================
+@login_required
+def add_sensor(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            sensor_name = data.get('name')
+            
+            if not sensor_name:
+                return JsonResponse({'success': False, 'error': 'Name is required'})
+
+            user_profile = request.user.userprofile
+            user_layout = Houselayout.objects.filter(user=request.user).first()
+
+            # Create the sensor
+            new_sensor = Sensor.objects.create(
+                owner=user_profile,
+                name=sensor_name,
+                layout=user_layout,
+                x_position=5.0,  # Default: Top-left corner (5%)
+                y_position=5.0,  # Default: Top-left corner (5%)
+                is_active=True
+            )
+            
+            return JsonResponse({
+                'success': True, 
+                'sensor_id': new_sensor.id, 
+                'name': new_sensor.name
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+            
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
