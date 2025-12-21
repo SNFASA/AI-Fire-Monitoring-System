@@ -135,20 +135,45 @@ class Maintenance(models.Model):
         return f"Maintenance for {self.sensor.name} - {self.status}"
 
 class Report(models.Model):
-    station = models.ForeignKey(FireStation, on_delete=models.CASCADE)
-    fire_type = models.CharField(max_length=100) 
-    cause = models.CharField(max_length=100)
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
-    in_charge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'userprofile__role': 'firefighter'})
-    picture = models.ImageField(upload_to='reports/', null=True, blank=True)
+    STATUS_CHOICES = (
+        ('System Detected', 'System Detected'),
+        ('Confirmed', 'Confirmed Real Fire'),
+        ('False Alarm', 'False Alarm'),
+        ('Resolved', 'Resolved')
+    )
+
+    # -- System Auto-Filled Info --
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='System Detected')
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
+    # Snapshot of data when fire was detected
+    address = models.ForeignKey('Address', on_delete=models.SET_NULL, null=True)
+    trigger_sensor = models.ForeignKey('Sensor', on_delete=models.SET_NULL, null=True, help_text="The sensor that first detected the fire")
+    trigger_temperature = models.FloatField(null=True, blank=True)
+    trigger_gas_level = models.IntegerField(null=True, blank=True, help_text="Combined Gas/Smoke level")
+    
+    # -- Firefighter Inputs (Nullable because system creates report first) --
+    station = models.ForeignKey('FireStation', on_delete=models.SET_NULL, null=True, blank=True)
+    in_charge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'userprofile__role': 'firefighter'})
+    fire_type = models.CharField(max_length=100, null=True, blank=True) 
+    cause = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True, blank=True, help_text="Firefighter's detailed report")
+
     class Meta:
         ordering = ['-timestamp']
     
     def __str__(self):
-        return f"{self.fire_type} at {self.address}"
+        return f"Report #{self.id} - {self.status} at {self.address}"
+
+# New Model for Multiple Images
+class ReportImage(models.Model):
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='reports/evidence/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Image for Report #{self.report.id}"
 
 
    

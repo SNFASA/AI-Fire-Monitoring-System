@@ -1,0 +1,144 @@
+from django.utils import timezone
+from datetime import timedelta
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Sensor, Houselayout, UserProfile
+
+# --- HELPER FUNCTION: FIX OFFLINE LOGIC ---
+
+
+# ==========================================
+# API: Public Live Data (For Polling)
+# ==========================================
+@login_required
+def get_live_data(request):
+    try:
+        user_sensors = request.user.userprofile.sensors.all()
+    except:
+        return JsonResponse({'sensors': []})
+
+    sensor_data = []
+    for s in user_sensors:
+        # CALL THE HELPER FUNCTION HERE
+        current_status = get_sensor_status(s)
+        
+        sensor_data.append({
+            'id': s.id,
+            'name': s.name,
+            'status': current_status, # "Fire", "Gas Leak", "Offline", "Safe"
+            'x': s.x_position,
+            'y': s.y_position
+        })
+
+    return JsonResponse({'sensors': sensor_data})
+
+# ==========================================
+# API: Firefighter 3D Map Data
+# ==========================================
+@login_required
+def firefighter_map_data(request):
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.role != 'firefighter':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    data = []
+    users = UserProfile.objects.filter(role='public').select_related('address')
+
+    for profile in users:
+        if profile.address and profile.address.latitude:
+            sensors = profile.sensors.all()
+            
+            house_status = "Safe"
+            has_offline = False
+            
+            for s in sensors:
+                s_status = get_sensor_status(s)
+                
+                if s_status == 'Fire':
+                    house_status = 'Fire'
+                    break 
+                elif s_status == 'Gas Leak' and house_status != 'Fire':
+                    house_status = 'Gas Leak'
+                elif s_status == 'Offline':
+                    has_offline = True
+
+            # If house is Safe but sensors are Offline, show Offline
+            if house_status == "Safe" and has_offline and sensors.exists():
+                house_status = "Offline"
+
+            data.append({
+                'id': profile.user.id,
+                'owner': profile.user.username,
+                'lat': profile.address.latitude,
+                'lng': profile.address.longitude,
+                'status': house_status
+            })
+
+    return JsonResponse({'houses': data})
+
+# ==========================================
+# API: Get Specific Victim Layout (Firefighter View)
+# ==========================================
+@login_required
+def get_victim_layout(request, user_id):
+    if request.user.userprofile.role != 'firefighter':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    try:
+        layout = Houselayout.objects.get(user_id=user_id)
+        sensors = Sensor.objects.filter(owner__user_id=user_id)
+        
+        sensor_data = []
+        for s in sensors:
+            # Use the helper to get "Offline" if needed
+            status = get_sensor_status(s)
+            
+            sensor_data.append({
+                'name': s.name,
+                'x': s.x_position,
+                'y': s.y_position,
+                'status': status
+            })
+
+        return JsonResponse({
+            'success': True,
+            'image_url': layout.image.url,
+            'owner': layout.user.username,
+            'sensors': sensor_data
+        })
+    except Houselayout.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'No layout found'})
+
+
+
+
+
+
+        function fetchMySensors() {
+        fetch("{% url 'live_data' %}") 
+        .then(res => res.json())
+        .then(data => {
+            if(data.sensors) {
+                data.sensors.forEach(s => {
+                    const node = document.getElementById(`sensor-${s.id}`);
+                    if(node) {
+                        // 1. Reset all classes first
+                        node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
+                        
+                        // 2. Add class based on EXACT string match from Python
+                        if(s.status === 'Fire') {
+                            node.classList.add('bg-fire');
+                        } 
+                        else if(s.status === 'Gas Leak') { // FIXED: Matches Python 'Gas Leak'
+                            node.classList.add('bg-warn');
+                        } 
+                        else if(s.status === 'Offline') { // FIXED: Added Offline
+                            node.classList.add('bg-offline');
+                        } 
+                        else {
+                            node.classList.add('bg-safe');
+                        }
+                    }
+                });
+            }
+        });
+    }

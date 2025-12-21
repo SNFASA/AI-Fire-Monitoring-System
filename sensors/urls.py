@@ -19,6 +19,7 @@ urlpatterns = [
     # Maintenance
     path('maintenance/', views.maintenance, name='maintenance'),
     path('maintenance/<int:maintenance_id>/', views.maintenance_detail, name='maintenance_detail'),
+    path('maintenance/create/', views.create_maintenance, name='create_maintenance'),
     
     # Reports
     path('reports/', views.reports, name='reports'),
@@ -42,4 +43,7 @@ urlpatterns = [
     # --- THIS LINE FIXES THE FIREFIGHTER MAP DOTS ---
     path('api/map-data/', views.firefighter_map_data, name='map_data'), 
     path('api/get-victim-layout/<int:user_id>/', views.get_victim_layout, name='get_victim_layout'),
+    
+    
+    
 ]

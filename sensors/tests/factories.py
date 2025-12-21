@@ -1,9 +1,11 @@
 import factory
+import random
+from django.utils import timezone
 from factory.django import DjangoModelFactory
 from django.contrib.auth.models import User
-from sensors.models import UserProfile, Address, Sensor, SensorDataLog
+from sensors.models import UserProfile, Address, FireStation, Sensor, SensorDataLog, Report, ReportImage
 
-# 1. User Factory
+# 1. Base Helpers
 class UserFactory(DjangoModelFactory):
     class Meta:
         model = User
@@ -13,25 +15,34 @@ class UserFactory(DjangoModelFactory):
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
     email = factory.Faker('email')
-
+    
     @factory.post_generation
     def password(self, create, extracted, **kwargs):
-        # This ensures the password is hashed properly
-        password = extracted or "default_password"
-        self.set_password(password)
-        if create:
-            self.save()
+        self.set_password('password123') # Default password for everyone
+        if create: self.save()
 
-# 2. Address Factory
 class AddressFactory(DjangoModelFactory):
     class Meta:
         model = Address
 
+    street = factory.Faker('street_address')
+    city = factory.Faker('city')
+    state = factory.Faker('state')
+    postal_code = factory.Faker('postcode')
     latitude = factory.Faker('latitude')
     longitude = factory.Faker('longitude')
-    street = factory.Faker('word')  # Short string to prevent database errors
 
-# 3. UserProfile Factory
+class FireStationFactory(DjangoModelFactory):
+    class Meta:
+        model = FireStation
+
+    name = factory.Sequence(lambda n: f"Fire Station {n+1}")
+    address = factory.SubFactory(AddressFactory)
+    cover_area_sqm = 50000.0
+    contact_number = "999"
+    email = factory.Faker('email')
+
+# 2. Profiles
 class UserProfileFactory(DjangoModelFactory):
     class Meta:
         model = UserProfile
@@ -39,35 +50,54 @@ class UserProfileFactory(DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     address = factory.SubFactory(AddressFactory)
-    phone_number = factory.Faker('numerify', text='01########') # 10 digits
     role = 'public'
+    phone_number = factory.Faker('numerify', text='01########')
 
-# 4. Sensor Factory
+# 3. Sensors
 class SensorFactory(DjangoModelFactory):
     class Meta:
         model = Sensor
 
     owner = factory.SubFactory(UserProfileFactory)
-    name = factory.Faker('word', ext_word_list=['Kitchen', 'Living Room', 'Bedroom'])
-    x_position = factory.Faker('pyfloat', left_digits=2, right_digits=2, positive=True)
-    y_position = factory.Faker('pyfloat', left_digits=2, right_digits=2, positive=True)
+    name = factory.Faker('word', ext_word_list=['Kitchen', 'Master Bedroom', 'Garage', 'Living Room'])
+    x_position = factory.Faker('pyfloat', min_value=10, max_value=90)
+    y_position = factory.Faker('pyfloat', min_value=10, max_value=90)
     is_active = True
 
-# 5. Sensor Data Log Factory
+# 4. Logs (The most important part!)
 class SensorDataLogFactory(DjangoModelFactory):
     class Meta:
         model = SensorDataLog
 
     sensor = factory.SubFactory(SensorFactory)
-    methane = factory.Faker('random_int', min=0, max=1023)
-    lpg = factory.Faker('random_int', min=0, max=1023)
-    co = factory.Faker('random_int', min=0, max=1023)
-    air_quality = factory.Faker('random_int', min=0, max=1023)
-    flame_val = factory.Faker('random_int', min=0, max=4095)
+    timestamp = factory.Faker('date_time_this_month', tzinfo=timezone.get_current_timezone())
     
-    # Use right_digits instead of decimals for pyfloat
-    dht22_temp = factory.Faker('pyfloat', min_value=15.0, max_value=40.0, right_digits=1)
-    humidity = factory.Faker('pyfloat', min_value=30.0, max_value=90.0, right_digits=1)
-    
+    # Default to Safe values
+    methane = factory.Faker('random_int', min=100, max=300)
+    lpg = factory.Faker('random_int', min=100, max=300)
+    co = factory.Faker('random_int', min=10, max=50)
+    air_quality = factory.Faker('random_int', min=10, max=50)
+    flame_val = 4095 # Safe
+    dht22_temp = factory.Faker('pyfloat', min_value=24, max_value=32, right_digits=1)
+    humidity = factory.Faker('pyfloat', min_value=50, max_value=80, right_digits=1)
     status = 'Safe'
-    timestamp = factory.Faker('date_time')
+
+# 5. Reports & Images
+class ReportFactory(DjangoModelFactory):
+    class Meta:
+        model = Report
+
+    status = 'System Detected'
+    address = factory.SubFactory(AddressFactory)
+    trigger_sensor = factory.SubFactory(SensorFactory)
+    trigger_temperature = factory.Faker('pyfloat', min_value=60, max_value=120, right_digits=1)
+    trigger_gas_level = factory.Faker('random_int', min=800, max=2000)
+    timestamp = factory.Faker('date_time_this_month', tzinfo=timezone.get_current_timezone())
+
+class ReportImageFactory(DjangoModelFactory):
+    class Meta:
+        model = ReportImage
+
+    report = factory.SubFactory(ReportFactory)
+    # Generates a tiny valid placeholder image file
+    image = factory.django.ImageField(color='red')

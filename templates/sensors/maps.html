@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-    {% if role == 'firefighter' %}3D Command Center{% else %}My House Layout{% endif %}
+    {% if role == 'firefighter' %}Command Center{% else %}My House Layout{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -64,6 +64,17 @@
     .marker-fire { width: 40px; height: 40px; background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%); border: 3px solid white; border-radius: 50%; animation: pulse-red 1s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; }
     .marker-safe { width: 15px; height: 15px; background: #198754; border: 2px solid white; border-radius: 50%; opacity: 0.8; }
     .marker-warning { width: 30px; height: 30px; background: #ffc107; border: 2px solid white; border-radius: 50%; animation: pulse-yellow 1s infinite; display: flex; justify-content: center; align-items: center; color: black; }
+    /* 1. Public Sensor Nodes */
+    .bg-safe { background: #198754; box-shadow: 0 0 10px #198754; } 
+    .bg-fire { background: #dc3545; animation: pulse-red 1s infinite; }
+    .bg-warn { background: #ffc107; color: black; animation: pulse-yellow 1s infinite; }
+    .bg-offline { background: #6c757d; border-color: #aaa; opacity: 0.7; } /* Grey for Offline */
+
+    /* 2. Firefighter Map Markers */
+    .marker-fire { width: 40px; height: 40px; background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%); border: 3px solid white; border-radius: 50%; animation: pulse-red 1s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; }
+    .marker-safe { width: 15px; height: 15px; background: #198754; border: 2px solid white; border-radius: 50%; opacity: 0.8; }
+    .marker-warning { width: 30px; height: 30px; background: #ffc107; border: 2px solid white; border-radius: 50%; animation: pulse-yellow 1s infinite; display: flex; justify-content: center; align-items: center; color: black; }
+    .marker-offline { width: 15px; height: 15px; background: #6c757d; border: 2px solid #ccc; border-radius: 50%; } /* Grey Dot */
 </style>
 
 {% if role == 'public' %}
@@ -220,6 +231,37 @@
             body: JSON.stringify({sensor_id: id, x: parseFloat(sensor.style.left), y: parseFloat(sensor.style.top)})
         });
     }
+    function fetchMySensors() {
+        fetch("{% url 'live_data' %}") 
+        .then(res => res.json())
+        .then(data => {
+            if(data.sensors) {
+                data.sensors.forEach(s => {
+                    const node = document.getElementById(`sensor-${s.id}`);
+                    if(node) {
+                        // 1. Reset all classes first
+                        node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
+                        
+                        // 2. Add class based on EXACT string match from Python
+                        if(s.status === 'Fire') {
+                            node.classList.add('bg-fire');
+                        } 
+                        else if(s.status === 'Gas Leak') { // FIXED: Matches Python 'Gas Leak'
+                            node.classList.add('bg-warn');
+                        } 
+                        else if(s.status === 'Offline') { // FIXED: Added Offline
+                            node.classList.add('bg-offline');
+                        } 
+                        else {
+                            node.classList.add('bg-safe');
+                        }
+                    }
+                });
+            }
+        });
+    }
+    // Run every 2 seconds
+    setInterval(fetchMySensors, 2000);
 </script>
 
 
@@ -363,29 +405,49 @@
 
     const markers = {};
     function fetchMapData() {
-        // !!! IMPORTANT: Ensure this URL matches urls.py !!!
+        // Fetch from api/map-data/
         fetch("{% url 'map_data' %}")
         .then(res => res.json())
         .then(data => {
             let fireCount = 0, warnCount = 0;
-            if(data.houses) { // Check if data.houses exists
+            
+            if(data.houses) { 
                 data.houses.forEach(house => {
+                    // Update Counters
                     if(house.status === 'Fire') fireCount++;
-                    if(house.status === 'Warning') warnCount++;
+                    if(house.status === 'Gas Leak') warnCount++;
 
+                    // Determine CSS Class & Icon
                     let cls = 'marker-safe', icon = '';
-                    if(house.status === 'Fire') { cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; }
-                    else if(house.status === 'Warning') { cls = 'marker-warning'; icon = '<i class="fas fa-exclamation"></i>'; }
+                    
+                    if(house.status === 'Fire') { 
+                        cls = 'marker-fire'; 
+                        icon = '<i class="fas fa-fire"></i>'; 
+                    }
+                    else if(house.status === 'Gas Leak') { 
+                        cls = 'marker-warning'; 
+                        icon = '<i class="fas fa-exclamation-triangle"></i>'; 
+                    }
+                    else if(house.status === 'Offline') {
+                        cls = 'marker-offline';
+                        icon = ''; // No icon for offline, just a grey dot
+                    }
 
+                    // Update or Create Marker
                     if(markers[house.id]) {
                         markers[house.id].getElement().className = cls;
                         markers[house.id].getElement().innerHTML = icon;
                         markers[house.id].setLngLat([house.lng, house.lat]);
                     } else {
                         const el = document.createElement('div');
-                        el.className = cls; el.innerHTML = icon;
+                        el.className = cls; 
+                        el.innerHTML = icon;
                         el.addEventListener('click', () => openLayoutModal(house.id));
-                        markers[house.id] = new maplibregl.Marker({ element: el }).setLngLat([house.lng, house.lat]).setPopup(new maplibregl.Popup({ offset: 25 }).setText(house.owner + "'s House")).addTo(map);
+                        
+                        markers[house.id] = new maplibregl.Marker({ element: el })
+                            .setLngLat([house.lng, house.lat])
+                            .setPopup(new maplibregl.Popup({ offset: 25 }).setText(house.owner + ": " + house.status))
+                            .addTo(map);
                     }
                 });
             }
@@ -411,10 +473,14 @@
                 container.innerHTML = '';
                 data.sensors.forEach((s, i) => {
                     const node = document.createElement('div');
-                    node.className = `sensor-node ${s.status === 'Fire' ? 'bg-fire' : s.status === 'Warning' ? 'bg-warn' : 'bg-safe'}`;
-                    node.style.left = s.x + '%'; node.style.top = s.y + '%';
-                    
-                    // Number + Label
+                    let cssClass = 'bg-safe';
+                    if (s.status === 'Fire') cssClass = 'bg-fire';
+                    else if (s.status === 'Gas Leak') cssClass = 'bg-warn';
+                    else if (s.status === 'Offline') cssClass = 'bg-offline';
+
+                    node.className = `sensor-node ${cssClass}`;
+                    node.style.left = s.x + '%'; 
+                    node.style.top = s.y + '%';
                     node.innerText = i + 1;
                     const label = document.createElement('div');
                     label.className = 'sensor-label';

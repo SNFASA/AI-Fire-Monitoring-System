@@ -6,16 +6,37 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 import json
-from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address, Houselayout
+from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address, Houselayout, ReportImage
 from ml_engine.predictor import FirePredictor
 from django.core.serializers.json import DjangoJSONEncoder
 from .forms import SignUpForm, UserUpdateForm, ProfileUpdateForm, AddressUpdateForm, HouseLayoutForm, SensorPlacementForm
 import leafmap.maplibregl as leafmap
 import math
-
+from django.utils import timezone
+from datetime import timedelta
 # Init brain once
 predictor = FirePredictor()
+# ==========================================
+# 1. HELPER FUNCTION (MOVED TO TOP)
+# ==========================================
+def get_sensor_status(sensor):
+    """
+    Determines if a sensor is Safe, Fire, Gas Leak, or Offline.
+    Must be defined BEFORE it is called by other views.
+    """
+    last_log = sensor.readings.order_by('-timestamp').first()
+    
+    if not last_log:
+        return "Offline" 
+        
+    # Check time difference (UTC)
+    time_diff = timezone.now() - last_log.timestamp
 
+    # If no data for 5 minutes, mark as Offline
+    if time_diff > timedelta(minutes=5):
+        return "Offline"
+        
+    return last_log.status
 # ==========================================
 #  AUTHENTICATION VIEWS (Done)
 # ==========================================
@@ -62,28 +83,25 @@ def receive_sensor_data(request):
             # 1. Get data from ESP32
             data = json.loads(request.body)
             
-            # 2. Extract values (Default to 0)
+            # Extract values
             methane = data.get('methane', 0) 
             lpg = data.get('lpg', 0)
             co = data.get('co', 0)
             air_quality = data.get('air_quality', 0)
-            flame_val = data.get('flame_val', 4095) # Default Safe
+            flame_val = data.get('flame_val', 4095)
             dht22_temp = data.get('dht22_temp', 0)
             humidity = data.get('humidity', 0)
             
-            # 3. Predict status
+            # Predict status
             ml_result = predictor.predict(
                 methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
             )
             
-            # 4. Save to database
-            # Try to get sensor by ID sent from ESP32, or fallback to first one
+            # Identify Sensor & Owner
             sensor_id_raw = data.get('sensor_id')
-            if sensor_id_raw:
-                sensor = Sensor.objects.filter(id=sensor_id_raw).first()
-            else:
-                sensor = Sensor.objects.first()
+            sensor = Sensor.objects.filter(id=sensor_id_raw).first() if sensor_id_raw else Sensor.objects.first()
 
+            # Save Log
             if sensor:
                 SensorDataLog.objects.create(
                     sensor=sensor,
@@ -91,17 +109,45 @@ def receive_sensor_data(request):
                     flame_val=flame_val, dht22_temp=dht22_temp, humidity=humidity,
                     status=ml_result
                 )
+
+                # --- NEW AUTOMATED REPORT LOGIC ---
+                if ml_result == "Fire":
+                    # Check if the owner has an address (required for report)
+                    if sensor.owner and sensor.owner.address:
+                        user_address = sensor.owner.address
+                        
+                        # 1. Check for EXISTING active report for this address
+                        # We look for 'System Detected' or 'Confirmed' reports that are not 'Resolved'
+                        existing_report = Report.objects.filter(
+                            address=user_address,
+                            status__in=['System Detected', 'Confirmed']
+                        ).first()
+
+                        if existing_report:
+                            # Report exists: Just update the timestamp to show it's still active
+                            existing_report.save() # forcing updated=now()
+                            print(f"🔥 FIRE CONTINUES: Updated timestamp for Report #{existing_report.id}")
+                        else:
+                            # No active report: CREATE NEW ONE
+                            new_report = Report.objects.create(
+                                status='System Detected',
+                                address=user_address,
+                                trigger_sensor=sensor,
+                                trigger_temperature=dht22_temp,
+                                trigger_gas_level=max(methane, lpg, co, air_quality), # Store highest gas value
+                                description=f"Automated Alert: Fire detected by sensor '{sensor.name}'."
+                            )
+                            print(f"🚨 NEW REPORT GENERATED: Report #{new_report.id} at {user_address}")
             
-            # 5. Send response to ESP32 (1=Alarm, 0=Safe)
+            # Response to ESP32
             if ml_result != "Safe":
-                print(f"⚠️ DANGER: {ml_result}")
                 return HttpResponse("1") 
             else:
                 return HttpResponse("0")
 
         except Exception as e:
             print(f"Error processing sensor data: {e}")
-            return HttpResponse("0") # Default Safe on error
+            return HttpResponse("0")
             
     return HttpResponse("0", status=405)
 
@@ -136,41 +182,26 @@ def dashboard(request):
 #=========================================  
 #The Live Data API (JavaScript calls this every 2 seconds)
 #=========================================
+@login_required
 def get_live_data(request):
-    # Get Map Data (Active Sensors + Current Status)
-    active_sensors = Sensor.objects.filter(is_active=True)
-    map_data = []
-    
-    for sensor in active_sensors:
-        last_log = sensor.readings.order_by('-timestamp').first()
-        current_status = last_log.status if last_log else "Safe"
-        
-        map_data.append({
-            'name': sensor.name,
-            'lat': sensor.latitude,
-            'lng': sensor.longitude,
-            'status': current_status,
-            'owner': sensor.owner.user.username if sensor.owner else "Unknown"
+    # Get sensors owned by the logged-in user
+    try:
+        user_sensors = request.user.userprofile.sensors.all()
+    except:
+        return JsonResponse({'sensors': []})
+
+    sensor_data = []
+    for s in user_sensors:
+        status = get_sensor_status(s)
+        sensor_data.append({
+            'id': s.id,
+            'name': s.name,
+            'status': status,
+            'x': s.x_position,
+            'y': s.y_position
         })
 
-    #Get Table Data (Recent History)
-    recent_logs = SensorDataLog.objects.all().order_by('-timestamp')[:10]
-    table_data = []
-    
-    for log in recent_logs:
-        table_data.append({
-            'timestamp': log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            'sensor': log.sensor.name,
-            'status': log.status,
-            'temp': log.dht22_temp,
-            'smoke': log.air_quality
-        })
-
-    # Return both as JSON
-    return JsonResponse({
-        'map_data': map_data,
-        'table_data': table_data
-    })
+    return JsonResponse({'sensors': sensor_data})
 
 # ==========================================
 # USER PROFILE VIEWS (Done)
@@ -308,6 +339,11 @@ def maintenance_detail(request, maintenance_id):
         messages.error(request, f'❌ Error loading maintenance record: {str(e)}')
         return redirect('maintenance')
 
+@login_required(login_url='login')
+def create_maintenance(request):
+    """Create new maintenance record"""
+    return render(request, 'sensors/create_maintenance.html')
+
 # ==========================================
 # REPORTS VIEWS
 # ==========================================
@@ -324,11 +360,50 @@ def reports(request):
 
 @login_required(login_url='login')
 def report_detail(request, report_id):
-    """Report detail view"""
+    """
+    View for Firefighters to:
+    1. See the auto-generated data
+    2. Upload photos (Multi-pic)
+    3. Confirm the report details
+    """
     report = get_object_or_404(Report, id=report_id)
-    
+    stations = FireStation.objects.all()
+
+    # Security: Ensure only firefighters can edit
+    is_firefighter = hasattr(request.user, 'userprofile') and request.user.userprofile.role == 'firefighter'
+
+    if request.method == 'POST' and is_firefighter:
+        try:
+            # 1. Update Basic Info
+            report.fire_type = request.POST.get('fire_type')
+            report.cause = request.POST.get('cause')
+            report.description = request.POST.get('description')
+            report.status = request.POST.get('status') # E.g., change 'System Detected' to 'Confirmed'
+            
+            # Update Station
+            station_id = request.POST.get('station')
+            if station_id:
+                report.station = FireStation.objects.get(id=station_id)
+            
+            # Set In Charge
+            report.in_charge = request.user
+            report.save()
+
+            # 2. Handle Multiple Images
+            images = request.FILES.getlist('images') # 'images' comes from <input type="file" multiple>
+            for image_file in images:
+                ReportImage.objects.create(report=report, image=image_file)
+
+            messages.success(request, 'Report updated and confirmed successfully!')
+            return redirect('reports')
+
+        except Exception as e:
+            messages.error(request, f"Error updating report: {e}")
+
     context = {
         'report': report,
+        'stations': stations,
+        'is_firefighter': is_firefighter
     }
     return render(request, 'sensors/report_detail.html', context)
 
@@ -559,7 +634,6 @@ def maps(request):
 # ==========================================
 @login_required
 def firefighter_map_data(request):
-    # Only Firefighters
     if not hasattr(request.user, 'userprofile') or request.user.userprofile.role != 'firefighter':
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
@@ -567,26 +641,33 @@ def firefighter_map_data(request):
     users = UserProfile.objects.filter(role='public').select_related('address')
 
     for profile in users:
-        if profile.address and profile.address.latitude and profile.address.longitude:
+        if profile.address and profile.address.latitude:
             sensors = profile.sensors.all()
-            status = "Safe"
             
-            # Determine status based on highest threat
+            house_status = "Safe"
+            has_offline = False
+            
             for s in sensors:
-                last = s.readings.last()
-                if last:
-                    if last.status == 'Fire':
-                        status = 'Fire'
-                        break
-                    elif last.status == 'GasLeak' and status != 'Fire':
-                        status = 'GasLeak'
+                s_status = get_sensor_status(s)
+                
+                if s_status == 'Fire':
+                    house_status = 'Fire'
+                    break 
+                elif s_status == 'Gas Leak' and house_status != 'Fire':
+                    house_status = 'Gas Leak'
+                elif s_status == 'Offline':
+                    has_offline = True
+
+            # If house is Safe but sensors are Offline, show Offline
+            if house_status == "Safe" and has_offline and sensors.exists():
+                house_status = "Offline"
 
             data.append({
-                'id': profile.user.id, # We use User ID to fetch layout later
+                'id': profile.user.id,
                 'owner': profile.user.username,
                 'lat': profile.address.latitude,
                 'lng': profile.address.longitude,
-                'status': status
+                'status': house_status
             })
 
     return JsonResponse({'houses': data})
@@ -596,7 +677,6 @@ def firefighter_map_data(request):
 # ==========================================
 @login_required
 def get_victim_layout(request, user_id):
-    # Security: Only firefighters can see other people's layouts
     if request.user.userprofile.role != 'firefighter':
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
@@ -606,8 +686,9 @@ def get_victim_layout(request, user_id):
         
         sensor_data = []
         for s in sensors:
-            reading = s.readings.last()
-            status = reading.status if reading else 'Safe'
+            # Use the helper to get "Offline" if needed
+            status = get_sensor_status(s)
+            
             sensor_data.append({
                 'name': s.name,
                 'x': s.x_position,
@@ -622,7 +703,5 @@ def get_victim_layout(request, user_id):
             'sensors': sensor_data
         })
     except Houselayout.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'No layout found for this user'})
-
-
+        return JsonResponse({'success': False, 'error': 'No layout found'})
 
