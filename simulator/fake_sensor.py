@@ -2,77 +2,111 @@ import time
 import json
 import random
 import sys
+import paho.mqtt.client as mqtt
 
-# Try to import paho-mqtt, warn if missing
-try:
-    import paho.mqtt.client as mqtt
-except ImportError:
-    print("Error: 'paho-mqtt' library not found.")
-    print("Please run: pip install paho-mqtt")
-    sys.exit(1)
-
-# --- CONFIGURATION ---
 BROKER = "broker.emqx.io"
-PORT = 1883
 TOPIC = "fire-system/sensor-data"
-SENSOR_DB_ID = 1  # MUST match the ID of the sensor you created in Django
 
-# --- SETUP MQTT CLIENT ---
-client = mqtt.Client()
+# IDs must match your Database IDs
+SENSORS_CONFIG = [
+    {"id": 1, "location": "Kitchen"},
+    {"id": 2, "location": "Bedroom1"},
+    {"id": 3, "location": "Bedroom2"},
+    {"id": 4, "location": "Bedroom3"},
+    {"id": 5, "location": "Living Room"}
+]
 
-try:
-    client.connect(BROKER, PORT, 60)
-    print(f"Connected to Broker: {BROKER}")
-    print(f"Publishing to Topic: {TOPIC}")
-    print("Press Ctrl+C to stop...")
-except Exception as e:
-    print(f"Failed to connect: {e}")
-    sys.exit(1)
-
-# --- SIMULATION LOOP ---
-while True:
-    try:
-        # 1. Generate Fake Data
-        methane = random.randint(200, 800)       # Normal: 200-500
-        lpg = random.randint(200, 800)
-        co = random.randint(50, 200)
-        air_quality = random.randint(80, 150)
+class VirtualSensor:
+    def __init__(self, sensor_id, location):
+        self.id = sensor_id
+        self.location = location
+        self.state = "Safe"
+        self.fire_timer = 0
         
-        # Flame sensor (Analog): Low value often means FIRE detected
-        flame_val = random.randint(100, 4095) 
-        
-        dht22_temp = round(random.uniform(25.0, 65.0), 2)
-        humidity = round(random.uniform(40.0, 90.0), 2)
+        # Baselines
+        self.temp = 28.0
+        self.humidity = 60.0
+        self.methane = 300
+        self.lpg = 300
+        self.co = 80
+        self.air_quality = 90
+        self.flame_val = 4095 
 
-        # 2. Determine Status Logic (Simple rules)
-        status = "Safe"
-        if flame_val < 500 or dht22_temp > 58.0:
-            status = "Fire"
-        elif methane > 600 or lpg > 600:
-            status = "GasLeak"
+    def update(self):
+        # --- STATE LOGIC ---
+        # 2% chance to start Warning
+        if self.state == "Safe" and random.randint(0, 100) > 98:
+            self.state = "Warning"
+            self.fire_timer = 15
+            print(f"!!! [{self.location}] WARNING STARTED (Gas Rising) !!!")
 
-        # 3. Create Payload
-        payload = {
-            "sensor_id": SENSOR_DB_ID,
-            "methane": methane,
-            "lpg": lpg,
-            "co": co,
-            "air_quality": air_quality,
-            "flame_val": flame_val,
-            "dht22_temp": dht22_temp,
-            "humidity": humidity,
-            "status": status
+        # Warning can turn into Fire
+        elif self.state == "Warning":
+            self.fire_timer -= 1
+            if random.randint(0, 100) > 80: # Chance to ignite
+                self.state = "Fire"
+                self.fire_timer = 20
+                print(f"!!! [{self.location}] FIRE STARTED !!!")
+            elif self.fire_timer <= 0:
+                self.state = "Safe"
+
+        elif self.state == "Fire":
+            self.fire_timer -= 1
+            if self.fire_timer <= 0:
+                self.state = "Safe"
+                print(f"--- [{self.location}] Fire Extinguished ---")
+
+        # --- DATA GENERATION ---
+        if self.state == "Fire":
+            self.temp += random.uniform(1.5, 3.0) 
+            self.methane = random.randint(800, 1500)
+            self.co = random.randint(100, 300)
+            self.flame_val = random.randint(200, 600) 
+            
+        elif self.state == "Warning":
+            # High Gas, but Temp is normal
+            self.methane = random.randint(800, 1200) 
+            self.lpg = random.randint(800, 1200)
+            self.co = random.randint(150, 250)
+            self.temp += random.uniform(0.0, 0.2) 
+            self.flame_val = min(4095, self.flame_val + 50) 
+
+        else:
+            # Safe recovery
+            if self.temp > 28: self.temp -= 0.5
+            if self.methane > 300: self.methane -= 50
+            self.flame_val = min(4095, self.flame_val + 50)
+
+        # Clamp
+        self.temp = round(max(0, min(100, self.temp)), 2)
+        self.methane = max(0, self.methane)
+        self.flame_val = max(0, self.flame_val)
+
+        return {
+            "sensor_id": self.id,
+            "methane": int(self.methane),
+            "lpg": int(self.lpg),
+            "co": int(self.co),
+            "air_quality": int(self.air_quality),
+            "flame_val": int(self.flame_val),
+            "dht22_temp": self.temp,
+            "humidity": self.humidity,
         }
 
-        # 4. Send Data
-        client.publish(TOPIC, json.dumps(payload))
-        
-        # Visual feedback for you
-        print(f"Sent: [Status: {status}] [Temp: {dht22_temp}C] [Flame: {flame_val}] [Methane: {methane}] [LPG: {lpg}] [CO: {co}] [Air Quality: {air_quality}] [Humidity: {humidity}]")
-        
-        # Wait 3 seconds
-        time.sleep(3)
+client = mqtt.Client()
+client.connect(BROKER, 1883, 60)
+sensors = [VirtualSensor(c['id'], c['location']) for c in SENSORS_CONFIG]
 
-    except KeyboardInterrupt:
-        print("\nSimulation stopped.")
-        break
+print("Simulating... (Ctrl+C to stop)")
+while True:
+    for s in sensors:
+        data = s.update()
+        client.publish(TOPIC, json.dumps(data))
+        
+        status_txt = "SAFE"
+        if s.state == "Fire": status_txt = "FIRE"
+        elif s.state == "Warning": status_txt = "WARN"
+        
+        print(f"[{s.id}] {status_txt} | Gas:{data['methane']} | Temp:{data['dht22_temp']}")
+        time.sleep(0.5)
+    time.sleep(1)

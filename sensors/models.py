@@ -47,7 +47,7 @@ class UserProfile(models.Model):
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
-    
+    status = models.CharField(max_length=20, default='Safe', help_text="Current Aggregate House Status")
     # Firefighter Specific
     station = models.ForeignKey(FireStation, on_delete=models.SET_NULL, null=True, blank=True)
     position = models.CharField(max_length=100, null=True, blank=True)
@@ -82,6 +82,7 @@ class Sensor(models.Model):
     layout = models.ForeignKey(Houselayout, on_delete=models.SET_NULL, null=True, blank=True )
     x_position = models.FloatField(null=True, blank=True, help_text="Horizontal % on floor plan")
     y_position = models.FloatField(null=True, blank=True, help_text="Vertical % on floor plan")
+    last_status = models.CharField(max_length=20, default='Safe')
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     

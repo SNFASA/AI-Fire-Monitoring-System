@@ -239,17 +239,20 @@
                 data.sensors.forEach(s => {
                     const node = document.getElementById(`sensor-${s.id}`);
                     if(node) {
-                        // 1. Reset all classes first
                         node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
                         
-                        // 2. Add class based on EXACT string match from Python
-                        if(s.status === 'Fire') {
+                        // NORMALIZE STATUS
+                        // Convert to lowercase to be safe against 'warning' vs 'Warning'
+                        let status = s.status ? s.status.toLowerCase() : 'safe';
+
+                        if(status === 'fire') {
                             node.classList.add('bg-fire');
                         } 
-                        else if(s.status === 'Gas Leak') { // FIXED: Matches Python 'Gas Leak'
+                        // Handle BOTH Gas Leak and Warning as Yellow
+                        else if(status === 'gas leak' || status === 'warning') { 
                             node.classList.add('bg-warn');
                         } 
-                        else if(s.status === 'Offline') { // FIXED: Added Offline
+                        else if(status === 'offline') {
                             node.classList.add('bg-offline');
                         } 
                         else {
@@ -287,6 +290,13 @@
                     <div class="status-item status-warn"><i class="fas fa-exclamation-triangle"></i> <span id="warning-count">0</span></div>
                 </div>
             </div>
+            
+            <audio id="fire-alarm-sound" loop preload="auto">
+                <source src="{% static 'sound/alarm.mp3' %}" type="audio/mpeg">
+            </audio>
+            <audio id="warning-sound" loop preload="auto">
+                <source src="{% static 'sound/warning.mp3' %}" type="audio/mpeg">
+            </audio>
         </div>
     </div>
 </div>
@@ -295,7 +305,7 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Incident Layout</h5>
+                <h5 class="modal-title">Live Incident Layout</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body bg-light" style="height: 70vh;">
@@ -313,18 +323,18 @@
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
-    const STATION_LAT = parseFloat("{{ station_lat|default:'1.8548' }}");
-    const STATION_LNG = parseFloat("{{ station_lng|default:'103.0848' }}");
+    // --- 1. SETUP MAP ---
+    const STATION_LOC = [parseFloat("{{ station_lng|default:'103.0848' }}"), parseFloat("{{ station_lat|default:'1.8548' }}")];
     const STATION_RADIUS_KM = parseFloat("{{ station_radius|default:'3.0' }}");
-    const STATION_LOC = [STATION_LNG, STATION_LAT];
     const STATION_NAME = "{{ station_name|default:'HQ' }}";
 
     const STYLES = {
         'streets': 'https://tiles.openfreemap.org/styles/liberty', 
-        'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+        'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+        'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
     };
 
-    const map = new maplibregl.Map({ container: 'map', style: STYLES.streets, center: STATION_LOC, zoom: 13, pitch: 60, bearing: 0, antialias: true });
+    const map = new maplibregl.Map({ container: 'map', style: STYLES.streets, center: STATION_LOC, zoom: 13, pitch: 60, antialias: true });
 
     map.on('styleimagemissing', (e) => {
         if (!map.hasImage(e.id)) {
@@ -337,6 +347,13 @@
     map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
     map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'bottom-right');
 
+    // Add Station Marker
+    const el = document.createElement('div');
+    el.innerHTML = '<i class="fas fa-building-shield"></i>';
+    el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px;';
+    new maplibregl.Marker({ element: el }).setLngLat(STATION_LOC).setPopup(new maplibregl.Popup({offset: 25}).setText(STATION_NAME)).addTo(map);
+
+    // --- 2. ZONE AREA (The missing part) ---
     function createGeoJSONCircle(center, radiusInKm, points = 64) {
         if(!center) return null;
         const coords = { latitude: center[1], longitude: center[0] };
@@ -353,7 +370,7 @@
         return { "type": "geojson", "data": { "type": "FeatureCollection", "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] } };
     }
 
-    function updateLayers(isDark = false) {
+    function addZoneLayer() {
         if(!map.getSource('fire-zone')) {
             const circle = createGeoJSONCircle(STATION_LOC, STATION_RADIUS_KM);
             if(circle) map.addSource('fire-zone', circle);
@@ -364,48 +381,40 @@
         if(map.getSource('fire-zone') && !map.getLayer('zone-line')) {
             map.addLayer({ 'id': 'zone-line', 'type': 'line', 'source': 'fire-zone', 'paint': { 'line-color': '#0d6efd', 'line-width': 2, 'line-dasharray': [2, 2] } });
         }
+    }
 
-        if (!map.getSource('openfreemap')) {
-            map.addSource('openfreemap', { 'type': 'vector', 'tiles': ['https://tiles.openfreemap.org/planet/{z}/{x}/{y}.pbf'] });
-        }
-        if (!map.getLayer('3d-buildings')) {
-            map.addLayer({
-                'id': '3d-buildings', 'source': 'openfreemap', 'source-layer': 'building',
-                'type': 'fill-extrusion', 'minzoom': 15,
-                'paint': {
-                    'fill-extrusion-color': isDark ? '#444' : '#ccc',
-                    'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 15, 0, 15.05, ['coalesce', ['get', 'render_height'], 0]],
-                    'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 15, 0, 15.05, ['coalesce', ['get', 'render_min_height'], 0]],
-                    'fill-extrusion-opacity': 0.7
-                }
-            });
-        }
+    map.on('load', addZoneLayer);
+    map.on('styledata', addZoneLayer); // Re-add if style changes
 
-        if(!document.getElementById('station-marker-el')) {
-            const el = document.createElement('div');
-            el.id = 'station-marker-el';
-            el.innerHTML = '<i class="fas fa-building-shield"></i>';
-            el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px;';
-            new maplibregl.Marker({ element: el }).setLngLat(STATION_LOC).setPopup(new maplibregl.Popup({offset: 25}).setText(STATION_NAME)).addTo(map);
+    // --- 3. AUDIO SETUP (Silent Unlock) ---
+    const fireAudio = document.getElementById('fire-alarm-sound');
+    const warningAudio = document.getElementById('warning-sound');
+    let isAudioUnlocked = false;
+
+    function unlockAudioContext() {
+        if (!isAudioUnlocked) {
+            fireAudio.play().then(() => {
+                fireAudio.pause();
+                fireAudio.currentTime = 0;
+                isAudioUnlocked = true;
+                console.log("Audio Engine Unlocked!");
+            }).catch((e) => {});
+
+            document.removeEventListener('click', unlockAudioContext);
+            document.removeEventListener('touchstart', unlockAudioContext);
+            document.removeEventListener('keydown', unlockAudioContext);
         }
     }
 
-    map.on('load', () => { updateLayers(false); });
+    document.addEventListener('click', unlockAudioContext);
+    document.addEventListener('touchstart', unlockAudioContext);
+    document.addEventListener('keydown', unlockAudioContext);
 
-    window.switchStyle = function(styleName, btn) {
-        document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        if (styleName === 'satellite') {
-            map.setStyle({ 'version': 8, 'sources': { 'raster-tiles': { 'type': 'raster', 'tiles': ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], 'tileSize': 256 } }, 'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}] });
-        } else {
-            map.setStyle(STYLES[styleName]);
-        }
-        map.once('styledata', () => { updateLayers(styleName === 'dark'); fetchMapData(); });
-    };
 
+    // --- 4. LIVE MAP DATA & LOGIC ---
     const markers = {};
+    
     function fetchMapData() {
-        // Fetch from api/map-data/
         fetch("{% url 'map_data' %}")
         .then(res => res.json())
         .then(data => {
@@ -413,37 +422,28 @@
             
             if(data.houses) { 
                 data.houses.forEach(house => {
-                    // Update Counters
-                    if(house.status === 'Fire') fireCount++;
-                    if(house.status === 'Gas Leak') warnCount++;
-
-                    // Determine CSS Class & Icon
+                    let st = house.status ? house.status.toLowerCase() : 'safe';
                     let cls = 'marker-safe', icon = '';
-                    
-                    if(house.status === 'Fire') { 
-                        cls = 'marker-fire'; 
-                        icon = '<i class="fas fa-fire"></i>'; 
+
+                    if(st === 'fire') { 
+                        fireCount++; cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; 
                     }
-                    else if(house.status === 'Gas Leak') { 
-                        cls = 'marker-warning'; 
-                        icon = '<i class="fas fa-exclamation-triangle"></i>'; 
+                    else if(st === 'gas leak' || st === 'warning') { 
+                        warnCount++; cls = 'marker-warning'; icon = '<i class="fas fa-exclamation-triangle"></i>'; 
                     }
-                    else if(house.status === 'Offline') {
+                    else if(st === 'offline') {
                         cls = 'marker-offline';
-                        icon = ''; // No icon for offline, just a grey dot
                     }
 
-                    // Update or Create Marker
                     if(markers[house.id]) {
                         markers[house.id].getElement().className = cls;
                         markers[house.id].getElement().innerHTML = icon;
                         markers[house.id].setLngLat([house.lng, house.lat]);
+                        markers[house.id].getPopup().setText(house.owner + ": " + house.status);
                     } else {
                         const el = document.createElement('div');
-                        el.className = cls; 
-                        el.innerHTML = icon;
+                        el.className = cls; el.innerHTML = icon;
                         el.addEventListener('click', () => openLayoutModal(house.id));
-                        
                         markers[house.id] = new maplibregl.Marker({ element: el })
                             .setLngLat([house.lng, house.lat])
                             .setPopup(new maplibregl.Popup({ offset: 25 }).setText(house.owner + ": " + house.status))
@@ -451,17 +451,47 @@
                     }
                 });
             }
+
+            // Audio Logic
+            if (isAudioUnlocked) {
+                if (fireCount > 0) {
+                    warningAudio.pause(); warningAudio.currentTime = 0;
+                    if (fireAudio.paused) fireAudio.play().catch(e => {});
+                } 
+                else if (warnCount > 0) {
+                    fireAudio.pause(); fireAudio.currentTime = 0;
+                    if (warningAudio.paused) warningAudio.play().catch(e => {});
+                } 
+                else {
+                    fireAudio.pause(); fireAudio.currentTime = 0;
+                    warningAudio.pause(); warningAudio.currentTime = 0;
+                }
+            }
+
             document.getElementById('fire-count').innerText = fireCount;
             document.getElementById('warning-count').innerText = warnCount;
         })
         .catch(err => console.error("Map Data Error:", err));
     }
+    
     setInterval(fetchMapData, 3000);
     fetchMapData();
 
+
+    // --- 5. MODAL LOGIC (Auto-Update) ---
+    let modalRefreshInterval = null;
+    let currentModalUserId = null;
+
     function openLayoutModal(userId) {
+        currentModalUserId = userId;
         const modal = new bootstrap.Modal(document.getElementById('layoutModal'));
         modal.show();
+        fetchModalData(userId); 
+        if(modalRefreshInterval) clearInterval(modalRefreshInterval);
+        modalRefreshInterval = setInterval(() => { fetchModalData(userId); }, 2000);
+    }
+
+    function fetchModalData(userId) {
         fetch(`/api/get-victim-layout/${userId}/`)
         .then(res => res.json())
         .then(data => {
@@ -469,29 +499,55 @@
                 const img = document.getElementById('modal-layout-img');
                 img.src = data.image_url;
                 img.style.display = 'block'; 
+                
                 const container = document.getElementById('modal-sensors');
                 container.innerHTML = '';
+                
+                if(data.sensors) data.sensors.sort((a,b) => a.id - b.id);
+
                 data.sensors.forEach((s, i) => {
                     const node = document.createElement('div');
                     let cssClass = 'bg-safe';
-                    if (s.status === 'Fire') cssClass = 'bg-fire';
-                    else if (s.status === 'Gas Leak') cssClass = 'bg-warn';
-                    else if (s.status === 'Offline') cssClass = 'bg-offline';
+                    let st = s.status ? s.status.toLowerCase() : 'safe';
+
+                    if (st === 'fire') cssClass = 'bg-fire';
+                    else if (st === 'gas leak' || st === 'warning') cssClass = 'bg-warn';
+                    else if (st === 'offline') cssClass = 'bg-offline';
 
                     node.className = `sensor-node ${cssClass}`;
                     node.style.left = s.x + '%'; 
                     node.style.top = s.y + '%';
-                    node.innerText = i + 1;
+                    
                     const label = document.createElement('div');
                     label.className = 'sensor-label';
-                    label.innerText = s.name;
+                    label.innerText = s.name; 
+                    node.innerText = i + 1;
                     node.appendChild(label);
-
                     container.appendChild(node);
                 });
-            } else { alert("No floor plan."); modal.hide(); }
+            }
         });
     }
+
+    const layoutModalEl = document.getElementById('layoutModal');
+    layoutModalEl.addEventListener('hidden.bs.modal', event => {
+        if (modalRefreshInterval) {
+            clearInterval(modalRefreshInterval);
+            modalRefreshInterval = null;
+        }
+    });
+
+    window.switchStyle = function(styleName, btn) {
+        document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if(styleName === 'satellite') {
+             map.setStyle({ 'version': 8, 'sources': { 'raster-tiles': { 'type': 'raster', 'tiles': [STYLES.satellite], 'tileSize': 256 } }, 'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}] });
+        } else {
+            map.setStyle(STYLES[styleName]);
+        }
+        // Force refresh zone when style changes
+        map.once('styledata', addZoneLayer);
+    };
 </script>
 
 {% endif %}

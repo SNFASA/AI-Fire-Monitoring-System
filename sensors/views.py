@@ -14,29 +14,32 @@ import leafmap.maplibregl as leafmap
 import math
 from django.utils import timezone
 from datetime import timedelta
-# Init brain once
+# Init AI Engine
 predictor = FirePredictor()
 # ==========================================
 # 1. HELPER FUNCTION (MOVED TO TOP)
 # ==========================================
 def get_sensor_status(sensor):
     """
-    Determines if a sensor is Safe, Fire, Gas Leak, or Offline.
-    Must be defined BEFORE it is called by other views.
+    Returns: 'Fire', 'Gas Leak', 'Safe', or 'Offline'
     """
+    # 1. Check for recent data
     last_log = sensor.readings.order_by('-timestamp').first()
     
     if not last_log:
         return "Offline" 
         
-    # Check time difference (UTC)
+    # 2. Check time difference (5 minutes threshold)
     time_diff = timezone.now() - last_log.timestamp
-
-    # If no data for 5 minutes, mark as Offline
     if time_diff > timedelta(minutes=5):
         return "Offline"
         
-    return last_log.status
+    # 3. Return actual AI status
+    # Normalize 'GasLeak' to 'Gas Leak' for consistency
+    status = last_log.status
+    if status == 'GasLeak': 
+        return 'Gas Leak'
+    return status
 # ==========================================
 #  AUTHENTICATION VIEWS (Done)
 # ==========================================
@@ -73,83 +76,6 @@ def register(request):
     
     return render(request, 'sensors/register.html', {'form': form})
 
-# ==========================================
-#  API VIEWS FOR ESP32 DEVICE
-# ==========================================
-@csrf_exempt
-def receive_sensor_data(request):
-    if request.method == 'POST':
-        try:
-            # 1. Get data from ESP32
-            data = json.loads(request.body)
-            
-            # Extract values
-            methane = data.get('methane', 0) 
-            lpg = data.get('lpg', 0)
-            co = data.get('co', 0)
-            air_quality = data.get('air_quality', 0)
-            flame_val = data.get('flame_val', 4095)
-            dht22_temp = data.get('dht22_temp', 0)
-            humidity = data.get('humidity', 0)
-            
-            # Predict status
-            ml_result = predictor.predict(
-                methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
-            )
-            
-            # Identify Sensor & Owner
-            sensor_id_raw = data.get('sensor_id')
-            sensor = Sensor.objects.filter(id=sensor_id_raw).first() if sensor_id_raw else Sensor.objects.first()
-
-            # Save Log
-            if sensor:
-                SensorDataLog.objects.create(
-                    sensor=sensor,
-                    methane=methane, lpg=lpg, co=co, air_quality=air_quality,
-                    flame_val=flame_val, dht22_temp=dht22_temp, humidity=humidity,
-                    status=ml_result
-                )
-
-                # --- NEW AUTOMATED REPORT LOGIC ---
-                if ml_result == "Fire":
-                    # Check if the owner has an address (required for report)
-                    if sensor.owner and sensor.owner.address:
-                        user_address = sensor.owner.address
-                        
-                        # 1. Check for EXISTING active report for this address
-                        # We look for 'System Detected' or 'Confirmed' reports that are not 'Resolved'
-                        existing_report = Report.objects.filter(
-                            address=user_address,
-                            status__in=['System Detected', 'Confirmed']
-                        ).first()
-
-                        if existing_report:
-                            # Report exists: Just update the timestamp to show it's still active
-                            existing_report.save() # forcing updated=now()
-                            print(f"🔥 FIRE CONTINUES: Updated timestamp for Report #{existing_report.id}")
-                        else:
-                            # No active report: CREATE NEW ONE
-                            new_report = Report.objects.create(
-                                status='System Detected',
-                                address=user_address,
-                                trigger_sensor=sensor,
-                                trigger_temperature=dht22_temp,
-                                trigger_gas_level=max(methane, lpg, co, air_quality), # Store highest gas value
-                                description=f"Automated Alert: Fire detected by sensor '{sensor.name}'."
-                            )
-                            print(f"🚨 NEW REPORT GENERATED: Report #{new_report.id} at {user_address}")
-            
-            # Response to ESP32
-            if ml_result != "Safe":
-                return HttpResponse("1") 
-            else:
-                return HttpResponse("0")
-
-        except Exception as e:
-            print(f"Error processing sensor data: {e}")
-            return HttpResponse("0")
-            
-    return HttpResponse("0", status=405)
 
 # ==========================================
 #  WEB DASHBOARD VIEWS
@@ -179,30 +105,6 @@ def dashboard(request):
     }
     
     return render(request, 'sensors/dashboard.html', context)
-#=========================================  
-#The Live Data API (JavaScript calls this every 2 seconds)
-#=========================================
-@login_required
-def get_live_data(request):
-    # Get sensors owned by the logged-in user
-    try:
-        user_sensors = request.user.userprofile.sensors.all()
-    except:
-        return JsonResponse({'sensors': []})
-
-    sensor_data = []
-    for s in user_sensors:
-        status = get_sensor_status(s)
-        sensor_data.append({
-            'id': s.id,
-            'name': s.name,
-            'status': status,
-            'x': s.x_position,
-            'y': s.y_position
-        })
-
-    return JsonResponse({'sensors': sensor_data})
-
 # ==========================================
 # USER PROFILE VIEWS (Done)
 # ==========================================
@@ -478,187 +380,134 @@ def upload_layout(request):
         print("Profile Errors:", form.errors)
         messages.error(request, 'Please correct the error below.')
     return render(request, 'sensors/upload_layout.html', {'form': form})
-#==========================================
-# ADD SENSOR 
-#==========================================
-@login_required
-def add_sensor(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            sensor_name = data.get('name')
-            
-            if not sensor_name:
-                return JsonResponse({'success': False, 'error': 'Name is required'})
-
-            user_profile = request.user.userprofile
-            user_layout = Houselayout.objects.filter(user=request.user).first()
-
-            # Create the sensor
-            new_sensor = Sensor.objects.create(
-                owner=user_profile,
-                name=sensor_name,
-                layout=user_layout,
-                x_position=5.0,  # Default to top-left
-                y_position=5.0,
-                is_active=True
-            )
-            
-            return JsonResponse({
-                'success': True, 
-                'sensor_id': new_sensor.id, 
-                'name': new_sensor.name
-            })
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-            
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
-# ==========================================
-# API: Add New Sensor
-# ==========================================
-@login_required
-def add_sensor(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            sensor_name = data.get('name')
-            
-            if not sensor_name:
-                return JsonResponse({'success': False, 'error': 'Name is required'})
-
-            user_profile = request.user.userprofile
-            user_layout = Houselayout.objects.filter(user=request.user).first()
-
-            # Create the sensor
-            new_sensor = Sensor.objects.create(
-                owner=user_profile,
-                name=sensor_name,
-                layout=user_layout,
-                x_position=5.0,  # Default: Top-left corner (5%)
-                y_position=5.0,  # Default: Top-left corner (5%)
-                is_active=True
-            )
-            
-            return JsonResponse({
-                'success': True, 
-                'sensor_id': new_sensor.id, 
-                'name': new_sensor.name
-            })
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-            
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
-# ==========================================
-# API: Save Sensor Position (User only)
-# ==========================================
-@csrf_exempt
-@login_required
-def update_sensor_position(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        try:
-            sensor = Sensor.objects.get(id=data['sensor_id'], owner__user=request.user)
-            sensor.x_position = data['x']
-            sensor.y_position = data['y']
-            sensor.save()
-            return JsonResponse({'success': True})
-        except Sensor.DoesNotExist:
-            return JsonResponse({'success': False})
-    return JsonResponse({'success': False})
 # ==========================================
 # THE MAIN MAPS PAGE 
 # ==========================================
 @login_required(login_url='login')
 def maps(request):
     try:
-        user_profile = request.user.userprofile
+        user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
         return render(request, 'sensors/maps.html', {'role': 'unknown'})
 
     context = {
         'role': user_profile.role,
         'user_profile': user_profile,
-        'sensors': Sensor.objects.all(),
+        # Only load sensors for public users to improve performance/security
+        'sensors': user_profile.sensors.all() if user_profile.role == 'public' else [], 
     }
-    
-    # --- FIRE STATION LOGIC ---
-    try:
-        station = FireStation.objects.first()
-        
-        # Default fallback values
-        lat = 1.8548
-        lng = 103.0848
-        radius_km = 3.0
-        name = "HQ (Default)"
 
-        if station and station.address:
-            # 1. Get Coordinates
-            if station.address.latitude is not None and station.address.longitude is not None:
-                lat = station.address.latitude
-                lng = station.address.longitude # CHANGED to 'lng'
+    # --- FIRE STATION LOGIC (FIXED) ---
+    if user_profile.role == 'firefighter':
+        try:
+            # 1. PRIORITY: Get the station assigned to this specific firefighter
+            station = user_profile.station
             
-            # 2. Get Name
-            name = station.name
+            # 2. FALLBACK: If they haven't been assigned a station, use the first one
+            if not station:
+                station = FireStation.objects.first()
 
-            # 3. Calculate Radius
-            if station.cover_area_sqm:
-                import math
-                # formula: radius = sqrt(area / pi) / 1000 (for km)
-                radius_meters = math.sqrt(station.cover_area_sqm / math.pi)
-                radius_km = radius_meters / 1000
+            # Default values (Center of Batu Pahat/Johor as fallback)
+            lat = 1.8548
+            lng = 103.0848
+            radius_km = 3.0
+            name = "HQ (Unassigned)"
 
-        # Pass to context with CORRECT keys
-        context['station_lat'] = lat
-        context['station_lng'] = lng  # FIXED: Matches template variable
-        context['station_radius'] = radius_km
-        context['station_name'] = name
+            if station:
+                # Get Name
+                name = station.name
 
-    except Exception as e:
-        print(f"Map Error: {e}")
-        # Fallback if DB crashes
-        context['station_lat'] = 1.8548
-        context['station_lng'] = 103.0848
-        context['station_radius'] = 3.0
-        context['station_name'] = "HQ (Error)"
+                # Get Coordinates (Data Validation)
+                # We check "is not None" because 0.0 is a valid coordinate, but None is not.
+                if station.address and station.address.latitude is not None and station.address.longitude is not None:
+                    lat = float(station.address.latitude)
+                    lng = float(station.address.longitude)
+                
+                # Calculate Radius
+                if station.cover_area_sqm:
+                    import math
+                    # Formula: radius = sqrt(area / pi) / 1000 (to get km)
+                    radius_meters = math.sqrt(station.cover_area_sqm / math.pi)
+                    radius_km = radius_meters / 1000
 
-    # PUBLIC USER LOGIC
+            # Pass to context
+            context['station_lat'] = lat
+            context['station_lng'] = lng
+            context['station_radius'] = radius_km
+            context['station_name'] = name
+
+        except Exception as e:
+            print(f"Map Error: {e}")
+            # Emergency Fallback
+            context['station_lat'] = 1.8548
+            context['station_lng'] = 103.0848
+            context['station_radius'] = 3.0
+            context['station_name'] = "System Error"
+
+    # --- PUBLIC USER LOGIC ---
     if user_profile.role == 'public':
         layout = Houselayout.objects.filter(user=request.user).first()
-        sensors = user_profile.sensors.all()
-        context.update({'layout': layout, 'sensors': sensors})
+        context['layout'] = layout
 
     return render(request, 'sensors/maps.html', context)
+# ==========================================
+#  API: LIVE DATA FOR PUBLIC USER
+# ==========================================
+@login_required
+def get_live_data(request):
+    """ Called by JS to update sensor colors/text """
+    try:
+        # FIX: Order by ID to match HTML list order
+        user_sensors = Sensor.objects.filter(owner=request.user.userprofile).order_by('id')
+    except:
+        return JsonResponse({'sensors': []})
 
+    sensor_data = []
+    for s in user_sensors:
+        status = get_sensor_status(s)
+        sensor_data.append({
+            'id': s.id,
+            'name': s.name,
+            'status': status,
+            'x': s.x_position,
+            'y': s.y_position
+        })
+
+    return JsonResponse({'sensors': sensor_data})
 # ==========================================
 #  API: Firefighter 3D Map Data
 # ==========================================
 @login_required
 def firefighter_map_data(request):
+    """ Returns all houses and their aggregated status """
+    # Security check
     if not hasattr(request.user, 'userprofile') or request.user.userprofile.role != 'firefighter':
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     data = []
+    # Get all public users with an address
     users = UserProfile.objects.filter(role='public').select_related('address')
 
     for profile in users:
         if profile.address and profile.address.latitude:
             sensors = profile.sensors.all()
             
+            # --- Aggregation Logic ---
             house_status = "Safe"
             has_offline = False
             
             for s in sensors:
-                s_status = get_sensor_status(s)
+                s_status = get_sensor_status(s) # Helper handles 'Offline' logic
                 
                 if s_status == 'Fire':
                     house_status = 'Fire'
-                    break 
+                    break # Fire takes priority
                 elif s_status == 'Gas Leak' and house_status != 'Fire':
                     house_status = 'Gas Leak'
                 elif s_status == 'Offline':
                     has_offline = True
 
-            # If house is Safe but sensors are Offline, show Offline
+            # Logic: If safe but has offline sensors, mark house as Offline (optional)
             if house_status == "Safe" and has_offline and sensors.exists():
                 house_status = "Offline"
 
@@ -677,19 +526,21 @@ def firefighter_map_data(request):
 # ==========================================
 @login_required
 def get_victim_layout(request, user_id):
+    """ Returns sensors for a specific house (Firefighter View) """
     if request.user.userprofile.role != 'firefighter':
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     try:
         layout = Houselayout.objects.get(user_id=user_id)
-        sensors = Sensor.objects.filter(owner__user_id=user_id)
+        # FIX: Order by ID to prevent dots shuffling in the popup
+        sensors = Sensor.objects.filter(owner__user_id=user_id).order_by('id')
         
         sensor_data = []
         for s in sensors:
-            # Use the helper to get "Offline" if needed
             status = get_sensor_status(s)
             
             sensor_data.append({
+                'id': s.id,       # CRITICAL: JS needs this ID to sort dots
                 'name': s.name,
                 'x': s.x_position,
                 'y': s.y_position,
@@ -704,4 +555,119 @@ def get_victim_layout(request, user_id):
         })
     except Houselayout.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'No layout found'})
+    
+# ==========================================
+# ESP32 DATA INGESTION
+# ==========================================
+@csrf_exempt
+def receive_sensor_data(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # 1. Parse Data
+            methane = data.get('methane', 0) 
+            lpg = data.get('lpg', 0)
+            co = data.get('co', 0)
+            air_quality = data.get('air_quality', 0)
+            flame_val = data.get('flame_val', 4095)
+            dht22_temp = data.get('dht22_temp', 0)
+            humidity = data.get('humidity', 0)
+            
+            # 2. AI Prediction
+            ml_result = predictor.predict(
+                methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
+            )
+            
+            # 3. Find Sensor
+            sensor_id_raw = data.get('sensor_id')
+            sensor = Sensor.objects.filter(id=sensor_id_raw).first() if sensor_id_raw else None
 
+            if sensor:
+                # 4. Save Log
+                SensorDataLog.objects.create(
+                    sensor=sensor,
+                    methane=methane, lpg=lpg, co=co, air_quality=air_quality,
+                    flame_val=flame_val, dht22_temp=dht22_temp, humidity=humidity,
+                    status=ml_result
+                )
+
+                # 5. Report Logic (Only if Fire)
+                if ml_result == "Fire" and sensor.owner.address:
+                    user_address = sensor.owner.address
+                    
+                    existing_report = Report.objects.filter(
+                        address=user_address,
+                        status__in=['System Detected', 'Confirmed']
+                    ).first()
+
+                    if existing_report:
+                        existing_report.save() # Update timestamp
+                    else:
+                        Report.objects.create(
+                            status='System Detected',
+                            address=user_address,
+                            trigger_sensor=sensor,
+                            trigger_temperature=dht22_temp,
+                            trigger_gas_level=max(methane, lpg, co, air_quality),
+                            description=f"Automated Alert: Fire detected by sensor '{sensor.name}'."
+                        )
+            
+            # 6. Response
+            return HttpResponse("1" if ml_result != "Safe" else "0")
+
+        except Exception as e:
+            print(f"Error processing sensor data: {e}")
+            return HttpResponse("0")
+            
+    return HttpResponse("0", status=405)
+@csrf_exempt
+@login_required
+def add_sensor(request):
+    """ Adds a new sensor via the Public Dashboard """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            sensor_name = data.get('name')
+            
+            if not sensor_name:
+                return JsonResponse({'success': False, 'error': 'Name is required'})
+
+            user_profile = request.user.userprofile
+            user_layout = Houselayout.objects.filter(user=request.user).first()
+
+            new_sensor = Sensor.objects.create(
+                owner=user_profile,
+                name=sensor_name,
+                layout=user_layout,
+                x_position=5.0, 
+                y_position=5.0,
+                is_active=True
+            )
+            
+            return JsonResponse({
+                'success': True, 
+                'sensor_id': new_sensor.id, 
+                'name': new_sensor.name
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+            
+    return JsonResponse({'success': False, 'error': 'Invalid method'})
+
+@csrf_exempt
+@login_required
+def update_sensor_position(request):
+    """ Saves drag-and-drop coordinates """
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        try:
+            # Ensure user owns the sensor
+            sensor = Sensor.objects.get(id=data['sensor_id'], owner__user=request.user)
+            sensor.x_position = data['x']
+            sensor.y_position = data['y']
+            sensor.save()
+            return JsonResponse({'success': True})
+        except Sensor.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Sensor not found or unauthorized'})
+    return JsonResponse({'success': False})
