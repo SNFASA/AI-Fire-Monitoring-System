@@ -1,0 +1,44 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.9, 3.10, 3.11] # Tested on modern Python versions
+
+    steps:
+    # 1. Check out the code
+    - uses: actions/checkout@v4
+    
+    # 2. Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    # 3. Install Dependencies
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    # 4. Run Tests (Targeting your 'sensors' app)
+    - name: Run Tests
+      env:
+        # Dummy values to prevent "KeyError" during CI
+        SECRET_KEY: 'django-insecure-test-key-for-ci'
+        DEBUG: 'True'
+        # If you use a DB url in settings, add a dummy one here:
+        # DATABASE_URL: 'sqlite:///db.sqlite3' 
+      run: |
+        # This will find all tests in sensors/tests/*.py
+        python manage.py test sensors
