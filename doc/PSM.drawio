@@ -466,7 +466,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="7rKfvT_js_DOG3uMUKOA" name="Use case ">
-    <mxGraphModel dx="2218" dy="1580" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel grid="0" page="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -782,7 +782,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="OqeQSymUVt9750BjqKJ5" name="login SD">
-    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1268,7 +1268,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="sGjcQPb8xOhFs_g3WRrp" name="profile SD">
-    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1813,7 +1813,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="jYlS57pT-ruxbPxAyGzC" name="Report Management SD">
-    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -2163,7 +2163,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="cont Report Management SD" id="RufiuByePEXvCGumSIW3">
-    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="6Ya9jDmDj5I2Q3sfWVPK-0" />
         <mxCell id="6Ya9jDmDj5I2Q3sfWVPK-1" parent="6Ya9jDmDj5I2Q3sfWVPK-0" />
@@ -2903,7 +2903,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="maintenance SD" id="8w7JZeJMtFmJFGKm6zjJ">
-    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="PU5hK_nUa-WCCUDMUXV6-0" />
         <mxCell id="PU5hK_nUa-WCCUDMUXV6-1" parent="PU5hK_nUa-WCCUDMUXV6-0" />
@@ -3295,7 +3295,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="cont of maintenance SD" id="yNln9-czQqrFnvApGiCO">
-    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="qb2K20e4xcobkocQ2bx1-0" />
         <mxCell id="qb2K20e4xcobkocQ2bx1-1" parent="qb2K20e4xcobkocQ2bx1-0" />
@@ -3786,7 +3786,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="TLzwuOsWde0NxsskvcjJ" name="collectdata AD">
-    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -3872,7 +3872,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="collectdata SD" id="PEnS_KugUFN3IGjM34lm">
-    <mxGraphModel dx="1050" dy="578" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="Ez1rxjMy1tbdjeUmyUYk-0" />
         <mxCell id="Ez1rxjMy1tbdjeUmyUYk-1" parent="Ez1rxjMy1tbdjeUmyUYk-0" />
@@ -3997,7 +3997,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="n59UCk9IIFdgQtCeQ-cP" name="Analiysis data AD">
-    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
