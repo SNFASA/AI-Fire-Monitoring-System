@@ -4895,6 +4895,12 @@
         <mxCell id="wt1aV-lfGYW1sqrNeyaS-7" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="viewalert()" vertex="1">
           <mxGeometry height="30" width="60" x="90" y="390" as="geometry" />
         </mxCell>
+        <mxCell id="lvZOOhdsuC4F_JysQJAY-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;[firefighter duty]&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="20" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="lvZOOhdsuC4F_JysQJAY-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;[else]&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="6" y="380" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
