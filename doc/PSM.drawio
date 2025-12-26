@@ -775,7 +775,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="7rKfvT_js_DOG3uMUKOA" name="Use case ">
-    <mxGraphModel dx="2218" dy="1580" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1507" dy="1182" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -820,7 +820,7 @@
             <mxPoint x="277" y="211.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="NGktEyn58AgiZfGlejnz-4" parent="Hej_N3CSugFVFo15mZdO-1" style="ellipse;whiteSpace=wrap;html=1;" value="profile management" vertex="1">
+        <mxCell id="NGktEyn58AgiZfGlejnz-4" parent="Hej_N3CSugFVFo15mZdO-1" style="ellipse;whiteSpace=wrap;html=1;" value="Profile management" vertex="1">
           <mxGeometry height="54" width="78" x="166.5" y="126" as="geometry" />
         </mxCell>
         <mxCell id="NGktEyn58AgiZfGlejnz-7" parent="Hej_N3CSugFVFo15mZdO-1" style="ellipse;whiteSpace=wrap;html=1;" value="Duty" vertex="1">
