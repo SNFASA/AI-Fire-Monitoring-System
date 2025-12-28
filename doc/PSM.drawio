@@ -784,7 +784,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="7rKfvT_js_DOG3uMUKOA" name="Use case ">
-    <mxGraphModel grid="0" page="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="3349" dy="2000" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -844,7 +844,7 @@
         <mxCell id="Hej_N3CSugFVFo15mZdO-8" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="User" vertex="1">
           <mxGeometry height="60" width="30" x="-435" y="-409" as="geometry" />
         </mxCell>
-        <mxCell id="Hej_N3CSugFVFo15mZdO-9" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Firefighter" vertex="1">
+        <mxCell id="Hej_N3CSugFVFo15mZdO-9" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="BOMBA" vertex="1">
           <mxGeometry height="60" width="30" x="-446" y="-55" as="geometry" />
         </mxCell>
         <mxCell id="Hej_N3CSugFVFo15mZdO-10" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Sensors&amp;nbsp;" vertex="1">
@@ -1091,7 +1091,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="OqeQSymUVt9750BjqKJ5" name="login SD">
-    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1657" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1107,7 +1107,7 @@
         <mxCell id="OjBD9SBtcnLgmSN34-I5-10" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};participant=umlEntity;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" value="" vertex="1">
           <mxGeometry height="720" width="40" x="670" y="70" as="geometry" />
         </mxCell>
-        <mxCell id="OjBD9SBtcnLgmSN34-I5-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" value="User/&amp;nbsp;&lt;div&gt;Firefigter&amp;nbsp;&lt;/div&gt;" vertex="1">
+        <mxCell id="OjBD9SBtcnLgmSN34-I5-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" value="User/&amp;nbsp;&lt;div&gt;BOMBA&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="60" x="230" y="30" as="geometry" />
         </mxCell>
         <mxCell id="OjBD9SBtcnLgmSN34-I5-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" value="Login Interface" vertex="1">
@@ -1364,11 +1364,11 @@
     </mxGraphModel>
   </diagram>
   <diagram id="_g6KjaV51EY40A2y7zrA" name="profile AD">
-    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1657" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="1JdO9xmrnKoOXvC0syHs-1" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="user and Firefighter&amp;nbsp;" vertex="1">
+        <mxCell id="1JdO9xmrnKoOXvC0syHs-1" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="user and BOMBA" vertex="1">
           <mxGeometry height="720" width="255" x="135" y="80" as="geometry" />
         </mxCell>
         <mxCell id="1JdO9xmrnKoOXvC0syHs-6" edge="1" parent="1JdO9xmrnKoOXvC0syHs-1" source="1JdO9xmrnKoOXvC0syHs-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="1JdO9xmrnKoOXvC0syHs-5" value="">
@@ -1468,7 +1468,7 @@
         <mxCell id="Pe6xqoBkqYfe8cYjttW4-9" parent="1JdO9xmrnKoOXvC0syHs-2" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="no" vertex="1">
           <mxGeometry height="30" width="60" x="135" y="110" as="geometry" />
         </mxCell>
-        <mxCell id="1JdO9xmrnKoOXvC0syHs-3" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Firefighter (admin)" vertex="1">
+        <mxCell id="1JdO9xmrnKoOXvC0syHs-3" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="&lt;span style=&quot;caret-color: rgba(0, 0, 0, 0);&quot;&gt;BOMBA&lt;/span&gt;&amp;nbsp;(admin)" vertex="1">
           <mxGeometry height="720" width="250" x="640" y="80" as="geometry" />
         </mxCell>
         <mxCell id="uFWE3cX3kQIUaGqtsiPO-4" edge="1" parent="1JdO9xmrnKoOXvC0syHs-3" source="Sv6AO3OOG2aEQoy-3T7M-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="uFWE3cX3kQIUaGqtsiPO-3" value="">
@@ -1590,7 +1590,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="sGjcQPb8xOhFs_g3WRrp" name="profile SD">
-    <mxGraphModel dx="2026" dy="1114" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1657" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1612,7 +1612,7 @@
         <mxCell id="h9to-UdxMrjf6LKXbaly-4" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};participant=umlEntity;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=none;" value="" vertex="1">
           <mxGeometry height="770" width="40" x="740" y="70" as="geometry" />
         </mxCell>
-        <mxCell id="h9to-UdxMrjf6LKXbaly-33" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=none;" value="User/&lt;div&gt;Firefighter&amp;nbsp;&lt;/div&gt;" vertex="1">
+        <mxCell id="h9to-UdxMrjf6LKXbaly-33" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=none;" value="User/&lt;br&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px; font-weight: 700; caret-color: rgba(0, 0, 0, 0); background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;BOMBA&lt;/span&gt;&amp;nbsp;&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="60" x="50" y="30" as="geometry" />
         </mxCell>
         <mxCell id="h9to-UdxMrjf6LKXbaly-34" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=none;" value="profile intercafe" vertex="1">
@@ -1627,7 +1627,7 @@
         <mxCell id="agLlTQnkDT5DgyD1wwye-1" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};participant=umlActor;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=none;" value="" vertex="1">
           <mxGeometry height="780" width="20" x="190" y="70" as="geometry" />
         </mxCell>
-        <mxCell id="agLlTQnkDT5DgyD1wwye-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=none;" value="&lt;div&gt;Firefighter (Admin)&lt;/div&gt;" vertex="1">
+        <mxCell id="agLlTQnkDT5DgyD1wwye-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=none;" value="&lt;div&gt;&lt;span style=&quot;font-size: 12px; font-weight: 700; caret-color: rgba(0, 0, 0, 0); background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;BOMBA&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp;(Admin)&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="60" x="180" y="30" as="geometry" />
         </mxCell>
         <mxCell id="5PbmrmByq_JQLjSO19dl-1" edge="1" parent="1" style="html=1;verticalAlign=bottom;labelBackgroundColor=none;endArrow=block;endFill=1;rounded=0;" target="h9to-UdxMrjf6LKXbaly-2" value="">
