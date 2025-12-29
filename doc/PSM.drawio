@@ -4444,7 +4444,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="TLzwuOsWde0NxsskvcjJ" name="collectdata AD">
-    <mxGraphModel dx="1657" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1418" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -4468,6 +4468,12 @@
         </mxCell>
         <mxCell id="q54KPojZNkOqcchf4hvM-2" parent="YGOh3sCAE54-PYgDIvD2-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="if sensor =&quot;online&quot;" vertex="1">
           <mxGeometry height="30" width="60" x="80" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="ywaQ4l4lHTpTJXla_B_a-1" parent="YGOh3sCAE54-PYgDIvD2-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="yes" vertex="1">
+          <mxGeometry height="30" width="60" x="110" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="ywaQ4l4lHTpTJXla_B_a-2" parent="YGOh3sCAE54-PYgDIvD2-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="no" vertex="1">
+          <mxGeometry height="30" width="60" x="20" y="110" as="geometry" />
         </mxCell>
         <mxCell id="YGOh3sCAE54-PYgDIvD2-3" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="system" vertex="1">
           <mxGeometry height="680" width="270" x="260" y="80" as="geometry" />
