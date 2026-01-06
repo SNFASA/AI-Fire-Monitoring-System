@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 import os 
 
 #===========================================
@@ -40,29 +41,76 @@ class FireStation(models.Model):
 # ==========================================
 
 class UserProfile(models.Model):
-    ROLES = (('public', 'Public User'), ('firefighter', 'Firefighter'))
-    
+    # --- Choices ---
+    ROLES = (
+        ('public', 'Public User'), 
+        ('firefighter', 'Firefighter')
+    )
+
+    # Based on Malaysian Bomba structure
+    RANK_CHOICES = (
+        ('KB', 'Ketua Balai (Station Chief)'),
+        ('PBK', 'Pegawai Bomba Kanan (Senior Officer/Commander)'),
+        ('PB', 'Pegawai Bomba (Firefighter/Crew)'),
+        ('Pemandu', 'Driver/Pump Operator'),
+    )
+
+    # --- Core Fields ---
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLES, default='public')
     phone_number = models.CharField(max_length=15, null=True, blank=True)
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)
+    address = models.ForeignKey('Address', on_delete=models.SET_NULL, null=True, blank=True) # Used string 'Address' to prevent import errors if Address is defined below
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     status = models.CharField(max_length=20, default='Safe', help_text="Current Aggregate House Status")
-    # Firefighter Specific
-    station = models.ForeignKey(FireStation, on_delete=models.SET_NULL, null=True, blank=True)
-    position = models.CharField(max_length=100, null=True, blank=True)
+    
+    # --- Firefighter Specific Fields ---
+    station = models.ForeignKey('FireStation', on_delete=models.SET_NULL, null=True, blank=True)
+    rank = models.CharField(max_length=20, choices=RANK_CHOICES, null=True, blank=True, help_text="Official Rank")
+    team = models.CharField(max_length=50, null=True, blank=True, help_text="E.g. Alpha Squad, Truck 1 Crew")
+    position = models.CharField(max_length=100, null=True, blank=True, help_text="Specific role on the truck (e.g., Nozzleman)")
     on_duty = models.BooleanField(default=False)
     
+    # --- Timestamps ---
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
+        # Improved string representation to show Rank if they are a firefighter
+        if self.role == 'firefighter' and self.rank:
+            return f"{self.rank} {self.user.username} ({self.station})"
         return f"{self.user.username} - {self.role}"
+#=========================================
+# DutyAssignment (The Rostering Table)
+#=========================================
+class DutyAssignment(models.Model):
+    firefighter = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='assignments')
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    is_active = models.BooleanField(default=True) # To "soft delete" duties if needed
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        # Validation: Ensure firefighter isn't already working during this time
+        overlapping = DutyAssignment.objects.filter(
+            firefighter=self.firefighter,
+            start_time__lt=self.end_time,
+            end_time__gt=self.start_time
+        ).exclude(pk=self.pk)
+
+        if overlapping.exists():
+            raise ValidationError("This firefighter is already assigned to a shift during this time.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.firefighter.user.username}: {self.start_time} - {self.end_time}"
 #==================================
 # 3. House Layout 
 #==================================
 class Houselayout(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='layouts')
     image = models.ImageField(upload_to=user_directory_path)
     name = models.CharField(max_length= 100)
     timestamp = models.DateTimeField(auto_now_add= True)

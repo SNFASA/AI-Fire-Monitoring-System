@@ -66,9 +66,13 @@
                     
                     <small class="text-muted">Joined {{ user.date_joined|date:"M d, Y" }}</small>
                 </div>
+                {% if user_profile.role == 'firefighter' %}
+                    <a href="{% url 'duty' %}" class="btn btn-danger text-white w-100 mt-2">
+                        <i class="fas fa-clipboard-list"></i> View Duty Roster
+                    </a>
+                {% endif %}
             </div>
         </div>
-
         <div class="col-lg-9">
             
             <div class="card mb-4 border-danger">
@@ -80,6 +84,7 @@
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
+                        
                         <h6 class="text-primary mb-3">Personal Details</h6>
                         <div class="row">
                             <div class="col-md-6">
@@ -100,11 +105,8 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Username</label>
-                                    <input type="text" name="username" class="form-control" 
-                                        value="{{ u_form.username.value|default:'' }}" required> 
-                                    
+                                    <input type="text" name="username" class="form-control" value="{{ u_form.username.value|default:'' }}" required> 
                                     <small class="text-muted">This will change your login username.</small>
-                                    
                                     {% if u_form.username.errors %}
                                         <div class="text-danger small">{{ u_form.username.errors.0 }}</div>
                                     {% endif %}
@@ -133,8 +135,39 @@
                             </div>
                         </div>
 
+                        {% if user_profile.role == 'firefighter' %}
                         <hr>
-
+                        <h6 class="text-danger mb-3"><i class="fas fa-fire-extinguisher"></i> Service Details (Mobilization)</h6>
+                        <div class= "row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Rank</label>
+                                    {{ p_form.rank }} 
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Station Assignment</label>
+                                    {{ p_form.station }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class= "row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Team / Squad</label>
+                                    <input type="text" name="team" class="form-control" value="{{ p_form.team.value|default:'' }}" placeholder="e.g. Alpha Squad">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Truck Position</label>
+                                    <input type="text" name="position" class="form-control" value="{{ p_form.position.value|default:'' }}" placeholder="e.g. Nozzleman 1">
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <hr>
                         <h6 class="text-primary mb-3">Address Details</h6>
                         
                         <div class="mb-3">
@@ -170,11 +203,6 @@
                             <label class="form-label fw-bold">Upload New Photo</label>
                             <input type="file" class="form-control" name="profile_picture" accept="image/*" onchange="previewImage(this)">
                             <small class="text-muted">Max 5MB, JPG/PNG only</small>
-                            {% if p_form.profile_picture.errors %}
-                                <div class="text-danger small">
-                                    {{ p_form.profile_picture.errors.0 }}
-                                </div>
-                            {% endif %}
                         </div>
 
                         <div class="d-grid">
@@ -219,7 +247,9 @@
                 </div>
             </div>
 
-        </div> </div> </div>
+        </div> 
+    </div> 
+</div>
 
 <script>
     function previewImage(input) {

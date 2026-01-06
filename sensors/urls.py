@@ -14,6 +14,7 @@ urlpatterns = [
     
     # User Profile
     path('profile/', views.profile, name='profile'),
+    path('duty/', views.duty, name='duty'),
     path('change-password/', views.change_password, name='change_password'),
     
     # Maintenance

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Address, FireStation, UserProfile, Sensor, SensorDataLog, Maintenance, Report
+from django.utils.html import format_html
+from .models import Address, FireStation, UserProfile, Sensor, SensorDataLog, Maintenance, Report, DutyAssignment
 # Register your models here.
 
  #==========================================
@@ -41,21 +42,35 @@ class SensorAdmin(admin.ModelAdmin):
     def location_coords(self, obj):
         return f"({obj.latitude}, {obj.longitude})"
     location_coords.short_description = 'Location'
-    
 #==========================================
 # SENSOR DATA LOG Admin
 #=========================================
 
 class SensorDataLogAdmin(admin.ModelAdmin):
-    list_display = ('sensor', 'methane', 'lpg', 'co', 'air_quality', 'flame_val', 'dht22_temp', 'humidity', 'status', 'timestamp')
+    # Update list_display to use 'colored_status' instead of just 'status'
+    list_display = ('sensor', 'methane', 'lpg', 'co', 'air_quality', 'flame_val', 'dht22_temp', 'humidity', 'colored_status', 'timestamp')
     list_filter = ('status', 'timestamp', 'sensor')
     
+    # Helper function to decide the color (Logic you provided)
     def get_status_color(self, obj):
-        if obj.status == 'fire':
+        if obj.status == 'Fire':
             return 'red'
-        elif obj.status == 'GasLeak':
+        elif obj.status == 'Warning':
             return 'orange'
         return 'green'
+
+    # The function that actually displays the colored HTML
+    @admin.display(description='Status')  # Sets the column header name
+    def colored_status(self, obj):
+        color = self.get_status_color(obj)
+        
+        # FIX FOR YOUR ERROR:
+        # We pass the color and status as variables, not just a raw string.
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color,
+            obj.status
+        )
     
 #==========================================
 # MAINTENANCE Admin
@@ -74,7 +89,17 @@ class ReportAdmin(admin.ModelAdmin):
     list_filter = ('fire_type', 'station')
     search_fields = ('cause', 'in_charge__username')
 
-
+#==========================================
+# Duty Assignment Admin
+#=========================================
+class DutyAssignmentAdmin(admin.ModelAdmin):
+    list_display = ('user_profile', 'start_time', 'end_time')
+    list_filter = ('start_time', 'end_time')
+    search_fields = ('user_profile__user__username',)
+    
+    def user_profile(self, obj):
+        return obj.firefighter.user.username
+    user_profile.short_description = 'Firefighter'
 #==========================================
 # Registering all Admins
 #=========================================
@@ -85,4 +110,5 @@ admin.site.register(Sensor, SensorAdmin)
 admin.site.register(SensorDataLog, SensorDataLogAdmin)
 admin.site.register(Maintenance, MaintenanceAdmin)
 admin.site.register(Report, ReportAdmin)
+admin.site.register(DutyAssignment, DutyAssignmentAdmin)
 

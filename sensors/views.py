@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 import json
-from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address, Houselayout, ReportImage
+from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address, Houselayout, ReportImage, DutyAssignment
 from ml_engine.predictor import FirePredictor
 from django.core.serializers.json import DjangoJSONEncoder
 from .forms import SignUpForm, UserUpdateForm, ProfileUpdateForm, AddressUpdateForm, HouseLayoutForm, SensorPlacementForm
@@ -154,6 +154,13 @@ def profile(request):
     }
     
     return render(request, 'sensors/profile.html', context)
+#==========================================
+# DUTY VIEW
+#==========================================
+@login_required(login_url='login')
+def duty(request):
+    return render(request, 'sensors/duty.html')
+
 # ==========================================
 # CHANGE PASSWORD VIEW (Done)
 # ==========================================

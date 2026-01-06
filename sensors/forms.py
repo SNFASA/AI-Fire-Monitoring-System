@@ -27,7 +27,30 @@ class UserUpdateForm(forms.ModelForm):
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['phone_number', 'profile_picture']
+        fields = ['phone_number', 'profile_picture', 'station', 'rank', 'team', 'position']
+        
+        # Add Bootstrap styling to the inputs
+        widgets = {
+            'rank': forms.Select(attrs={'class': 'form-select'}),
+            'station': forms.Select(attrs={'class': 'form-select'}),
+            'team': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Alpha Squad'}),
+            'position': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Nozzleman'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Check if the user is NOT a firefighter
+        # We access the instance (the UserProfile object) being edited
+        if self.instance and self.instance.role != 'firefighter':
+            # List of fields to hide/remove for non-firefighters
+            firefighter_fields = ['station', 'rank', 'team', 'position']
+            
+            for field in firefighter_fields:
+                if field in self.fields:
+                    del self.fields[field]
         
 class SensorPlacementForm(forms.ModelForm):
     class Meta: 
