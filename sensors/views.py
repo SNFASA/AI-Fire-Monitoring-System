@@ -14,6 +14,7 @@ import leafmap.maplibregl as leafmap
 import math
 from django.utils import timezone
 from datetime import timedelta
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 # Init AI Engine
 predictor = FirePredictor()
 # ==========================================
@@ -158,9 +159,19 @@ def profile(request):
 # DUTY VIEW
 #==========================================
 @login_required(login_url='login')
+@xframe_options_sameorigin
 def duty(request):
-    return render(request, 'sensors/duty.html')
-
+    user_profile = UserProfile.objects.get(user=request.user)
+    my_schedule = DutyAssignment.objects.filter(
+        firefighter=user_profile,
+        is_active=True,
+        start_time__gte=timezone.now()
+    ).order_by('start_time')
+    
+    context = {
+        'my_schedule': my_schedule,
+    }
+    return render(request, 'sensors/duty_popup.html', context)
 # ==========================================
 # CHANGE PASSWORD VIEW (Done)
 # ==========================================
