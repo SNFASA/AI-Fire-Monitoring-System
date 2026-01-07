@@ -51,57 +51,19 @@
     <!-- Main Content -->
     <div class="row">
         <!-- Sensors Section -->
-        <div class="col-lg-8 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">Active Sensors</h4>
-                </div>
-                <div class="card-body">
-                    {% if sensors %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Sensor Name</th>
-                                        <th>Status</th>
-                                        <th>Location</th>
-                                        <th>Last Reading</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for sensor in sensors|slice:":5" %}
-                                    <tr>
-                                        <td>{{ sensor.name }}</td>
-                                        <td>
-                                            {% if sensor.is_active %}
-                                                <span class="badge badge-success">Active</span>
-                                            {% else %}
-                                                <span class="badge badge-danger">Inactive</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ sensor.latitude|floatformat:2 }}, {{ sensor.longitude|floatformat:2 }}</td>
-                                        <td>
-                                            {% if sensor.readings.first %}
-                                                {{ sensor.readings.first.timestamp|date:"M d, H:i" }}
-                                            {% else %}
-                                                N/A
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-sm btn-primary">View</a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted text-center py-4">No sensors available</p>
-                    {% endif %}
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-terminal me-2"></i>System Terminal Log</span>
+                <span class="badge bg-warning blink-me">LIVE FEED</span>
+            </div>
+            <div class="card-body p-0">
+                <div id="terminal-box" class="terminal-window">
+                    <div id="log-content">System Initialized. Waiting for data...</div>
                 </div>
             </div>
         </div>
+    </div>
 
         <!-- Recent Activity -->
         <div class="col-lg-4 mb-4">
@@ -184,4 +146,43 @@
         </div>
     </div>
 </div>
+<script>
+    function refreshTerminal() {
+        // Fetch data from the Django view
+        fetch('/get-live-logs/')
+        .then(response => response.json())
+        .then(data => {
+            const terminalContent = document.getElementById('log-content');
+            const terminalBox = document.getElementById('terminal-box');
+            
+            if (data.logs) {
+                let formattedLogs = data.logs;
+
+                // --- APPLY COLORS (Using replaceAll to fix warnings) ---
+                
+                // 1. Header
+                formattedLogs = formattedLogs.replaceAll(
+                    '[🔮 PREDICTOR LOG]', 
+                    '<span class="log-header">[🔮 PREDICTOR LOG]</span>'
+                );
+                
+                // 2. Status Tags
+                formattedLogs = formattedLogs.replaceAll('[SAFE]', '<span class="log-safe">[SAFE]</span>');
+                formattedLogs = formattedLogs.replaceAll('[WARNING]', '<span class="log-warn">[WARNING]</span>');
+                formattedLogs = formattedLogs.replaceAll('[FIRE]', '<span class="log-fire">[FIRE]</span>');
+                
+                // 3. Inputs (Regex is still okay here for patterns)
+                formattedLogs = formattedLogs.replace(/(Inputs:)/g, '<span class="log-input">$1</span>');
+
+                // Update HTML
+                terminalContent.innerHTML = formattedLogs;
+                terminalBox.scrollTop = terminalBox.scrollHeight;
+            }
+        })
+        .catch(err => console.error("Terminal Error:", err));
+    }
+
+    // Refresh every 2 seconds
+    setInterval(refreshTerminal, 2000);
+</script>
 {% endblock %}

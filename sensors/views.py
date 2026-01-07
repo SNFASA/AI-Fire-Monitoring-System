@@ -15,8 +15,10 @@ import math
 from django.utils import timezone
 from datetime import timedelta
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from .logger import get_logs, add_log
 # Init AI Engine
 predictor = FirePredictor()
+system_logs = []
 # ==========================================
 # 1. HELPER FUNCTION (MOVED TO TOP)
 # ==========================================
@@ -41,6 +43,12 @@ def get_sensor_status(sensor):
     if status == 'GasLeak': 
         return 'Gas Leak'
     return status
+def get_live_logs(request):
+    # This fetches data from the shared memory
+    return JsonResponse({'logs': get_logs()})
+def test_log(request):
+    add_log("\n[TEST] This is a test log entry to verify the dashboard.\n")
+    return JsonResponse({'status': 'Log added'})
 # ==========================================
 #  AUTHENTICATION VIEWS (Done)
 # ==========================================
@@ -94,10 +102,13 @@ def dashboard(request):
         user_profile = UserProfile.objects.create(user=request.user)
     
     sensors = Sensor.objects.filter(owner=user_profile) if user_profile.role == 'public' else Sensor.objects.all()
+    predictor = FirePredictor()
+    model_name = predictor.get_active_model_info()
     
     context = {
         'sensors_count': sensors.count(),
         'sensors': sensors,
+        'ml_model_name': model_name,
         'maintenance_pending': Maintenance.objects.filter(status='Pending').count(),
         'maintenance_items': Maintenance.objects.all().order_by('-timestamp'),
         'reports_count': Report.objects.count(),
@@ -577,6 +588,8 @@ def get_victim_layout(request, user_id):
 # ==========================================
 # ESP32 DATA INGESTION
 # ==========================================
+# In views.py
+
 @csrf_exempt
 def receive_sensor_data(request):
     if request.method == 'POST':
@@ -592,17 +605,36 @@ def receive_sensor_data(request):
             dht22_temp = data.get('dht22_temp', 0)
             humidity = data.get('humidity', 0)
             
+            # --- LOGGING START (This makes it show on Dashboard) ---
+            import datetime
+            current_time = datetime.datetime.now().strftime('%H:%M:%S')
+            
+            # Create the log string
+            log_msg = (
+                f"\n[🔮 PREDICTOR LOG] {current_time}\n"
+                f"   ├─ Inputs: Met={methane}, LPG={lpg}, CO={co}, AQ={air_quality}\n"
+                f"   └─ Inputs: Flame={flame_val}, Temp={dht22_temp}, Hum={humidity}\n"
+            )
+            
+            # Send to Console AND Dashboard
+            print(log_msg) 
+            add_log(log_msg) 
+            # --- LOGGING END ---
+
             # 2. AI Prediction
             ml_result = predictor.predict(
                 methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
             )
             
+            # Log the result
+            add_log(f"   ℹ️  AI Status: [{ml_result}]\n")
+
             # 3. Find Sensor
             sensor_id_raw = data.get('sensor_id')
             sensor = Sensor.objects.filter(id=sensor_id_raw).first() if sensor_id_raw else None
 
             if sensor:
-                # 4. Save Log
+                # 4. Save to Database
                 SensorDataLog.objects.create(
                     sensor=sensor,
                     methane=methane, lpg=lpg, co=co, air_quality=air_quality,
@@ -635,7 +667,9 @@ def receive_sensor_data(request):
             return HttpResponse("1" if ml_result != "Safe" else "0")
 
         except Exception as e:
-            print(f"Error processing sensor data: {e}")
+            error_msg = f"   ❌ Error processing data: {e}\n"
+            print(error_msg)
+            add_log(error_msg) # Log errors too
             return HttpResponse("0")
             
     return HttpResponse("0", status=405)

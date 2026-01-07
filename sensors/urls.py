@@ -6,6 +6,8 @@ urlpatterns = [
     # Home / Dashboard
     path('', views.dashboard, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('get-live-logs/', views.get_live_logs, name='get_live_logs'),
+    path('test-log/', views.test_log, name='test_log'),
     
     # Authentication
     path('login/', LoginView.as_view(template_name='sensors/login.html'), name='login'),
