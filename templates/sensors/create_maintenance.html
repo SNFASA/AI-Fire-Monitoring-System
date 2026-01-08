@@ -1,0 +1,105 @@
+{% extends "sensors/layout/master.html" %}
+{% load static %}
+
+{% block title %}Create Maintenance{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+            <h4>Request Maintenance</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Please correct the errors below:</strong>
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                <div class = "row">
+                    <div class= "col-md-6 mb-3">
+                        <label class="form-label">Select Sensor</label>
+                        {{ form.sensor }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Date of Issue</label>
+                            {{ form.scheduled_date }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Type of Maintenance</label>
+                        {{ form.maintenance_type }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nearest Fire Station</label>
+                        {{ form.nearest_fire_station }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Issue Details</label>
+                    {{ form.details }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Upload Evidence (Photos)</label>
+                    
+                    <input type="file" 
+                        name="images" 
+                        id="imageInput" 
+                        class="form-control" 
+                        multiple 
+                        accept="image/*"
+                        onchange="previewImages()">
+                        
+                    <div class="form-text text-muted">Supported formats: JPG, PNG. You can select multiple files.</div>
+
+                    <div id="previewContainer" class="d-flex flex-wrap gap-2 mt-3"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Request</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    function previewImages() {
+        var previewContainer = document.getElementById("previewContainer");
+        var fileInput = document.getElementById("imageInput");
+        var files = fileInput.files;
+
+        // Clear previous previews
+        previewContainer.innerHTML = "";
+
+        if (files.length > 0) {
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.classList.add("img-thumbnail");
+                    img.style.width = "100px";
+                    img.style.height = "100px";
+                    img.style.objectFit = "cover";
+                    previewContainer.appendChild(img);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+</script>
+{% endblock %}

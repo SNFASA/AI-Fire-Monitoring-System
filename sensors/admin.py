@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Address, FireStation, UserProfile, Sensor, SensorDataLog, Maintenance, Report, DutyAssignment
+from .models import Address, FireStation, UserProfile, Sensor, SensorDataLog, Maintenance,MaintenanceImage, Report, DutyAssignment
 # Register your models here.
 
  #==========================================
@@ -75,11 +75,12 @@ class SensorDataLogAdmin(admin.ModelAdmin):
 #==========================================
 # MAINTENANCE Admin
 #=========================================
-
+class MaintenanceImageInline(admin.TabularInline):
+    model = MaintenanceImage
+    extra = 1 
 class MaintenanceAdmin(admin.ModelAdmin):
-    list_display = ('sensor', 'status', 'in_charge', 'timestamp')
-    list_filter = ('status',)
-
+    inlines = [MaintenanceImageInline]
+    list_display = ('sensor', 'status', 'timestamp', 'in_charge')
 #==========================================
 # REPORT Admin
 #=========================================

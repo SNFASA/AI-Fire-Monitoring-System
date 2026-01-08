@@ -168,21 +168,57 @@ class SensorDataLog(models.Model):
 # ==========================================
 
 class Maintenance(models.Model):
-    STATUS_CHOICES = (('Pending', 'Pending'), ('InProgress', 'In Progress'), ('Completed', 'Completed'), ('damage','Damage'))
-    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
-    details = models.TextField()
-    in_charge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'userprofile__role': 'firefighter'})
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
-    picture = models.ImageField(upload_to='maintenance/', null=True, blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    STATUS_CHOICES = (
+        ('Pending', 'pending'),
+        ('In Progress', 'in_progress'),
+        ('Completed','completed'),
+        ('Rejected', 'rejected')
+    )
+    TYPE_CHOICES = (
+        ('HealthCheck', 'Sensor Health Check'),
+        ('Connectivity', 'Connectivity Issue'), # ✅ Fixed spelling (2 'n's)
+        ('AlarmTest', 'Alarm Test'),
+        ('FullAudit', 'Full System Audit'),
+        ('Repair', 'Repair/Damage Fix'),
+    )
+    FRECUENCY_CHOICES = (
+        ('adHoc', 'Ad-Hoc/Emergency'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('yearly', 'Yearly'),
+    )
+    sensor = models.ForeignKey('Sensor', on_delete=models.CASCADE)
+    maintenance_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='HealthCheck')
+    frequency = models.CharField(max_length=20, choices=FRECUENCY_CHOICES, default='monthly')
+    details = models.TextField(help_text="Describe the issue or reason for maintenance.")
+    nearest_fire_station = models.ForeignKey('FireStation', on_delete=models.SET_NULL, null=True, blank=True)
+    in_charge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'userprofile__role': 'firefighter'})
+    timestamp = models.DateTimeField(auto_now_add =True)
+    scheduled_date = models.DateField(null=True, blank=True) # When the maintenance is planned
+    actual_date = models.DateField(null=True, blank=True) # When the maintenance was actually done
+    technician_notes = models.TextField(null=True, blank=True, help_text="Notes from the technician after maintenance.")
     updated = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     
     class Meta:
         ordering = ['-timestamp']
-    
     def __str__(self):
-        return f"Maintenance for {self.sensor.name} - {self.status}"
-
+        return f"Maintenance #{self.id} - {self.maintenance_type} for Sensor: {self.sensor.name} - Status: {self.status}"
+    
+    def save(self, *args, **kwargs):
+        if not self.frequency:
+            if self.maintenance_type == 'HealthCheck' or self.maintenance_type == 'Connectivity':
+                self.frequency = 'monthly'
+            elif self.maintenance_type == 'AlarmTest':
+                self.frequency = 'quarterly'
+            elif self.maintenance_type == 'FullAudit':
+                self.frequency = 'yearly'
+            else:
+                self.frequency = 'adHoc'
+        super().save(*args, **kwargs)
+#==========================================
+# Report model
+#+=========================================
 class Report(models.Model):
     STATUS_CHOICES = (
         ('System Detected', 'System Detected'),
@@ -224,5 +260,10 @@ class ReportImage(models.Model):
     def __str__(self):
         return f"Image for Report #{self.report.id}"
 
-
+class MaintenanceImage(models.Model):
+    maintenance = models.ForeignKey(Maintenance, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='maintenance/images/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"Image for Maintenance #{self.maintenance.id}"
    

@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
-from .models import UserProfile, Address, Houselayout, Sensor, SensorDataLog, Maintenance, Report
+from .models import UserProfile, Address, Houselayout, Sensor, SensorDataLog, Maintenance,MaintenanceImage, Report, FireStation
 
 class SignUpForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True)
@@ -64,3 +64,26 @@ class HouseLayoutForm(forms.ModelForm):
     class Meta:
         model = Houselayout
         fields = ['name', 'image']
+ 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+class MaintenanceForm(forms.ModelForm):
+    class Meta:
+        model = Maintenance
+        fields = ['sensor', 'maintenance_type', 'details', 'nearest_fire_station', 'scheduled_date']
+        
+        widgets = {
+            'sensor': forms.Select(attrs={'class': 'form-select'}),
+            'maintenance_type': forms.Select(attrs={'class': 'form-select'}),
+            'nearest_fire_station': forms.Select(attrs={'class': 'form-select'}),
+            'details': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Describe the issue...'}),
+            'scheduled_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'sensor' in self.fields:
+            self.fields['sensor'].queryset = Sensor.objects.filter(is_active=True)
+        if 'nearest_fire_station' in self.fields:
+            self.fields['nearest_fire_station'].empty_label = "Select Nearest Fire Station (Optional)"

@@ -6,10 +6,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 import json
-from .models import Sensor, SensorDataLog, UserProfile, Maintenance, Report, FireStation, Address, Houselayout, ReportImage, DutyAssignment
+from .models import Sensor, SensorDataLog, UserProfile, Maintenance,MaintenanceImage, Report, FireStation, Address, Houselayout, ReportImage, DutyAssignment
 from ml_engine.predictor import FirePredictor
 from django.core.serializers.json import DjangoJSONEncoder
-from .forms import SignUpForm, UserUpdateForm, ProfileUpdateForm, AddressUpdateForm, HouseLayoutForm, SensorPlacementForm
+from .forms import SignUpForm, UserUpdateForm, ProfileUpdateForm, AddressUpdateForm, HouseLayoutForm, SensorPlacementForm, MaintenanceForm
 import leafmap.maplibregl as leafmap
 import math
 from django.utils import timezone
@@ -235,9 +235,10 @@ def change_password(request):
 def maintenance(request):
     """List all maintenance records"""
     maintenance_items = Maintenance.objects.all().order_by('-timestamp')
-    
+    maintenance_images = MaintenanceImage.objects.all()
     context = {
         'maintenance_items': maintenance_items,
+        'maintenance_images': maintenance_images,
     }
     return render(request, 'sensors/maintenance.html', context)
 
@@ -270,11 +271,63 @@ def maintenance_detail(request, maintenance_id):
         messages.error(request, f'❌ Error loading maintenance record: {str(e)}')
         return redirect('maintenance')
 
+# In sensors/views.py
 @login_required(login_url='login')
 def create_maintenance(request):
-    """Create new maintenance record"""
-    return render(request, 'sensors/create_maintenance.html')
+    if request.method == 'POST':
+        form = MaintenanceForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            maintenance_instance = form.save(commit=False)
+            maintenance_instance.save() 
+            images = request.FILES.getlist('images') 
+            
+            for img in images:
+                MaintenanceImage.objects.create(
+                    maintenance=maintenance_instance,
+                    image=img                         
+                )
+            
+            return redirect('maintenance') 
+            
+        else:
+            print("❌ Form Errors:", form.errors)
+            
+    else:
+        form = MaintenanceForm()
+    
+    return render(request, 'sensors/create_maintenance.html', {'form': form})
+def edit_maintenance(request, maintenance_id):
+    # 1. Get the specific maintenance object or return 404 if not found
+    maintenance_task = get_object_or_404(Maintenance, id=maintenance_id)
 
+    if request.method == 'POST':
+        # 2. Update fields based on form data
+        maintenance_task.details = request.POST.get('details')
+        maintenance_task.status = request.POST.get('status')
+        
+        # Update the "In Charge" field if a firefighter claims it
+        # (Assuming the logged-in user is a firefighter)
+        if request.user.userprofile.role == 'firefighter' and not maintenance_task.in_charge:
+             maintenance_task.in_charge = request.user
+
+        maintenance_task.save()
+
+        # 3. Handle Image Uploads (One-to-Many)
+        images = request.FILES.getlist('images') # 'images' is the name in <input type="file" name="images" multiple>
+        for img in images:
+            MaintenanceImage.objects.create(maintenance=maintenance_task, image=img)
+
+        return redirect('dashboard') # Redirect to your dashboard or list view
+
+    # 4. If GET request, show the edit page
+    return render(request, 'sensors/edit_maintenance.html', {
+        'maintenance': maintenance_task
+    })
+def delete_maintenance(request, maintenance_id):
+    maintenance = get_object_or_404(Maintenance, id=maintenance_id)
+    maintenance.delete()
+    return redirect('maintenance')
 # ==========================================
 # REPORTS VIEWS
 # ==========================================
