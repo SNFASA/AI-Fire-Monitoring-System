@@ -198,7 +198,7 @@ class Maintenance(models.Model):
     actual_date = models.DateField(null=True, blank=True) # When the maintenance was actually done
     technician_notes = models.TextField(null=True, blank=True, help_text="Notes from the technician after maintenance.")
     updated = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     class Meta:
         ordering = ['-timestamp']

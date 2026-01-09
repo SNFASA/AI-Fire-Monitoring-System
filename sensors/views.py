@@ -16,6 +16,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from .logger import get_logs, add_log
+from django.db.models import Q
 # Init AI Engine
 predictor = FirePredictor()
 system_logs = []
@@ -232,45 +233,51 @@ def change_password(request):
 # ==========================================
 
 @login_required(login_url='login')
-def maintenance(request):
-    """List all maintenance records"""
-    maintenance_items = Maintenance.objects.all().order_by('-timestamp')
+def maintenance(request): 
+    try:
+        user_role = request.user.userprofile.role
+    except AttributeError:
+        user_role = 'public'
+    if user_role == 'public':
+        maintenances = Maintenance.objects.all().order_by('-scheduled_date')
+
+    else:
+        maintenances = Maintenance.objects.filter(
+            Q(status='Pending') | Q(in_charge=request.user)
+        ).order_by('-scheduled_date')
     maintenance_images = MaintenanceImage.objects.all()
     context = {
-        'maintenance_items': maintenance_items,
+        'maintenance_items': maintenances, 
         'maintenance_images': maintenance_images,
+        'user_role': user_role
     }
     return render(request, 'sensors/maintenance.html', context)
-
 @login_required(login_url='login')
 def maintenance_detail(request, maintenance_id):
-    """Maintenance detail view with picture upload"""
     try:
         maintenance = get_object_or_404(Maintenance, id=maintenance_id)
-        
+        UserProfile.objects.get(user=request.user)  # Ensure profile exists
         if request.method == 'POST':
-            # Handle picture upload
             if 'picture' in request.FILES:
                 try:
-                    # Delete old picture if exists
-                    if maintenance.picture:
-                        maintenance.picture.delete()
-                    
-                    maintenance.picture = request.FILES['picture']
-                    maintenance.save()
-                    messages.success(request, '✅ Maintenance picture uploaded successfully!')
+                    image_file = request.FILES['picture']
+                    MaintenanceImage.objects.create(
+                        maintenance=maintenance,
+                        image=image_file
+                    )
+                    messages.success(request, '✅ Evidence picture uploaded successfully!')
                 except Exception as e:
                     messages.error(request, f'❌ Error uploading picture: {str(e)}')
                 return redirect('maintenance_detail', maintenance_id=maintenance.id)
         
         context = {
-            'maintenance': maintenance,
+            'maintenance': maintenance,\
         }
         return render(request, 'sensors/maintenance_detail.html', context)
+        
     except Exception as e:
         messages.error(request, f'❌ Error loading maintenance record: {str(e)}')
         return redirect('maintenance')
-
 # In sensors/views.py
 @login_required(login_url='login')
 def create_maintenance(request):
@@ -296,34 +303,68 @@ def create_maintenance(request):
     else:
         form = MaintenanceForm()
     
-    return render(request, 'sensors/create_maintenance.html', {'form': form})
+    return render(request, 'sensors/maintenance_create.html', {'form': form})
 def edit_maintenance(request, maintenance_id):
-    # 1. Get the specific maintenance object or return 404 if not found
     maintenance_task = get_object_or_404(Maintenance, id=maintenance_id)
+    user_role = 'public' 
+    if request.user.is_authenticated:
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            user_role = profile.role
+        except UserProfile.DoesNotExist:
+            user_role = 'public'
+    if user_role == 'public' and maintenance_task.status != 'Pending':
+        messages.error(request, "You cannot edit this request because it is already being processed.")
+        return redirect('maintenance_detail', maintenance_id=maintenance_task.id)
 
     if request.method == 'POST':
-        # 2. Update fields based on form data
-        maintenance_task.details = request.POST.get('details')
-        maintenance_task.status = request.POST.get('status')
-        
-        # Update the "In Charge" field if a firefighter claims it
-        # (Assuming the logged-in user is a firefighter)
-        if request.user.userprofile.role == 'firefighter' and not maintenance_task.in_charge:
-             maintenance_task.in_charge = request.user
+        if user_role == 'public':
+            form = MaintenanceForm(request.POST, request.FILES, instance=maintenance_task)
+            if form.is_valid():
+                maintenance_instance = form.save()
+                handle_images(request, maintenance_instance)
+                messages.success(request, "Request updated successfully.")
+                return redirect('maintenance_detail', maintenance_id=maintenance_instance.id)
+        else:
+            maintenance_task.status = request.POST.get('status')
+            maintenance_task.actual_date = request.POST.get('actual_date')
+            maintenance_task.technician_notes = request.POST.get('technician_notes')
+            
+            if not maintenance_task.in_charge:
+                maintenance_task.in_charge = request.user
+            
+            maintenance_task.save()
+            handle_images(request, maintenance_task)
+            
+            messages.success(request, "Technician report updated.")
+            return redirect('maintenance_detail', maintenance_id=maintenance_task.id)
+    else:
+        form = MaintenanceForm(instance=maintenance_task)
 
-        maintenance_task.save()
+    context = {
+        'form': form,
+        'maintenance': maintenance_task,
+        'user_role': user_role,
+    }
+    return render(request, 'sensors/maintenance_edit.html', context)
 
-        # 3. Handle Image Uploads (One-to-Many)
-        images = request.FILES.getlist('images') # 'images' is the name in <input type="file" name="images" multiple>
-        for img in images:
-            MaintenanceImage.objects.create(maintenance=maintenance_task, image=img)
-
-        return redirect('dashboard') # Redirect to your dashboard or list view
-
-    # 4. If GET request, show the edit page
-    return render(request, 'sensors/edit_maintenance.html', {
-        'maintenance': maintenance_task
-    })
+# Helper function to avoid duplicate code
+def handle_images(request, maintenance_instance):
+    images = request.FILES.getlist('images')
+    for img in images:
+        MaintenanceImage.objects.create(
+            maintenance=maintenance_instance,
+            image=img
+        )
+    
+    # 2. Delete Selected Images
+    delete_images_ids = request.POST.getlist('delete_images')
+    if delete_images_ids:
+        MaintenanceImage.objects.filter(
+            id__in=delete_images_ids, 
+            maintenance=maintenance_instance
+        ).delete()
+            
 def delete_maintenance(request, maintenance_id):
     maintenance = get_object_or_404(Maintenance, id=maintenance_id)
     maintenance.delete()

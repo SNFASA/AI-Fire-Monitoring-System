@@ -5,7 +5,6 @@
 
 {% block content %}
 <div class="container mt-5 mb-5">
-    <!-- Messages/Alerts -->
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -21,107 +20,154 @@
                 <div class="card-header bg-danger text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="mb-0">🛠️ {{ maintenance.sensor.name }} - Maintenance Details</h3>
+                            <h3 class="mb-0">{{ maintenance.sensor.name }} - Details</h3>
+                            <small>ID: #{{ maintenance.id }}</small>
                         </div>
                         <span class="badge bg-light text-danger fs-6">
-                            {% if maintenance.status == 'Pending' %}⏳ Pending
-                            {% elif maintenance.status == 'InProgress' %}🔄 In Progress
-                            {% elif maintenance.status == 'Completed' %}✅ Completed
-                            {% else %}{{ maintenance.status }}{% endif %}
+                            {{ maintenance.get_status_display }}
                         </span>
                     </div>
                 </div>
 
                 <div class="card-body">
-                    <!-- Status Section -->
-                    <div class="mb-4">
-                        <small class="text-muted d-block fw-bold mb-2">Current Status</small>
-                        <div class="p-3 bg-light rounded">
-                            {% if maintenance.status == 'Pending' %}
-                                <span class="badge bg-warning text-dark fs-6">⏳ Pending Maintenance</span>
-                            {% elif maintenance.status == 'InProgress' %}
-                                <span class="badge bg-info text-white fs-6">🔄 Currently In Progress</span>
-                            {% elif maintenance.status == 'Completed' %}
-                                <span class="badge bg-success text-white fs-6">✅ Completed</span>
-                            {% else %}
-                                <span class="badge bg-secondary fs-6">{{ maintenance.status }}</span>
-                            {% endif %}
+                    <div class = "row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block fw-bold">User</small>
+                            <span class= "badge bg-secondary">
+                                {{ maintenance.sensor.owner.user.get_full_name|default:maintenance.sensor.owner.user.username }}
+                            </span>
+                        </div>
+                        <div class ="col-md-6 mb-3">
+                            <small class="text-muted d-block fw-bold">Location</small>
+                            <span class="fs-5">
+                                {% if maintenance.sensor.owner.address %}
+                                    {{ maintenance.sensor.owner.address.street }}, 
+                                    {{ maintenance.sensor.owner.address.city }}, 
+                                    {{ maintenance.sensor.owner.address.state }}
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </span>
                         </div>
                     </div>
-
-                    <hr class="my-4">
-
-                    <!-- Details Section -->
-                    <div class="mb-4">
-                        <small class="text-muted d-block fw-bold mb-2">📝 Maintenance Details</small>
-                        <div class="p-3 bg-light rounded">
-                            <p class="mb-0 text-dark">{{ maintenance.details }}</p>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <!-- Assignment Section -->
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block fw-bold">👤 Assigned To</small>
-                            <div class="p-3 bg-light rounded">
-                                <p class="mb-0 text-dark">{{ maintenance.in_charge.get_full_name|default:maintenance.in_charge.username }}</p>
+                            <small class="text-muted d-block fw-bold">Maintenance Type</small>
+                            <span class="fs-5">{{ maintenance.get_maintenance_type_display }}</span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block fw-bold">Frequency</small>
+                            <span class="badge bg-secondary">{{ maintenance.get_frequency_display }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <small class="text-muted d-block fw-bold mb-2">Description / Issue</small>
+                        <div class="p-3  rounded border">
+                            <p class="mb-0 text-white">{{ maintenance.details }}</p>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted">
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block fw-bold">Assigned Technician</small>
+                            <div class="p-2">
+                                {% if maintenance.in_charge %}
+                                    <span class="text-dark fw-bold">
+                                        {{ maintenance.in_charge.get_full_name|default:maintenance.in_charge.username }}
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">{{ maintenance.in_charge.email }}</small>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Unassigned</span>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block fw-bold">📅 Date Reported</small>
-                            <div class="p-3 bg-light rounded">
-                                <p class="mb-0 text-dark">{{ maintenance.timestamp|date:"M d, Y - g:i A" }}</p>
+                            <small class="text-muted d-block fw-bold">Nearest Fire Station</small>
+                            <div class="p-2">
+                                {% if maintenance.nearest_fire_station %}
+                                    {{ maintenance.nearest_fire_station.name }}
+                                {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                {% endif %}
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <small class="text-muted d-block fw-bold">Reported On</small>
+                            {{ maintenance.timestamp|date:"M d, Y" }}
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block fw-bold">Scheduled Date</small>
+                            {{ maintenance.scheduled_date|date:"M d, Y"|default:"-" }}
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block fw-bold">Actual Completion</small>
+                            {{ maintenance.actual_date|date:"M d, Y"|default:"-" }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <small class="text-white d-block fw-bold mb-2">Technician Notes</small>
+                        <div class="p-3  rounded border border-warning">
+                            <p class="mb-0 text-white">
+                                {{ maintenance.technician_notes|default:"No technician notes added yet." }}
+                            </p>
                         </div>
                     </div>
 
                     <hr class="my-4">
 
-                    <!-- Current Photo Section -->
                     <div class="mb-4">
-                        <small class="text-muted d-block fw-bold mb-3">📸 Current Documentation</small>
-                        {% if maintenance.picture %}
-                            <div class="text-center">
-                                <img src="{{ maintenance.picture.url }}" alt="Maintenance documentation" 
-                                     class="img-fluid rounded shadow-sm" style="max-height: 350px; border: 3px solid #df2020;">
-                                <p class="mt-3">
-                                    <a href="{{ maintenance.picture.url }}" target="_blank" class="btn btn-sm btn-outline-danger">
-                                        View Full Size
-                                    </a>
-                                </p>
+                        <small class="text-white d-block fw-bold mb-3">Evidence Photos</small>
+                        
+                        {% if maintenance.images.all %}
+                            <div class="row g-2">
+                                {% for img in maintenance.images.all %}
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <a href="{{ img.image.url }}" target="_blank">
+                                            <img src="{{ img.image.url }}" 
+                                                 class="card-img-top rounded object-fit-cover" 
+                                                 style="height: 200px; border: 1px solid #ddd;"
+                                                 alt="Maintenance Evidence">
+                                        </a>
+                                        <div class="card-footer bg-white p-1 text-center">
+                                            <small class="text-muted">{{ img.uploaded_at|date:"M d, Y" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
                         {% else %}
-                            <div class="alert alert-info text-center py-4">
-                                <h6>No Photo Yet</h6>
-                                <p class="mb-0 text-muted">No photo has been attached to this maintenance record</p>
+                            <div class="alert alert-secondary text-white text-center">
+                                No photos uploaded yet.
                             </div>
                         {% endif %}
                     </div>
 
-                    <hr class="my-4">
-
-                    <!-- Upload Photo Section -->
-                    <div class="mb-4">
-                        <small class="text-muted d-block fw-bold mb-3">📤 Update Documentation</small>
-                        <form method="POST" enctype="multipart/form-data" novalidate>
-                            {% csrf_token %}
-                            <div class="input-group mb-3">
-                                <input type="file" class="form-control border-2" id="picture" 
-                                       name="picture" accept="image/jpeg,image/png,image/gif" required>
-                                <button class="btn btn-danger" type="submit">Upload New Photo</button>
-                            </div>
-                            <small class="text-muted d-block">
-                                📌 Max: 5MB | Formats: JPEG, PNG, GIF
-                            </small>
-                            <div id="file-preview" class="mt-3"></div>
-                        </form>
+                    <div class="card bg-light border-0 mt-4">
+                        <div class="card-body">
+                            <h6 class="card-title">Upload Additional Evidence</h6>
+                            <form method="POST" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="input-group">
+                                    <input type="file" class="form-control" name="picture" accept="image/*" required>
+                                    <button class="btn btn-danger" type="submit">Upload</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
+
                 </div>
 
-                <div class="card-footer bg-white border-top border-danger">
-                    <a href="{% url 'maintenance' %}" class="btn btn-outline-danger w-100">
+                <div class="card-footer bg-white border-top border-danger text-center">
+                    <a href="{% url 'maintenance' %}" class="btn text-white btn-outline-dark">
                         ← Back to Maintenance List
                     </a>
                 </div>
@@ -129,56 +175,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    // File preview
-    const pictureInput = document.getElementById('picture');
-    const filePreview = document.getElementById('file-preview');
-
-    pictureInput.addEventListener('change', function(e) {
-        filePreview.innerHTML = '';
-        
-        if (this.files && this.files[0]) {
-            const file = this.files[0];
-            
-            // Validate file size (5MB max)
-            if (file.size > 5242880) {
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger alert-dismissible fade show';
-                alert.innerHTML = '<strong>❌ Error:</strong> File size exceeds 5MB. Choose a smaller file.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                filePreview.appendChild(alert);
-                pictureInput.value = '';
-                return;
-            }
-            
-            // Validate file type
-            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            if (!validTypes.includes(file.type)) {
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger alert-dismissible fade show';
-                alert.innerHTML = '<strong>❌ Error:</strong> Invalid file type. Use JPEG, PNG, or GIF.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                filePreview.appendChild(alert);
-                pictureInput.value = '';
-                return;
-            }
-            
-            // Show preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.createElement('div');
-                preview.className = 'border border-2 border-danger rounded p-3';
-                preview.innerHTML = `
-                    <small class="text-muted d-block mb-2">Preview:</small>
-                    <img src="${e.target.result}" alt="Upload preview" class="img-fluid rounded" style="max-height: 250px;">
-                    <p class="mt-2 text-muted small mb-0">
-                        📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)
-                    </p>
-                `;
-                filePreview.appendChild(preview);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-</script>
-
 {% endblock %}

@@ -21,8 +21,8 @@ urlpatterns = [
     
     # Maintenance
     path('maintenance/', views.maintenance, name='maintenance'),
-    path('maintenance/create/', views.create_maintenance, name='create_maintenance'),
-    path('maintenance/edit/<int:maintenance_id>/', views.edit_maintenance, name='edit_maintenance'),
+    path('maintenance/create/', views.create_maintenance, name='maintenance_create'),
+    path('maintenance/edit/<int:maintenance_id>/', views.edit_maintenance, name='maintenance_edit'),
     path('maintenance/<int:maintenance_id>/', views.maintenance_detail, name='maintenance_detail'),
     path('maintenance/delete/<int:maintenance_id>/', views.delete_maintenance, name='delete_maintenance'),
     

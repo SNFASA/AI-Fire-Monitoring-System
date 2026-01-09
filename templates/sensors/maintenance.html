@@ -5,7 +5,31 @@
 
 {% block content %}
 <div class="container mt-5 mb-5">
-    
+    <!-- Messages/Alerts -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <a href="{% url 'home' %}" class="btn btn-outline-danger">← Back to Dashboard</a>
+            <h2 class="display-6 fw-bold text-danger mb-2">Maintenance Records</h2>
+            <p class="text-muted">View and manage equipment maintenance logs</p>
+        </div>
+        {% if user.userprofile.role == 'public' %}
+            <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
+                <a href="{% url 'maintenance_create' %}" class="btn btn-danger btn-lg">
+                    Request Maintenance
+                </a>
+            </div>
+        {% endif %}
+    </div>
     <div class="row">
         {% if maintenance_items %}
             {% for item in maintenance_items %}
@@ -29,10 +53,10 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <p class="text-dark mb-3">{{ item.details|truncatewords:20 }}</p>
+                        <p class="text-muted mb-3">{{ item.details|truncatewords:20 }}</p>
                         {% if item.images.all %}
                             <div class="mb-3">
-                                <small class="text-muted d-block mb-2">Evidence Photos</small>
+                                <small class="text-white d-block mb-2">Evidence Photos</small>
                                 <div class="d-flex flex-wrap gap-2">
                                     {% for photo in item.images.all %}
                                         <div class="ratio ratio-1x1" style="width: 70px; height: 70px; cursor: pointer;">
@@ -44,7 +68,7 @@
                                 </div>
                             </div>
                         {% else %}
-                            <div class="mb-3 p-3 bg-light rounded text-center">
+                            <div class="mb-3 p-3  rounded text-center">
                                 <small class="text-muted">No images</small>
                             </div>
                         {% endif %}
@@ -52,7 +76,7 @@
                         <div class="row text-sm mt-3 border-top pt-2">
                             <div class="col-6">
                                 <small class="text-muted d-block">Reported Date</small>
-                                <strong class="text-dark">{{ item.timestamp|date:"d M Y" }}</strong>
+                                <strong class="text-primary">{{ item.timestamp|date:"d M Y" }}</strong>
                             </div>
                             <div class="col-6 text-end">
                                 <small class="text-muted d-block">Technician</small>
@@ -63,24 +87,36 @@
                         </div>
                     </div>
 
-                    <div class="card-footer bg-white border-top border-danger p-2">
-                        <div class="row g-2">
+                    <div class="card-footer bg-white border-top border-danger p-2">                        
+                        {% if user_role == 'firefighter' and item.status != 'completed' or user_role == 'public' and item.status == 'pending' %}
                             
-                            <div class="col-6">
-                                <a href="{% url 'maintenance_detail' item.id %}" class="btn btn-warning w-100 text-dark fw-bold">
-                                    Update
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a href="{% url 'maintenance_edit' item.id %}" class="btn text-white btn-warning w-100">
+                                        {% if user_role == 'firefighter' %}
+                                            Update
+                                        {% else %}
+                                            Edit
+                                        {% endif %}
+                                    </a>
+                                </div>
+
+                                <div class="col-6">
+                                    <a href="{% url 'maintenance_detail' item.id %}" class="btn text-white btn-danger w-100">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+
+                        {% else %}
+                            <div class="text-center">
+                                <a href="{% url 'maintenance_detail' item.id %}" class="btn btn-secondary w-100 text-white">
+                                    View Full Record
                                 </a>
                             </div>
 
-                            <div class="col-6">
-                                <a href="{% url 'maintenance_detail' item.id %}" class="btn btn-danger w-100">
-                                    View Details
-                                </a>
-                            </div>
-
-                        </div>
+                        {% endif %}
                     </div>
-
                 </div>
             </div>
             {% endfor %}

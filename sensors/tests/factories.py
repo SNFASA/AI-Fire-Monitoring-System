@@ -3,7 +3,7 @@ import random
 from django.utils import timezone
 from factory.django import DjangoModelFactory
 from django.contrib.auth.models import User
-from sensors.models import UserProfile, Address, FireStation, Sensor, SensorDataLog, Report, ReportImage
+from sensors.models import UserProfile, Address, FireStation, Sensor, SensorDataLog, Report, ReportImage, Maintenance
 
 # 1. Base Helpers
 class UserFactory(DjangoModelFactory):
@@ -101,3 +101,13 @@ class ReportImageFactory(DjangoModelFactory):
     report = factory.SubFactory(ReportFactory)
     # Generates a tiny valid placeholder image file
     image = factory.django.ImageField(color='red')
+    
+class MaintenanceFactory(DjangoModelFactory):
+    class Meta:
+        model = Maintenance
+
+    sensor = factory.SubFactory(SensorFactory)
+    maintenance_type = 'Repair'
+    details = factory.Faker('sentence') # Generates random text
+    status = 'Pending'
+    scheduled_date = factory.LazyFunction(timezone.now)
