@@ -304,6 +304,7 @@ def create_maintenance(request):
         form = MaintenanceForm()
     
     return render(request, 'sensors/maintenance_create.html', {'form': form})
+@login_required(login_url='login')
 def edit_maintenance(request, maintenance_id):
     maintenance_task = get_object_or_404(Maintenance, id=maintenance_id)
     user_role = 'public' 
@@ -313,7 +314,7 @@ def edit_maintenance(request, maintenance_id):
             user_role = profile.role
         except UserProfile.DoesNotExist:
             user_role = 'public'
-    if user_role == 'public' and maintenance_task.status != 'Pending':
+    if user_role == 'public' and maintenance_task.status != 'pending':
         messages.error(request, "You cannot edit this request because it is already being processed.")
         return redirect('maintenance_detail', maintenance_id=maintenance_task.id)
 

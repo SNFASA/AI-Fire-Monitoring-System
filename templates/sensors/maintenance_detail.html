@@ -13,7 +13,16 @@
             </div>
         {% endfor %}
     {% endif %}
-
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <h2 class="display-6 fw-bold text-danger mb-2">Maintenance Details</h2>
+        </div>
+        <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
+            <a href="{% url 'maintenance' %}" class="btn btn-danger text-white btn-lg">
+                Maintenance List
+            </a>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-8 offset-lg-2">
             <div class="card border-danger shadow-lg">
