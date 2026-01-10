@@ -40,6 +40,7 @@ urlpatterns = [
     # Page Views
     path('maps/', views.maps, name='maps'),
     path('upload-layout/', views.upload_layout, name='upload_layout'),
+    path('sensors/delete/<int:sensor_id>/', views.delete_sensor, name='delete_sensor'),
 
     # API Endpoints (These feed the maps)
     path('api/add-sensor/', views.add_sensor, name='add_sensor'),
@@ -49,6 +50,15 @@ urlpatterns = [
     path('api/map-data/', views.firefighter_map_data, name='map_data'), 
     path('api/get-victim-layout/<int:user_id>/', views.get_victim_layout, name='get_victim_layout'),
     
+    # 1. Existing Terminal Log URL (For Firefighters)
+    path('get-live-logs/', views.get_live_logs, name='get_live_logs'),
+
+    # 2. NEW: API for Public Dashboard Table (Humidity/Temp)
+    path('api/dashboard-data/', views.get_dashboard_sensor_data, name='dashboard_data'),
     
+    # 3. NEW: API for AJAX Delete Button
+    path('api/delete-sensor/<int:sensor_id>/', views.delete_sensor_ajax, name='delete_sensor_ajax'),
+    path('api/dashboard-data/', views.get_dashboard_sensor_data, name='dashboard_data'),
+    path('api/delete-sensor/<int:sensor_id>/', views.delete_sensor_ajax, name='delete_sensor_ajax'),
     
 ]

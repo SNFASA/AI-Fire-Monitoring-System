@@ -121,11 +121,11 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                             <div>
                                 <span class="badge bg-secondary rounded-pill me-2" style="width: 25px;">{{ forloop.counter }}</span>
-                                <span class="fw-bold text-dark">{{ sensor.name }}</span>
+                                <span class="fw-bold">{{ sensor.name }}</span>
                             </div>
-                            {% with status=sensor.readings.last.status|default:"Safe" %}
-                            <span class="badge rounded-pill {% if status == 'Fire' %}bg-danger animate-pulse{% elif status == 'Warning' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ status }}</span>
-                            {% endwith %}
+                                {% with status=sensor.readings.last.status|default:"Safe" %}
+                                    <span class="badge rounded-pill {% if status == 'Fire' %}bg-danger animate-pulse{% elif status == 'Warning' %}bg-warning text-dark{% elif status == 'Offline' %}bg-secondary{% else %}bg-success{% endif %}">{{ status }}</span>
+                                {% endwith %}
                         </li>
                         {% empty %}
                         <li class="list-group-item text-center text-muted">No sensors added yet.</li>

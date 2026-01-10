@@ -681,9 +681,8 @@ def get_victim_layout(request, user_id):
         return JsonResponse({'success': False, 'error': 'No layout found'})
     
 # ==========================================
-# ESP32 DATA INGESTION
+# ESP32 DATA INGESTION (sensor)
 # ==========================================
-# In views.py
 
 @csrf_exempt
 def receive_sensor_data(request):
@@ -818,3 +817,88 @@ def update_sensor_position(request):
         except Sensor.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Sensor not found or unauthorized'})
     return JsonResponse({'success': False})
+
+@login_required
+def delete_sensor(request, sensor_id):
+    if request.method == "POST":
+        try:
+            # Ensure user owns the sensor
+            sensor = Sensor.objects.get(id=sensor_id, owner__user=request.user, maintenance__status__in=['completed_with_damages'])
+            sensor.delete()
+            return redirect('dashboard')
+        except Sensor.DoesNotExist:
+            messages.error(request, '❌ Sensor not found or unauthorized.')
+            return redirect('dashboard')
+    messages.error(request, '❌ Invalid request method.')
+    return redirect('dashboard')
+
+# sensors/views.py
+
+from django.views.decorators.http import require_POST
+
+# ==========================================
+# NEW: API for Public Dashboard Real-time Data
+# ==========================================
+@login_required
+def get_dashboard_sensor_data(request):
+    """
+    Returns JSON data for the public dashboard table.
+    """
+    try:
+        # 1. Get Profile
+        user_profile = UserProfile.objects.get(user=request.user)
+
+        # 2. MATCH DASHBOARD LOGIC:
+        # If public, show only their sensors. If Admin/Other, show ALL sensors.
+        if user_profile.role == 'public':
+            sensors = Sensor.objects.filter(owner=user_profile).order_by('id')
+        else:
+            sensors = Sensor.objects.all().order_by('id')
+        
+        data = []
+        for sensor in sensors:
+            last_log = sensor.readings.order_by('-timestamp').first()
+            
+            if last_log:
+                temp = f"{last_log.dht22_temp:.1f}°C"
+                hum = f"{last_log.humidity:.1f}%"
+                status = last_log.status
+            else:
+                temp = "N/A"
+                hum = "N/A"
+                
+            data.append({
+                'id': sensor.id,
+                'temp': temp,
+                'hum': hum,
+                'status': status
+            })
+            
+        return JsonResponse({'sensors': data})
+    except Exception as e:
+        print(f"API Error: {e}") # Debugging
+        return JsonResponse({'error': str(e)}, status=500)
+
+# ==========================================
+# NEW: AJAX Delete View (No Reload)
+# ==========================================
+@login_required
+@require_POST # Security: Only allow POST requests
+def delete_sensor_ajax(request, sensor_id):
+    """
+    Deletes a sensor and returns JSON so the page doesn't reload.
+    """
+    try:
+        # 1. Find the sensor (ensure the logged-in user actually owns it)
+        sensor = Sensor.objects.get(id=sensor_id, owner__user=request.user)
+        
+        # 2. Delete it
+        sensor_name = sensor.name
+        sensor.delete()
+        
+        return JsonResponse({'success': True, 'message': f'Sensor {sensor_name} deleted successfully'})
+        
+    except Sensor.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Sensor not found or unauthorized'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)

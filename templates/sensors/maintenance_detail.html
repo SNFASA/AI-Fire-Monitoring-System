@@ -73,7 +73,7 @@
                     <div class="mb-4">
                         <small class="text-muted d-block fw-bold mb-2">Description / Issue</small>
                         <div class="p-3  rounded border">
-                            <p class="mb-0 text-white">{{ maintenance.details }}</p>
+                            <p class="mb-0 ">{{ maintenance.details }}</p>
                         </div>
                     </div>
 
@@ -84,13 +84,13 @@
                             <small class="text-muted d-block fw-bold">Assigned Technician</small>
                             <div class="p-2">
                                 {% if maintenance.in_charge %}
-                                    <span class="text-dark fw-bold">
+                                    <span class=" fw-bold">
                                         {{ maintenance.in_charge.get_full_name|default:maintenance.in_charge.username }}
                                     </span>
                                     <br>
                                     <small class="text-muted">{{ maintenance.in_charge.email }}</small>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">Unassigned</span>
+                                    <span class="badge bg-warning ">Unassigned</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -122,9 +122,9 @@
                     </div>
 
                     <div class="mb-4">
-                        <small class="text-white d-block fw-bold mb-2">Technician Notes</small>
+                        <small class=" d-block fw-bold mb-2">Technician Notes</small>
                         <div class="p-3  rounded border border-warning">
-                            <p class="mb-0 text-white">
+                            <p class="mb-0">
                                 {{ maintenance.technician_notes|default:"No technician notes added yet." }}
                             </p>
                         </div>
@@ -133,7 +133,7 @@
                     <hr class="my-4">
 
                     <div class="mb-4">
-                        <small class="text-white d-block fw-bold mb-3">Evidence Photos</small>
+                        <small class=" d-block fw-bold mb-3">Evidence Photos</small>
                         
                         {% if maintenance.images.all %}
                             <div class="row g-2">

@@ -172,11 +172,12 @@ class Maintenance(models.Model):
         ('Pending', 'pending'),
         ('In Progress', 'in_progress'),
         ('Completed','completed'),
-        ('Rejected', 'rejected')
+        ('Rejected', 'rejected'),
+        ('Completed with damages', 'completed_with_damages'),
     )
     TYPE_CHOICES = (
         ('HealthCheck', 'Sensor Health Check'),
-        ('Connectivity', 'Connectivity Issue'), # ✅ Fixed spelling (2 'n's)
+        ('Connectivity', 'Connectivity Issue'),
         ('AlarmTest', 'Alarm Test'),
         ('FullAudit', 'Full System Audit'),
         ('Repair', 'Repair/Damage Fix'),
@@ -198,7 +199,7 @@ class Maintenance(models.Model):
     actual_date = models.DateField(null=True, blank=True) # When the maintenance was actually done
     technician_notes = models.TextField(null=True, blank=True, help_text="Notes from the technician after maintenance.")
     updated = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     
     class Meta:
         ordering = ['-timestamp']

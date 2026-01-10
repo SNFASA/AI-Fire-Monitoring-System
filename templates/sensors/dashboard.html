@@ -12,73 +12,134 @@
         </div>
     </div>
 
-    <!-- Stats Row -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-center">
+            <div class="card text-center shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Active Sensors</h5>
-                    <h2 class="text-primary">{{ sensors_count }}</h2>
+                    <h5 class="card-title text-muted">Active Sensors</h5>
+                    <h2 class="text-primary fw-bold">{{ sensors_count }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-center">
+            <div class="card text-center shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Maintenance Pending</h5>
-                    <h2 class="text-warning">{{ maintenance_pending }}</h2>
+                    <h5 class="card-title text-muted">Maintenance</h5>
+                    <h2 class="text-warning fw-bold">{{ maintenance_pending }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-center">
+            <div class="card text-center shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Reports Filed</h5>
-                    <h2 class="text-danger">{{ reports_count }}</h2>
+                    <h5 class="card-title text-muted">Reports Filed</h5>
+                    <h2 class="text-danger fw-bold">{{ reports_count }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-center">
+            <div class="card text-center shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Fire Stations</h5>
-                    <h2 class="text-info">{{ stations_count }}</h2>
+                    <h5 class="card-title text-muted">Fire Stations</h5>
+                    <h2 class="text-info fw-bold">{{ stations_count }}</h2>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="row">
-        <!-- Sensors Section -->
-    <div class="col-lg-8 mb-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-terminal me-2"></i>System Terminal Log</span>
-                <span class="badge bg-warning blink-me">LIVE FEED</span>
-            </div>
-            <div class="card-body p-0">
-                <div id="terminal-box" class="terminal-window">
-                    <div id="log-content">System Initialized. Waiting for data...</div>
+        
+        <div class="col-lg-8 mb-4">
+            
+            {% if request.user.userprofile.role == 'firefighter' %}
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-terminal me-2"></i>System Terminal Log</span>
+                        <span class="badge bg-warning blink-me">LIVE FEED</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="terminal-box" class="terminal-window" style="height: 400px; overflow-y: auto; background: #000; color: #0f0; padding: 15px; font-family: monospace;">
+                            <div id="log-content">System Initialized. Waiting for data...</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-        <!-- Recent Activity -->
+            {% else %}
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-microchip me-2"></i>Activity Sensors </span>
+                        <span class="badge bg-warning blink-me">LIVE FEED</span>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if sensors %}
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Sensor Name</th>
+                                            <th>Humidity</th>
+                                            <th>Temperature</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sensor-table-body">
+                                        {% for sensor in sensors %}
+                                        <tr id="sensor-row-{{ sensor.id }}">
+                                            <td class="fw-bold">{{ sensor.name }}</td>
+                                            
+                                            <td id="hum-{{ sensor.id }}">
+                                                {% if sensor.readings.first %}
+                                                    {{ sensor.readings.first.humidity|floatformat:1 }}%
+                                                {% else %}
+                                                    <span class="text-muted">Waiting...</span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td id="temp-{{ sensor.id }}">
+                                                {% if sensor.readings.first %}
+                                                    {{ sensor.readings.first.dht22_temp|floatformat:1 }}°C
+                                                {% else %}
+                                                    <span class="text-muted">Waiting...</span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td id="status-{{ sensor.id }}">
+                                                <span class="badge bg-secondary">Loading...</span> 
+                                                </td>
+
+                                            <td>
+                                                <button onclick="confirmDelete({{ sensor.id }}, '{{ sensor.name }}')" 
+                                                        class="btn btn-sm btn-outline-danger shadow-sm">
+                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-4">No sensors available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
         <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">Recent Reports</h4>
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom pt-3 pb-2">
+                    <h5 class="mb-0 fw-bold">Recent Reports</h5>
                 </div>
                 <div class="card-body">
                     {% if recent_reports %}
                         <ul class="list-unstyled">
                             {% for report in recent_reports|slice:":5" %}
                             <li class="mb-3 pb-3 border-bottom">
-                                <h6 class="mb-1">{{ report.fire_type }}</h6>
+                                <h6 class="mb-1 fw-bold">{{ report.fire_type }}</h6>
                                 <small class="text-muted">
-                                    {{ report.timestamp|date:"M d, H:i" }} at {{ report.address }}
+                                    {{ report.timestamp|date:"M d, H:i" }} <br> {{ report.address }}
                                 </small>
                             </li>
                             {% endfor %}
@@ -89,25 +150,23 @@
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h4 class="mb-0">Maintenance Status</h4>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom pt-3 pb-2">
+                    <h5 class="mb-0 fw-bold">Maintenance Status</h5>
                 </div>
                 <div class="card-body">
                     {% if maintenance_items %}
                         <ul class="list-unstyled">
                             {% for item in maintenance_items|slice:":5" %}
-                            <li class="mb-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span>{{ item.sensor.name }}</span>
-                                    <span class="badge 
-                                        {% if item.status == 'Pending' %}badge-warning
-                                        {% elif item.status == 'InProgress' %}badge-info
-                                        {% elif item.status == 'Completed' %}badge-success
-                                        {% else %}badge-danger{% endif %}">
-                                        {{ item.status }}
-                                    </span>
-                                </div>
+                            <li class="mb-2 d-flex justify-content-between align-items-center">
+                                <span>{{ item.sensor.name }}</span>
+                                <span class="badge 
+                                    {% if item.status == 'Pending' %}bg-warning text-dark
+                                    {% elif item.status == 'InProgress' %}bg-info
+                                    {% elif item.status == 'Completed' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ item.status }}
+                                </span>
                             </li>
                             {% endfor %}
                         </ul>
@@ -119,36 +178,29 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
     <div class="row mt-4">
         <div class="col-lg-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">Quick Actions</h4>
-                </div>
+            <div class="card shadow-sm border-0">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-2">
-                            <a href="{% url 'home' %}" class="btn btn-primary w-100">View All Sensors</a>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <a href="{% url 'maintenance' %}" class="btn btn-primary w-100">Manage Maintenance</a>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <a href="{% url 'reports' %}" class="btn btn-primary w-100">View Reports</a>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <a href="{% url 'profile' %}" class="btn btn-primary w-100">My Profile</a>
-                        </div>
+                    <h4 class="card-title mb-4 fw-bold">Quick Actions</h4>
+                    <div class="row g-3">
+                        <div class="col-md-3"><a href="{% url 'home' %}" class="btn btn-outline-primary w-100">View All Sensors</a></div>
+                        <div class="col-md-3"><a href="{% url 'maintenance' %}" class="btn btn-outline-primary w-100">Manage Maintenance</a></div>
+                        <div class="col-md-3"><a href="{% url 'reports' %}" class="btn btn-outline-primary w-100">View Reports</a></div>
+                        <div class="col-md-3"><a href="{% url 'profile' %}" class="btn btn-outline-primary w-100">My Profile</a></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <script>
+    // ==========================================
+    // 1. TERMINAL LOGIC (FIREFIGHTER ONLY)
+    // ==========================================
+    {% if request.user.userprofile.role == 'firefighter' %}
     function refreshTerminal() {
-        // Fetch data from the Django view
         fetch('/get-live-logs/')
         .then(response => response.json())
         .then(data => {
@@ -157,32 +209,131 @@
             
             if (data.logs) {
                 let formattedLogs = data.logs;
+                // Apply Colors
+                formattedLogs = formattedLogs.replaceAll('[🔮 PREDICTOR LOG]', '<span style="color:cyan; font-weight:bold;">[🔮 PREDICTOR LOG]</span>');
+                formattedLogs = formattedLogs.replaceAll('[SAFE]', '<span style="color:#0f0;">[SAFE]</span>');
+                formattedLogs = formattedLogs.replaceAll('[WARNING]', '<span style="color:orange;">[WARNING]</span>');
+                formattedLogs = formattedLogs.replaceAll('[FIRE]', '<span style="color:red; font-weight:bold; animation: blink 1s infinite;">[FIRE]</span>');
+                formattedLogs = formattedLogs.replace(/(Inputs:)/g, '<span style="color:yellow;">$1</span>');
 
-                // --- APPLY COLORS (Using replaceAll to fix warnings) ---
-                
-                // 1. Header
-                formattedLogs = formattedLogs.replaceAll(
-                    '[🔮 PREDICTOR LOG]', 
-                    '<span class="log-header">[🔮 PREDICTOR LOG]</span>'
-                );
-                
-                // 2. Status Tags
-                formattedLogs = formattedLogs.replaceAll('[SAFE]', '<span class="log-safe">[SAFE]</span>');
-                formattedLogs = formattedLogs.replaceAll('[WARNING]', '<span class="log-warn">[WARNING]</span>');
-                formattedLogs = formattedLogs.replaceAll('[FIRE]', '<span class="log-fire">[FIRE]</span>');
-                
-                // 3. Inputs (Regex is still okay here for patterns)
-                formattedLogs = formattedLogs.replace(/(Inputs:)/g, '<span class="log-input">$1</span>');
-
-                // Update HTML
                 terminalContent.innerHTML = formattedLogs;
                 terminalBox.scrollTop = terminalBox.scrollHeight;
             }
         })
         .catch(err => console.error("Terminal Error:", err));
     }
+    setInterval(refreshTerminal, 1000);
+    {% endif %}
 
-    // Refresh every 2 seconds
-    setInterval(refreshTerminal, 2000);
+    // ==========================================
+    // 2. TABLE LOGIC (PUBLIC/OTHERS)
+    // ==========================================
+    {% if request.user.userprofile.role != 'firefighter' %}
+    
+    // A. Update Readings (AJAX Polling)
+    function updateSensorReadings() {
+        fetch("{% url 'dashboard_data' %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.sensors) {
+                data.sensors.forEach(sensor => {
+                    // Update Numbers & Arrows
+                    updateCell(`hum-${sensor.id}`, sensor.hum);
+                    updateCell(`temp-${sensor.id}`, sensor.temp);
+                    
+                    // Update Status Badge
+                    updateStatusCell(`status-${sensor.id}`, sensor.status);
+                });
+            }
+        })
+        .catch(err => console.error("Data Fetch Error:", err));
+    }
+
+    // Function: Handle Arrows and Numbers
+    function updateCell(elementId, newData) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        // 1. Parse numbers
+        const currentText = element.innerText;
+        const currentVal = parseFloat(currentText); 
+        const newVal = parseFloat(newData);
+
+        // Safety check
+        if (isNaN(newVal)) {
+            element.innerText = newData;
+            return;
+        }
+
+        // 2. Determine Arrow and FORCE Color
+        let arrowHtml = '';
+        
+        if (!isNaN(currentVal)) {
+            // Check for change (using a small epsilon for float comparison safety)
+            if (newVal > currentVal) {
+                // INCREASE: Red Up Arrow (Forced Color)
+                arrowHtml = ' <i class="fas fa-arrow-up" style="color: #dc3545;"></i>'; 
+            } else if (newVal < currentVal) {
+                // DECREASE: Green Down Arrow (Forced Color)
+                arrowHtml = ' <i class="fas fa-arrow-down" style="color: #198754;"></i>'; 
+            }
+        }
+
+        // 3. Update HTML
+        element.innerHTML = `${newData}${arrowHtml}`;
+    }
+
+    // Function: Handle Status Badge Colors
+    function updateStatusCell(elementId, statusText) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        let badgeClass = 'bg-secondary';
+        let animation = '';
+
+        if (statusText === 'Safe') {
+            badgeClass = 'bg-success';
+        } else if (statusText === 'Fire') {
+            badgeClass = 'bg-danger';
+            animation = 'blink-me';
+        } else if (statusText === 'Warning' || statusText === 'Warning') {
+            badgeClass = 'bg-warning text-dark';
+        } else if (statusText === 'Offline') {
+            badgeClass = 'bg-secondary';
+        }
+
+        element.innerHTML = `<span class="badge ${badgeClass} ${animation}">${statusText}</span>`;
+    }
+
+    // Start Polling (Every 1 second)
+    setInterval(updateSensorReadings, 1000);
+
+    // B. Delete Sensor (AJAX Action)
+    function confirmDelete(sensorId, sensorName) {
+        if (confirm(`Are you sure you want to delete sensor: "${sensorName}"?`)) {
+            fetch(`/api/delete-sensor/${sensorId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const row = document.getElementById(`sensor-row-${sensorId}`);
+                    if (row) {
+                        row.style.transition = "all 0.5s";
+                        row.style.opacity = "0";
+                        setTimeout(() => row.remove(), 500);
+                    }
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(err => alert("Failed to connect to server."));
+        }
+    }
+    {% endif %}
 </script>
 {% endblock %}

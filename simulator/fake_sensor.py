@@ -58,27 +58,38 @@ class VirtualSensor:
 
         # --- DATA GENERATION ---
         if self.state == "Fire":
+            # Fire Logic: Temp UP, Humidity DOWN, Gas UP
             self.temp += random.uniform(1.5, 3.0) 
+            self.humidity -= random.uniform(2.0, 4.0) # <--- Humidity drops fast
             self.methane = random.randint(800, 1500)
             self.co = random.randint(100, 300)
             self.flame_val = random.randint(200, 600) 
             
         elif self.state == "Warning":
-            # High Gas, but Temp is normal
+            # Warning Logic: Temp slight UP, Humidity slight DOWN
             self.methane = random.randint(800, 1200) 
             self.lpg = random.randint(800, 1200)
             self.co = random.randint(150, 250)
             self.temp += random.uniform(0.0, 0.2) 
+            self.humidity -= random.uniform(0.5, 1.0) # <--- Humidity drops slowly
             self.flame_val = min(4095, self.flame_val + 50) 
 
         else:
-            # Safe recovery
+            # Safe Recovery Logic
             if self.temp > 28: self.temp -= 0.5
+            
+            # Recover Humidity back to 60%
+            if self.humidity < 60: 
+                self.humidity += 0.5
+            elif self.humidity > 60:
+                self.humidity -= 0.1
+                
             if self.methane > 300: self.methane -= 50
             self.flame_val = min(4095, self.flame_val + 50)
 
-        # Clamp
+        # Clamp values to realistic ranges
         self.temp = round(max(0, min(100, self.temp)), 2)
+        self.humidity = round(max(0, min(100, self.humidity)), 2)
         self.methane = max(0, self.methane)
         self.flame_val = max(0, self.flame_val)
 
@@ -107,6 +118,6 @@ while True:
         if s.state == "Fire": status_txt = "FIRE"
         elif s.state == "Warning": status_txt = "WARN"
         
-        print(f"[{s.id}] {status_txt} | Gas:{data['methane']} | Temp:{data['dht22_temp']}")
+        print(f"[{s.id}] {status_txt} | Gas:{data['methane']} | Temp:{data['dht22_temp']} | Hum:{data['humidity']}")
         time.sleep(0.5)
     time.sleep(1)
