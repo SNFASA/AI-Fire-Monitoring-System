@@ -11,70 +11,48 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-    /* --- ANIMATIONS --- */
     @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
     @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
 
-    /* --- GLOBAL MAP STYLES --- */
     .map-wrapper, .map-container-wrapper { width: 100%; height: 85vh; position: relative; border-radius: 12px; overflow: hidden; background: #222; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
     #map { width: 100%; height: 100%; }
-
-    /* --- POPUP TEXT (FIX: BLACK) --- */
     .maplibregl-popup-content { color: #000 !important; font-weight: bold; font-size: 14px; border: 2px solid #0d6efd; border-radius: 8px; }
 
-    /* --- SENSOR NODE STYLES (PUBLIC) --- */
+    /* Sensor Node Styles */
     .sensor-node {
         width: 40px; height: 40px; border-radius: 50%; border: 3px solid white;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        color: white; font-weight: 900; 
-        position: absolute; 
-        z-index: 1000; /* SUPER HIGH Z-INDEX TO ENSURE VISIBILITY */
-        cursor: grab;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.5); 
-        transition: transform 0.1s;
+        color: white; font-weight: 900; position: absolute; z-index: 1000; cursor: grab;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5); transition: transform 0.1s;
     }
     .sensor-node:active { transform: scale(1.2); cursor: grabbing; }
-
-    /* Name Label */
     .sensor-label {
-        position: absolute; top: 42px;
-        white-space: nowrap; font-size: 11px; color: white;
-        text-shadow: 1px 1px 2px black, -1px -1px 2px black;
-        font-weight: bold; pointer-events: none; text-transform: uppercase;
-        background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px;
+        position: absolute; top: 42px; white-space: nowrap; font-size: 11px; color: white;
+        text-shadow: 1px 1px 2px black, -1px -1px 2px black; font-weight: bold; pointer-events: none;
+        text-transform: uppercase; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px;
     }
 
-    /* Colors */
-    .bg-safe { background: #198754; } 
+    .bg-safe { background: #198754; box-shadow: 0 0 10px #198754; } 
     .bg-fire { background: #dc3545; animation: pulse-red 1s infinite; }
     .bg-warn { background: #ffc107; color: black; animation: pulse-yellow 1s infinite; }
+    .bg-offline { background: #6c757d; border-color: #aaa; opacity: 0.7; }
 
-    /* --- FIREFIGHTER HUD --- */
+    /* Firefighter Map Elements */
     .map-overlay-top-left { position: absolute; top: 15px; left: 15px; z-index: 10; }
     .map-overlay-top-right { position: absolute; top: 15px; right: 60px; z-index: 10; }
     .style-switcher { background: rgba(255,255,255,0.95); padding: 5px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 5px; }
     .map-btn { padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: black;}
     .map-btn:hover { background: #f8f9fa; } .map-btn.active { background: #0d6efd; color: white; border-color: #0d6efd; }
+    
     .status-panel { display: flex; gap: 10px; }
     .status-item { padding: 8px 15px; border-radius: 20px; color: white; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
     .status-fire { background-color: #dc3545; animation: pulse-red 1.5s infinite; }
     .status-warn { background-color: #ffc107; color: black; animation: pulse-yellow 1.5s infinite; }
 
-    /* Map Markers */
     .marker-fire { width: 40px; height: 40px; background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%); border: 3px solid white; border-radius: 50%; animation: pulse-red 1s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; }
     .marker-safe { width: 15px; height: 15px; background: #198754; border: 2px solid white; border-radius: 50%; opacity: 0.8; }
     .marker-warning { width: 30px; height: 30px; background: #ffc107; border: 2px solid white; border-radius: 50%; animation: pulse-yellow 1s infinite; display: flex; justify-content: center; align-items: center; color: black; }
-    /* 1. Public Sensor Nodes */
-    .bg-safe { background: #198754; box-shadow: 0 0 10px #198754; } 
-    .bg-fire { background: #dc3545; animation: pulse-red 1s infinite; }
-    .bg-warn { background: #ffc107; color: black; animation: pulse-yellow 1s infinite; }
-    .bg-offline { background: #6c757d; border-color: #aaa; opacity: 0.7; } /* Grey for Offline */
-
-    /* 2. Firefighter Map Markers */
-    .marker-fire { width: 40px; height: 40px; background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%); border: 3px solid white; border-radius: 50%; animation: pulse-red 1s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; }
-    .marker-safe { width: 15px; height: 15px; background: #198754; border: 2px solid white; border-radius: 50%; opacity: 0.8; }
-    .marker-warning { width: 30px; height: 30px; background: #ffc107; border: 2px solid white; border-radius: 50%; animation: pulse-yellow 1s infinite; display: flex; justify-content: center; align-items: center; color: black; }
-    .marker-offline { width: 15px; height: 15px; background: #6c757d; border: 2px solid #ccc; border-radius: 50%; } /* Grey Dot */
+    .marker-offline { width: 15px; height: 15px; background: #6c757d; border: 2px solid #ccc; border-radius: 50%; }
 </style>
 
 {% if role == 'public' %}
@@ -84,16 +62,13 @@
         width: 100%; height: 600px; position: relative;
         background-color: #0d1b2a; 
         border: 2px solid #666; border-radius: 8px; overflow: hidden;
-        /* Grid */
         background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
                           linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
         background-size: 40px 40px;
     }
     .blueprint-image {
-        position: absolute; top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: fill; /* Stretch to cover */
-        z-index: 1; /* Low Z-Index */
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        object-fit: fill; z-index: 1; 
         filter: invert(1) grayscale(1) brightness(1.3) contrast(1.2); 
         opacity: 0.8; mix-blend-mode: screen;
     }
@@ -109,59 +84,95 @@
         <div class="col-md-3">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-microchip me-2"></i>Sensors</h5>
-                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addSensorModal">
-                        <i class="fas fa-plus"></i> Add
-                    </button>
+                    <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Floors</h5>
+                    <a href="{% url 'upload_layout' %}" class="btn text-white btn-sm"><i class="fas fa-plus"></i></a>
                 </div>
-                <div class="card-body">
-                    <p class="small text-muted mb-3">Drag sensors to position them.</p>
-                    <ul class="list-group list-group-flush mb-3">
+                
+                <div class="list-group list-group-flush">
+                    {% for l in layouts %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center {% if l.id == current_layout.id %}{% endif %}" id="layout-item-{{ l.id }}">
+                        
+                        <a href="?layout_id={{ l.id }}" class="text-decoration-none fw-bold  text-truncate" style="max-width: 50%;">
+                            {{ l.name }}
+                        </a>
+
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary" 
+                                    onclick="openEditModal('{{ l.id }}', '{{ l.name|escapejs }}', '{{ l.image.url }}')" 
+                                    title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            
+                            <button class="btn btn-outline-danger" onclick="confirmDeleteLayout({{ l.id }}, '{{ l.name|escapejs }}')" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-3 text-center">
+                        <small>No floors uploaded.</small><br>
+                        <a href="{% url 'upload_layout' %}" class="btn btn-sm btn-danger mt-2">Upload First Layout</a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if current_layout %}
+                <div class="card-body border-top mt-auto">
+                    <h6 class="fw-bold">Sensors on {{ current_layout.name }}</h6>
+                    <button class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#addSensorModal">
+                        <i class="fas fa-plus"></i> Add Sensor Here
+                    </button>
+                    <ul class="list-group list-group-flush mb-3 small" >
                         {% for sensor in sensors %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0" id="list-sensor-{{ sensor.id }}">
                             <div>
-                                <span class="badge bg-secondary rounded-pill me-2" style="width: 25px;">{{ forloop.counter }}</span>
+                                <span class="badge bg-secondary rounded-pill me-2">{{ forloop.counter }}</span>
                                 <span class="fw-bold">{{ sensor.name }}</span>
                             </div>
-                                {% with status=sensor.readings.last.status|default:"Safe" %}
-                                    <span class="badge rounded-pill {% if status == 'Fire' %}bg-danger animate-pulse{% elif status == 'Warning' %}bg-warning text-dark{% elif status == 'Offline' %}bg-secondary{% else %}bg-success{% endif %}">{{ status }}</span>
-                                {% endwith %}
+                            {% with status=sensor.readings.last.status|default:"Safe" %}
+                                <span class="badge rounded-pill {% if status == 'Fire' %}bg-danger animate-pulse{% elif status == 'Warning' %}bg-warning text-dark{% elif status == 'Offline' %}bg-secondary{% else %}bg-success{% endif %}">{{ status }}</span>
+                            {% endwith %}
                         </li>
                         {% empty %}
-                        <li class="list-group-item text-center text-muted">No sensors added yet.</li>
+                        <li class="list-group-item text-center text-muted">No sensors on this floor.</li>
                         {% endfor %}
                     </ul>
-                    <a href="{% url 'upload_layout' %}" class="btn btn-outline-primary w-100 mt-auto">Update Layout</a>
                 </div>
+                {% endif %}
             </div>
         </div>
 
         <div class="col-md-9">
             <div class="card shadow h-100">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-project-diagram me-2"></i> House Layout</h4>
+                    <h4 class="mb-0">
+                        <i class="fas fa-project-diagram me-2"></i> 
+                        {% if current_layout %}{{ current_layout.name }}{% else %}House Layout{% endif %}
+                    </h4>
                 </div>
                 <div class="card-body p-3 bg-light">
                     <div id="user-map-container" class="blueprint-wrapper">
                         
-                        <div class="blueprint-label">HOUSE</div>
+                        <div class="blueprint-label">
+                            {% if current_layout %}{{ current_layout.name|upper }}{% else %}HOUSE{% endif %}
+                        </div>
                         
-                        {% if layout %}
-                            <img src="{{ layout.image.url }}" class="blueprint-image" alt="Layout">
+                        {% if current_layout %}
+                            <img src="{{ current_layout.image.url }}" class="blueprint-image" alt="Layout">
+                            
+                            {% for sensor in sensors %}
+                            <div class="sensor-node {% if sensor.readings.last.status == 'Fire' %}bg-fire{% elif sensor.readings.last.status == 'Warning' %}bg-warn{% else %}bg-safe{% endif %}"
+                                 id="sensor-{{ sensor.id }}" draggable="true"
+                                 style="left: {{ sensor.x_position|default:5 }}%; top: {{ sensor.y_position|default:5 }}%;">
+                                {{ forloop.counter }}
+                                <div class="sensor-label">{{ sensor.name }}</div>
+                            </div>
+                            {% endfor %}
                         {% else %}
                             <div class="text-white-50 text-center" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2;">
-                                <i class="fas fa-image fa-3x mb-3"></i><br><h3>No Layout Uploaded</h3>
+                                <i class="fas fa-image fa-3x mb-3"></i><br><h3>Select or Upload a Layout</h3>
                             </div>
                         {% endif %}
-                        
-                        {% for sensor in sensors %}
-                        <div class="sensor-node {% if sensor.readings.last.status == 'Fire' %}bg-fire{% elif sensor.readings.last.status == 'Warning' %}bg-warn{% else %}bg-safe{% endif %}"
-                             id="sensor-{{ sensor.id }}" draggable="true"
-                             style="left: {{ sensor.x_position|default:5 }}%; top: {{ sensor.y_position|default:5 }}%;">
-                            {{ forloop.counter }}
-                            <div class="sensor-label">{{ sensor.name }}</div>
-                        </div>
-                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -173,7 +184,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">Add Sensor</h5>
+                <h5 class="modal-title">Add Sensor to {{ current_layout.name }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -191,23 +202,65 @@
     </div>
 </div>
 
+<div class="modal fade" id="editLayoutModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Floor Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editLayoutForm" enctype="multipart/form-data">
+                    <input type="hidden" name="layout_id" id="edit_layout_id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Floor Name</label>
+                        <input type="text" class="form-control" name="name" id="edit_layout_name" required>
+                    </div>
+                    <div class="mb-3 text-center">
+                        <p class="mb-1 text-muted small">Current Blueprint:</p>
+                        <div class="border p-2 bg-dark rounded">
+                            <img id="edit_layout_preview" src="" style="max-height: 150px; max-width: 100%; filter: invert(1);">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Replace Image (Optional)</label>
+                        <input type="file" class="form-control" name="image" id="edit_layout_file" accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitEditLayout()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    // 1. ADD SENSOR
     function submitNewSensor() {
         const name = document.getElementById('newSensorName').value;
-        if(!name) return;
+        const layoutId = "{{ current_layout.id }}";
+
+        if(!name) { alert("Please enter a name"); return; }
+        if(!layoutId) { alert("Please select a floor first"); return; }
+
         fetch("{% url 'add_sensor' %}", {
             method: "POST",
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ name: name })
+            body: JSON.stringify({ name: name, layout_id: layoutId })
         }).then(res => res.json()).then(data => {
             if(data.success) {
                 document.getElementById('sensorFormStep').style.display = 'none';
                 document.getElementById('sensorSuccessStep').style.display = 'block';
                 document.getElementById('newSensorIdDisplay').innerText = data.sensor_id;
+            } else {
+                alert("Error: " + data.error);
             }
         });
     }
 
+    // 2. DRAG AND DROP LOGIC
     const sensors = document.querySelectorAll('.sensor-node');
     const container = document.getElementById('user-map-container');
     sensors.forEach(sensor => {
@@ -223,6 +276,7 @@
             sensor.style.left = x + '%'; sensor.style.top = y + '%';
         });
     });
+    
     function savePosition(sensor) {
         let id = sensor.id.split('-')[1];
         fetch("{% url 'update_sensor_pos' %}", {
@@ -231,6 +285,8 @@
             body: JSON.stringify({sensor_id: id, x: parseFloat(sensor.style.left), y: parseFloat(sensor.style.top)})
         });
     }
+
+    // 3. FETCH LIVE DATA
     function fetchMySensors() {
         fetch("{% url 'live_data' %}") 
         .then(res => res.json())
@@ -240,31 +296,89 @@
                     const node = document.getElementById(`sensor-${s.id}`);
                     if(node) {
                         node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
-                        
-                        // NORMALIZE STATUS
-                        // Convert to lowercase to be safe against 'warning' vs 'Warning'
                         let status = s.status ? s.status.toLowerCase() : 'safe';
-
-                        if(status === 'fire') {
-                            node.classList.add('bg-fire');
-                        } 
-                        // Handle BOTH Gas Leak and Warning as Yellow
-                        else if(status === 'gas leak' || status === 'warning') { 
-                            node.classList.add('bg-warn');
-                        } 
-                        else if(status === 'offline') {
-                            node.classList.add('bg-offline');
-                        } 
-                        else {
-                            node.classList.add('bg-safe');
-                        }
+                        if(status === 'fire') node.classList.add('bg-fire');
+                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');
+                        else if(status === 'offline') node.classList.add('bg-offline');
+                        else node.classList.add('bg-safe');
                     }
                 });
             }
         });
     }
-    // Run every 2 seconds
     setInterval(fetchMySensors, 2000);
+
+    // 4. CONFIRM DELETE LAYOUT
+    function confirmDeleteLayout(layoutId, layoutName) {
+        if (confirm(`Are you sure you want to delete layout: "${layoutName}"? \nThis will also delete all sensors on this floor.`)) {
+            fetch(`/delete-layout/${layoutId}/`, { // Make sure this matches urls.py name exactly
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const item = document.getElementById(`layout-item-${layoutId}`);
+                    if (item) {
+                        item.style.transition = "all 0.5s";
+                        item.style.opacity = "0";
+                        setTimeout(() => {
+                            item.remove();
+                            // Reload if deleting current
+                            const urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.get('layout_id') == layoutId) {
+                                window.location.href = "{% url 'maps' %}";
+                            }
+                        }, 500);
+                    }
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Failed to connect to server.");
+            });
+        }
+    }
+
+    // 5. OPEN EDIT MODAL
+    function openEditModal(id, name, imageUrl) {
+        document.getElementById('edit_layout_id').value = id;
+        document.getElementById('edit_layout_name').value = name;
+        document.getElementById('edit_layout_preview').src = imageUrl;
+        document.getElementById('edit_layout_file').value = ""; 
+        
+        var myModal = new bootstrap.Modal(document.getElementById('editLayoutModal'));
+        myModal.show();
+    }
+
+    // 6. SUBMIT EDIT FORM
+    function submitEditLayout() {
+        const form = document.getElementById('editLayoutForm');
+        const formData = new FormData(form);
+
+        fetch("{% url 'edit_layout_ajax' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); 
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Failed to update layout.");
+        });
+    }
 </script>
 
 
@@ -290,13 +404,8 @@
                     <div class="status-item status-warn"><i class="fas fa-exclamation-triangle"></i> <span id="warning-count">0</span></div>
                 </div>
             </div>
-            
-            <audio id="fire-alarm-sound" loop preload="auto">
-                <source src="{% static 'sound/alarm.mp3' %}" type="audio/mpeg">
-            </audio>
-            <audio id="warning-sound" loop preload="auto">
-                <source src="{% static 'sound/warning.mp3' %}" type="audio/mpeg">
-            </audio>
+            <audio id="fire-alarm-sound" loop preload="auto"><source src="{% static 'sound/alarm.mp3' %}" type="audio/mpeg"></audio>
+            <audio id="warning-sound" loop preload="auto"><source src="{% static 'sound/warning.mp3' %}" type="audio/mpeg"></audio>
         </div>
     </div>
 </div>
@@ -305,17 +414,12 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Live Incident Layout</h5>
+                <h5 class="modal-title">Live Incident Layouts</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body bg-light" style="height: 70vh;">
-                <div class="blueprint-wrapper" style="height: 100%; width: 100%; background-color: #0d1b2a; position: relative; overflow: hidden;">
-                    <div class="blueprint-label" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255, 255, 255, 0.05); font-weight: bold; pointer-events: none;">VICTIM HOUSE</div>
-                    
-                    <img id="modal-layout-img" src="" class="blueprint-image" style="display:none; position: absolute; width: 100%; height: 100%; object-fit: fill; z-index: 1; filter: invert(1) grayscale(1) brightness(1.2) contrast(1.2); opacity: 0.8; mix-blend-mode: screen;">
-                    
-                    <div id="modal-sensors"></div>
-                </div>
+            <div class="modal-body bg-light">
+                <ul class="nav nav-tabs" id="victimLayoutTabs" role="tablist"></ul>
+                <div class="tab-content border border-top-0 p-0 bg-dark" id="victimLayoutContent" style="height: 70vh; position: relative;"></div>
             </div>
         </div>
     </div>
@@ -323,37 +427,37 @@
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
-    // --- 1. SETUP MAP ---
+    // --- MAP SETUP ---
     const STATION_LOC = [parseFloat("{{ station_lng|default:'103.0848' }}"), parseFloat("{{ station_lat|default:'1.8548' }}")];
     const STATION_RADIUS_KM = parseFloat("{{ station_radius|default:'3.0' }}");
     const STATION_NAME = "{{ station_name|default:'HQ' }}";
-
-    const STYLES = {
-        'streets': 'https://tiles.openfreemap.org/styles/liberty', 
-        'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-        'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
-    };
-
+    const STYLES = { 'streets': 'https://tiles.openfreemap.org/styles/liberty', 'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' };
     const map = new maplibregl.Map({ container: 'map', style: STYLES.streets, center: STATION_LOC, zoom: 13, pitch: 60, antialias: true });
 
-    map.on('styleimagemissing', (e) => {
-        if (!map.hasImage(e.id)) {
-            var image = new Image(1, 1); image.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-            map.addImage(e.id, image);
-        }
-    });
-
+    map.on('styleimagemissing', (e) => { if (!map.hasImage(e.id)) { var image = new Image(1, 1); image.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; map.addImage(e.id, image); } });
     map.addControl(new maplibregl.FullscreenControl({ container: document.querySelector('.map-container-wrapper') }), 'top-right');
     map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
     map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'bottom-right');
-
-    // Add Station Marker
+    
+    // Station Marker
     const el = document.createElement('div');
     el.innerHTML = '<i class="fas fa-building-shield"></i>';
     el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px;';
     new maplibregl.Marker({ element: el }).setLngLat(STATION_LOC).setPopup(new maplibregl.Popup({offset: 25}).setText(STATION_NAME)).addTo(map);
 
-    // --- 2. ZONE AREA (The missing part) ---
+    function addZoneLayer() {
+        if(!map.getSource('fire-zone')) {
+            const circle = createGeoJSONCircle(STATION_LOC, STATION_RADIUS_KM);
+            if(circle) map.addSource('fire-zone', circle);
+        }
+        if(map.getSource('fire-zone') && !map.getLayer('zone-fill')) {
+            map.addLayer({ 'id': 'zone-fill', 'type': 'fill', 'source': 'fire-zone', 'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.15 } });
+        }
+        if(map.getSource('fire-zone') && !map.getLayer('zone-line')) {
+            map.addLayer({ 'id': 'zone-line', 'type': 'line', 'source': 'fire-zone', 'paint': { 'line-color': '#0d6efd', 'line-width': 2, 'line-dasharray': [2, 2] } });
+        }
+    }
+    
     function createGeoJSONCircle(center, radiusInKm, points = 64) {
         if(!center) return null;
         const coords = { latitude: center[1], longitude: center[0] };
@@ -370,115 +474,45 @@
         return { "type": "geojson", "data": { "type": "FeatureCollection", "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] } };
     }
 
-    function addZoneLayer() {
-        if(!map.getSource('fire-zone')) {
-            const circle = createGeoJSONCircle(STATION_LOC, STATION_RADIUS_KM);
-            if(circle) map.addSource('fire-zone', circle);
-        }
-        if(map.getSource('fire-zone') && !map.getLayer('zone-fill')) {
-            map.addLayer({ 'id': 'zone-fill', 'type': 'fill', 'source': 'fire-zone', 'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.15 } });
-        }
-        if(map.getSource('fire-zone') && !map.getLayer('zone-line')) {
-            map.addLayer({ 'id': 'zone-line', 'type': 'line', 'source': 'fire-zone', 'paint': { 'line-color': '#0d6efd', 'line-width': 2, 'line-dasharray': [2, 2] } });
-        }
-    }
-
     map.on('load', addZoneLayer);
-    map.on('styledata', addZoneLayer); // Re-add if style changes
 
-    // --- 3. AUDIO SETUP (Silent Unlock) ---
-    const fireAudio = document.getElementById('fire-alarm-sound');
-    const warningAudio = document.getElementById('warning-sound');
-    let isAudioUnlocked = false;
-
-    function unlockAudioContext() {
-        if (!isAudioUnlocked) {
-            fireAudio.play().then(() => {
-                fireAudio.pause();
-                fireAudio.currentTime = 0;
-                isAudioUnlocked = true;
-                console.log("Audio Engine Unlocked!");
-            }).catch((e) => {});
-
-            document.removeEventListener('click', unlockAudioContext);
-            document.removeEventListener('touchstart', unlockAudioContext);
-            document.removeEventListener('keydown', unlockAudioContext);
-        }
-    }
-
-    document.addEventListener('click', unlockAudioContext);
-    document.addEventListener('touchstart', unlockAudioContext);
-    document.addEventListener('keydown', unlockAudioContext);
-
-
-    // --- 4. LIVE MAP DATA & LOGIC ---
+    // --- LIVE MAP DATA & LOGIC ---
     const markers = {};
-    
     function fetchMapData() {
         fetch("{% url 'map_data' %}")
         .then(res => res.json())
         .then(data => {
-            let fireCount = 0, warnCount = 0;
-            
             if(data.houses) { 
+                let fireCount = 0; let warnCount = 0;
                 data.houses.forEach(house => {
-                    let st = house.status ? house.status.toLowerCase() : 'safe';
-                    let cls = 'marker-safe', icon = '';
-
-                    if(st === 'fire') { 
-                        fireCount++; cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; 
-                    }
-                    else if(st === 'gas leak' || st === 'warning') { 
-                        warnCount++; cls = 'marker-warning'; icon = '<i class="fas fa-exclamation-triangle"></i>'; 
-                    }
-                    else if(st === 'offline') {
-                        cls = 'marker-offline';
-                    }
-
-                    if(markers[house.id]) {
-                        markers[house.id].getElement().className = cls;
-                        markers[house.id].getElement().innerHTML = icon;
-                        markers[house.id].setLngLat([house.lng, house.lat]);
-                        markers[house.id].getPopup().setText(house.owner + ": " + house.status);
-                    } else {
+                    let cls = 'marker-safe'; 
+                    let icon = '';
+                    if(house.status === 'Fire') { cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; fireCount++; }
+                    else if(house.status === 'Warning' || house.status === 'Gas Leak') { cls = 'marker-warning'; icon = '<i class="fas fa-exclamation-triangle"></i>'; warnCount++; }
+                    else if(house.status === 'Offline') { cls = 'marker-offline'; }
+                    
+                    if(!markers[house.id]) {
                         const el = document.createElement('div');
-                        el.className = cls; el.innerHTML = icon;
+                        el.className = cls; 
+                        el.innerHTML = icon;
                         el.addEventListener('click', () => openLayoutModal(house.id));
                         markers[house.id] = new maplibregl.Marker({ element: el })
                             .setLngLat([house.lng, house.lat])
-                            .setPopup(new maplibregl.Popup({ offset: 25 }).setText(house.owner + ": " + house.status))
                             .addTo(map);
+                    } else {
+                        markers[house.id].getElement().className = cls;
+                        markers[house.id].getElement().innerHTML = icon;
                     }
                 });
+                document.getElementById('fire-count').innerText = fireCount;
+                document.getElementById('warning-count').innerText = warnCount;
             }
-
-            // Audio Logic
-            if (isAudioUnlocked) {
-                if (fireCount > 0) {
-                    warningAudio.pause(); warningAudio.currentTime = 0;
-                    if (fireAudio.paused) fireAudio.play().catch(e => {});
-                } 
-                else if (warnCount > 0) {
-                    fireAudio.pause(); fireAudio.currentTime = 0;
-                    if (warningAudio.paused) warningAudio.play().catch(e => {});
-                } 
-                else {
-                    fireAudio.pause(); fireAudio.currentTime = 0;
-                    warningAudio.pause(); warningAudio.currentTime = 0;
-                }
-            }
-
-            document.getElementById('fire-count').innerText = fireCount;
-            document.getElementById('warning-count').innerText = warnCount;
-        })
-        .catch(err => console.error("Map Data Error:", err));
+        });
     }
-    
     setInterval(fetchMapData, 3000);
     fetchMapData();
 
-
-    // --- 5. MODAL LOGIC (Auto-Update) ---
+    // --- MODAL LOGIC (UPDATED FOR TABS) ---
     let modalRefreshInterval = null;
     let currentModalUserId = null;
 
@@ -496,34 +530,60 @@
         .then(res => res.json())
         .then(data => {
             if(data.success) {
-                const img = document.getElementById('modal-layout-img');
-                img.src = data.image_url;
-                img.style.display = 'block'; 
+                const tabsContainer = document.getElementById('victimLayoutTabs');
+                const contentContainer = document.getElementById('victimLayoutContent');
                 
-                const container = document.getElementById('modal-sensors');
-                container.innerHTML = '';
-                
-                if(data.sensors) data.sensors.sort((a,b) => a.id - b.id);
+                tabsContainer.innerHTML = '';
+                contentContainer.innerHTML = '';
 
-                data.sensors.forEach((s, i) => {
-                    const node = document.createElement('div');
-                    let cssClass = 'bg-safe';
-                    let st = s.status ? s.status.toLowerCase() : 'safe';
+                if (data.layouts.length === 0) {
+                    contentContainer.innerHTML = '<div class="text-white p-5 text-center">No layouts found for this user.</div>';
+                    return;
+                }
 
-                    if (st === 'fire') cssClass = 'bg-fire';
-                    else if (st === 'gas leak' || st === 'warning') cssClass = 'bg-warn';
-                    else if (st === 'offline') cssClass = 'bg-offline';
-
-                    node.className = `sensor-node ${cssClass}`;
-                    node.style.left = s.x + '%'; 
-                    node.style.top = s.y + '%';
+                data.layouts.forEach((layout, index) => {
+                    const isActive = index === 0 ? 'active' : '';
+                    const isShow = index === 0 ? 'show' : '';
                     
-                    const label = document.createElement('div');
-                    label.className = 'sensor-label';
-                    label.innerText = s.name; 
-                    node.innerText = i + 1;
-                    node.appendChild(label);
-                    container.appendChild(node);
+                    // Tab Button
+                    const tabHTML = `
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link ${isActive} text-dark fw-bold" 
+                                    id="tab-${layout.layout_id}" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#content-${layout.layout_id}" 
+                                    type="button" role="tab">
+                                ${layout.layout_name}
+                            </button>
+                        </li>`;
+                    tabsContainer.insertAdjacentHTML('beforeend', tabHTML);
+
+                    // Sensors
+                    let sensorsHTML = '';
+                    layout.sensors.forEach((s, i) => {
+                        let cssClass = 'bg-safe';
+                        let st = s.status ? s.status.toLowerCase() : 'safe';
+                        if (st === 'fire') cssClass = 'bg-fire';
+                        else if (st === 'gas leak' || st === 'warning') cssClass = 'bg-warn';
+                        else if (st === 'offline') cssClass = 'bg-offline';
+
+                        sensorsHTML += `
+                            <div class="sensor-node ${cssClass}" style="left:${s.x}%; top:${s.y}%;">
+                                ${i + 1}
+                                <div class="sensor-label">${s.name}</div>
+                            </div>`;
+                    });
+
+                    // Tab Pane
+                    const contentHTML = `
+                        <div class="tab-pane fade ${isShow} ${isActive}" id="content-${layout.layout_id}" role="tabpanel" style="height:100%; width:100%;">
+                            <div class="blueprint-wrapper" style="height:100%; width:100%; background-color: #0d1b2a; position: relative; overflow: hidden; border:none;">
+                                <div class="blueprint-label" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255, 255, 255, 0.05); font-weight: bold; pointer-events: none;">${layout.layout_name.toUpperCase()}</div>
+                                <img src="${layout.image_url}" class="blueprint-image" style="display:block; position: absolute; width: 100%; height: 100%; object-fit: fill; z-index: 1; filter: invert(1) grayscale(1) brightness(1.2) contrast(1.2); opacity: 0.8; mix-blend-mode: screen;">
+                                ${sensorsHTML}
+                            </div>
+                        </div>`;
+                    contentContainer.insertAdjacentHTML('beforeend', contentHTML);
                 });
             }
         });
@@ -545,8 +605,6 @@
         } else {
             map.setStyle(STYLES[styleName]);
         }
-        // Force refresh zone when style changes
-        map.once('styledata', addZoneLayer);
     };
 </script>
 

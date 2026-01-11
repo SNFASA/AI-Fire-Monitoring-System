@@ -111,12 +111,13 @@ class DutyAssignment(models.Model):
 #==================================
 class Houselayout(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='layouts')
-    image = models.ImageField(upload_to=user_directory_path)
-    name = models.CharField(max_length= 100)
-    timestamp = models.DateTimeField(auto_now_add= True)
+    # Use a helper function for path if you have one, or simple upload_to
+    image = models.ImageField(upload_to='layouts/') 
+    name = models.CharField(max_length=100) # e.g. "Ground Floor"
+    timestamp = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"Layout for {self.user.username}: {self.name}" 
+        return f"{self.name} ({self.user.username})"
 # ==========================================
 # 4. SENSORS
 # ==========================================
@@ -127,7 +128,7 @@ class Sensor(models.Model):
     is_active = models.BooleanField(default=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
-    layout = models.ForeignKey(Houselayout, on_delete=models.SET_NULL, null=True, blank=True )
+    layout = models.ForeignKey(Houselayout, on_delete=models.SET_NULL, null=True, blank=True, related_name='sensors')
     x_position = models.FloatField(null=True, blank=True, help_text="Horizontal % on floor plan")
     y_position = models.FloatField(null=True, blank=True, help_text="Vertical % on floor plan")
     last_status = models.CharField(max_length=20, default='Safe')

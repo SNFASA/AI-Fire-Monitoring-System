@@ -90,8 +90,7 @@ def register(request):
 # ==========================================
 #  WEB DASHBOARD VIEWS
 # ==========================================
-
-# 1. The Main Page Load
+# 1. The Main Page 
 def dashboard(request):
     # This renders the HTML file initially
     if not request.user.is_authenticated:
@@ -490,20 +489,26 @@ def create_report(request):
 #========================================
 @login_required(login_url='login')
 def upload_layout(request):
-    existing_layout = Houselayout.objects.filter(user=request.user).first()
+    # Allow uploading NEW layouts (removed instance=existing)
     if request.method == "POST":
-        form = HouseLayoutForm(request.POST, request.FILES, instance=existing_layout)
+        form = HouseLayoutForm(request.POST, request.FILES)
         if form.is_valid():
             layout = form.save(commit=False)
             layout.user = request.user
             layout.save()
+            messages.success(request, f'Floor plan "{layout.name}" added successfully!')
             return redirect('maps')
     else:
-        form = HouseLayoutForm(instance=existing_layout)
-        print("\n!!! FORM VALIDATION FAILED !!!")
-        print("Profile Errors:", form.errors)
-        messages.error(request, 'Please correct the error below.')
-    return render(request, 'sensors/upload_layout.html', {'form': form})
+        form = HouseLayoutForm()
+
+    # Get ALL layouts to show the list
+    existing_layouts = Houselayout.objects.filter(user=request.user).order_by('-timestamp')
+    
+    context = {
+        'form': form,
+        'existing_layouts': existing_layouts
+    }
+    return render(request, 'sensors/upload_layout.html', context)
 # ==========================================
 # THE MAIN MAPS PAGE 
 # ==========================================
@@ -517,44 +522,51 @@ def maps(request):
     context = {
         'role': user_profile.role,
         'user_profile': user_profile,
-        # Only load sensors for public users to improve performance/security
-        'sensors': user_profile.sensors.all() if user_profile.role == 'public' else [], 
     }
 
-    # --- FIRE STATION LOGIC (FIXED) ---
-    if user_profile.role == 'firefighter':
-        try:
-            # 1. PRIORITY: Get the station assigned to this specific firefighter
-            station = user_profile.station
-            
-            # 2. FALLBACK: If they haven't been assigned a station, use the first one
-            if not station:
-                station = FireStation.objects.first()
+    # --- PUBLIC USER LOGIC ---
+    if user_profile.role == 'public':
+        # Get ALL layouts
+        user_layouts = Houselayout.objects.filter(user=request.user).order_by('id')
+        
+        # Determine Current Layout
+        selected_layout_id = request.GET.get('layout_id')
+        current_layout = None
+        
+        if user_layouts.exists():
+            if selected_layout_id:
+                current_layout = user_layouts.filter(id=selected_layout_id).first()
+            if not current_layout:
+                current_layout = user_layouts.first()
 
-            # Default values (Center of Batu Pahat/Johor as fallback)
-            lat = 1.8548
-            lng = 103.0848
+        context['layouts'] = user_layouts
+        context['current_layout'] = current_layout
+        
+        # Filter Sensors for CURRENT Layout only
+        if current_layout:
+            context['sensors'] = Sensor.objects.filter(owner=user_profile, layout=current_layout)
+        else:
+            context['sensors'] = []
+
+    # --- FIREFIGHTER LOGIC ---
+    elif user_profile.role == 'firefighter':
+        try:
+            station = user_profile.station
+            if not station: station = FireStation.objects.first()
+
+            lat, lng = 1.8548, 103.0848
             radius_km = 3.0
-            name = "HQ (Unassigned)"
+            name = "HQ"
 
             if station:
-                # Get Name
                 name = station.name
-
-                # Get Coordinates (Data Validation)
-                # We check "is not None" because 0.0 is a valid coordinate, but None is not.
-                if station.address and station.address.latitude is not None and station.address.longitude is not None:
+                if station.address and station.address.latitude:
                     lat = float(station.address.latitude)
                     lng = float(station.address.longitude)
-                
-                # Calculate Radius
                 if station.cover_area_sqm:
                     import math
-                    # Formula: radius = sqrt(area / pi) / 1000 (to get km)
-                    radius_meters = math.sqrt(station.cover_area_sqm / math.pi)
-                    radius_km = radius_meters / 1000
+                    radius_km = math.sqrt(station.cover_area_sqm / math.pi) / 1000
 
-            # Pass to context
             context['station_lat'] = lat
             context['station_lng'] = lng
             context['station_radius'] = radius_km
@@ -562,16 +574,6 @@ def maps(request):
 
         except Exception as e:
             print(f"Map Error: {e}")
-            # Emergency Fallback
-            context['station_lat'] = 1.8548
-            context['station_lng'] = 103.0848
-            context['station_radius'] = 3.0
-            context['station_name'] = "System Error"
-
-    # --- PUBLIC USER LOGIC ---
-    if user_profile.role == 'public':
-        layout = Houselayout.objects.filter(user=request.user).first()
-        context['layout'] = layout
 
     return render(request, 'sensors/maps.html', context)
 # ==========================================
@@ -650,36 +652,41 @@ def firefighter_map_data(request):
 # ==========================================
 @login_required
 def get_victim_layout(request, user_id):
-    """ Returns sensors for a specific house (Firefighter View) """
     if request.user.userprofile.role != 'firefighter':
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
-    try:
-        layout = Houselayout.objects.get(user_id=user_id)
-        # FIX: Order by ID to prevent dots shuffling in the popup
-        sensors = Sensor.objects.filter(owner__user_id=user_id).order_by('id')
+    # Get ALL layouts for victim
+    layouts = Houselayout.objects.filter(user_id=user_id)
+    
+    if not layouts.exists():
+        return JsonResponse({'success': False, 'error': 'No layouts found'})
+
+    results = []
+    for layout in layouts:
+        # Helper to get status
+        from .views import get_sensor_status # Import helper if needed locally or move to top
+        sensors = Sensor.objects.filter(layout=layout)
         
         sensor_data = []
         for s in sensors:
             status = get_sensor_status(s)
-            
             sensor_data.append({
-                'id': s.id,       # CRITICAL: JS needs this ID to sort dots
-                'name': s.name,
-                'x': s.x_position,
-                'y': s.y_position,
+                'id': s.id, 'name': s.name, 
+                'x': s.x_position, 'y': s.y_position, 
                 'status': status
             })
-
-        return JsonResponse({
-            'success': True,
+        
+        results.append({
+            'layout_id': layout.id,
+            'layout_name': layout.name,
             'image_url': layout.image.url,
-            'owner': layout.user.username,
             'sensors': sensor_data
         })
-    except Houselayout.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'No layout found'})
-    
+
+    return JsonResponse({
+        'success': True,
+        'layouts': results # Returns list
+    })
 # ==========================================
 # ESP32 DATA INGESTION (sensor)
 # ==========================================
@@ -770,52 +777,45 @@ def receive_sensor_data(request):
 @csrf_exempt
 @login_required
 def add_sensor(request):
-    """ Adds a new sensor via the Public Dashboard """
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             sensor_name = data.get('name')
+            layout_id = data.get('layout_id') # New Field
             
-            if not sensor_name:
-                return JsonResponse({'success': False, 'error': 'Name is required'})
+            if not sensor_name: return JsonResponse({'success': False, 'error': 'Name required'})
+            if not layout_id: return JsonResponse({'success': False, 'error': 'Layout ID required'})
 
-            user_profile = request.user.userprofile
-            user_layout = Houselayout.objects.filter(user=request.user).first()
+            # Verify ownership
+            layout = Houselayout.objects.get(id=layout_id, user=request.user)
 
             new_sensor = Sensor.objects.create(
-                owner=user_profile,
+                owner=request.user.userprofile,
                 name=sensor_name,
-                layout=user_layout,
-                x_position=5.0, 
-                y_position=5.0,
+                layout=layout, # Link to floor
+                x_position=50.0, 
+                y_position=50.0,
                 is_active=True
             )
-            
-            return JsonResponse({
-                'success': True, 
-                'sensor_id': new_sensor.id, 
-                'name': new_sensor.name
-            })
+            return JsonResponse({'success': True, 'sensor_id': new_sensor.id})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-            
     return JsonResponse({'success': False, 'error': 'Invalid method'})
+
 
 @csrf_exempt
 @login_required
 def update_sensor_position(request):
-    """ Saves drag-and-drop coordinates """
     if request.method == 'POST':
         data = json.loads(request.body)
         try:
-            # Ensure user owns the sensor
             sensor = Sensor.objects.get(id=data['sensor_id'], owner__user=request.user)
             sensor.x_position = data['x']
             sensor.y_position = data['y']
             sensor.save()
             return JsonResponse({'success': True})
         except Sensor.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Sensor not found or unauthorized'})
+            return JsonResponse({'success': False, 'error': 'Error'})
     return JsonResponse({'success': False})
 
 @login_required
@@ -900,5 +900,53 @@ def delete_sensor_ajax(request, sensor_id):
         
     except Sensor.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Sensor not found or unauthorized'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@login_required
+@require_POST
+def delete_layout_ajax(request, layout_id):
+    try:
+        # 1. Find layout (ensure ownership)
+        layout = Houselayout.objects.get(id=layout_id, user=request.user)
+        layout_name = layout.name
+        
+        # 2. Delete
+        layout.delete()
+        
+        return JsonResponse({'success': True, 'message': f'Layout "{layout_name}" deleted successfully'})
+    
+    except Houselayout.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Layout not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@login_required
+@require_POST
+def edit_layout_ajax(request):
+    """
+    Updates a layout (Name and/or Image) via AJAX Modal.
+    """
+    layout_id = request.POST.get('layout_id')
+    
+    try:
+        # Ensure the layout belongs to the logged-in user
+        layout = Houselayout.objects.get(id=layout_id, user=request.user)
+        
+        # 1. Update Name
+        new_name = request.POST.get('name')
+        if new_name:
+            layout.name = new_name
+
+        # 2. Update Image (only if a new file is uploaded)
+        if 'image' in request.FILES:
+            layout.image = request.FILES['image']
+
+        layout.save()
+        
+        return JsonResponse({'success': True, 'message': 'Layout updated successfully'})
+
+    except Houselayout.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Layout not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)

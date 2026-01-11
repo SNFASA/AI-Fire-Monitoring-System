@@ -40,6 +40,8 @@ urlpatterns = [
     # Page Views
     path('maps/', views.maps, name='maps'),
     path('upload-layout/', views.upload_layout, name='upload_layout'),
+    path('api/edit-layout/', views.edit_layout_ajax, name='edit_layout_ajax'),
+    path('delete-layout/<int:layout_id>/', views.delete_layout_ajax, name='delete_layout_ajax'),
     path('sensors/delete/<int:sensor_id>/', views.delete_sensor, name='delete_sensor'),
 
     # API Endpoints (These feed the maps)

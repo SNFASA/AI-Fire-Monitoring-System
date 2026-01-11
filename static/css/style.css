@@ -523,12 +523,31 @@ textarea:focus {
     color: var(--text-primary);
     border-color: #444;
 }
+.list-group .list-group-flush.active{
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: #444;
+}
+.list-group-item.active{
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: #444;
+}
+[data-theme="dark"] .list-group-item.active {
+    background-color: var(--dark-card);
+    color: var(--dark-text);
+    border-color: #444;
+}
 [data-theme="dark"] .list-group-item {
     background-color: var(--dark-card);
     color: var(--dark-text);
     border-color: #444;
 }
-
+[data-theme="dark"].list-group .list-group-flush.active{
+    background-color: var(--dark-card);
+    color: var(--dark-text);
+    border-color: #444;
+}
 
 /* ================================
    MAIN CONTENT & LAYOUT
