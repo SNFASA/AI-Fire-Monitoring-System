@@ -308,31 +308,37 @@
     // Start Polling (Every 1 second)
     setInterval(updateSensorReadings, 1000);
 
-    // B. Delete Sensor (AJAX Action)
+    // B. Delete Sensor (AJAX Action using Global Popup)
     function confirmDelete(sensorId, sensorName) {
-        if (confirm(`Are you sure you want to delete sensor: "${sensorName}"?`)) {
-            fetch(`/api/delete-sensor/${sensorId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const row = document.getElementById(`sensor-row-${sensorId}`);
-                    if (row) {
-                        row.style.transition = "all 0.5s";
-                        row.style.opacity = "0";
-                        setTimeout(() => row.remove(), 500);
+        showPopup(
+            'warning', 
+            'Delete Sensor?', 
+            `Are you sure you want to delete sensor: "<strong>${sensorName}</strong>"?<br>This action cannot be undone.`, 
+            function() {
+                fetch(`/api/delete-sensor/${sensorId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
                     }
-                } else {
-                    alert("Error: " + data.message);
-                }
-            })
-            .catch(err => alert("Failed to connect to server."));
-        }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const row = document.getElementById(`sensor-row-${sensorId}`);
+                        if (row) {
+                            row.style.transition = "all 0.5s";
+                            row.style.opacity = "0";
+                            setTimeout(() => row.remove(), 500);
+                        }
+                        showPopup('success', 'Deleted', `Sensor "${sensorName}" has been removed.`);
+                    } else {
+                        showPopup('error', 'Error', data.message);
+                    }
+                })
+                .catch(err => showPopup('error', 'Connection Error', 'Failed to connect to the server.'));
+            }
+        );
     }
     {% endif %}
 </script>

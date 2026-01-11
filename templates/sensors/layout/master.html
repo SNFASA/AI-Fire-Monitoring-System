@@ -36,11 +36,105 @@
     <main>
         {% block content %} 
         {% endblock %}
+        <div class="modal fade" id="globalModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    
+                    <div class="modal-header text-white" id="globalModalHeader">
+                        <h5 class="modal-title" id="globalModalTitle">Notification</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body text-center py-4">
+                        <div class="mb-3">
+                            <i id="globalModalIcon" class="fas fa-info-circle fa-3x opacity-50"></i>
+                        </div>
+                        <h4 id="globalModalHeading" class="mb-2">Heading</h4>
+                        <p id="globalModalMessage" class="text-muted mb-0">Message goes here...</p>
+                    </div>
+
+                    <div class="modal-footer justify-content-center bg-light">
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" id="globalModalCancelBtn">Close</button>
+                        
+                        <button type="button" class="btn btn-primary px-4 fw-bold" id="globalModalActionBtn" style="display: none;">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
     {% include 'sensors/layout/footer.html' %}
     
     <!-- Bootstrap JS (Local) -->
     <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script>
+        /**
+        * GLOBAL POPUP FUNCTION
+        * type: 'success', 'error', 'warning', 'info'
+        * title: Bold text
+        * message: Smaller text
+        * actionCallback: Function to run if user clicks "Yes" (optional)
+        */
+        function showPopup(type, title, message, actionCallback = null) {
+            // 1. Get Elements
+            const header = document.getElementById('globalModalHeader');
+            const icon = document.getElementById('globalModalIcon');
+            const actionBtn = document.getElementById('globalModalActionBtn');
+            const cancelBtn = document.getElementById('globalModalCancelBtn');
+            
+            // 2. Reset Styles
+            header.className = 'modal-header text-white';
+            icon.className = 'fas fa-3x opacity-50';
+            actionBtn.className = 'btn px-4 fw-bold';
+            
+            // 3. Apply Theme based on Type
+            if (type === 'success') {
+                header.classList.add('bg-success');
+                icon.classList.add('fa-check-circle', 'text-success');
+                actionBtn.classList.add('btn-success');
+            } else if (type === 'error') {
+                header.classList.add('bg-danger');
+                icon.classList.add('fa-times-circle', 'text-danger');
+                actionBtn.classList.add('btn-danger');
+            } else if (type === 'warning') {
+                header.classList.add('bg-warning');
+                icon.classList.add('fa-exclamation-triangle', 'text-warning'); // Dark text for yellow
+                header.classList.remove('text-white'); // Text dark for contrast
+                header.classList.add('text-dark');
+                actionBtn.classList.add('btn-warning');
+            } else {
+                header.classList.add('bg-primary');
+                icon.classList.add('fa-info-circle', 'text-primary');
+                actionBtn.classList.add('btn-primary');
+            }
+
+            // 4. Set Text
+            document.getElementById('globalModalTitle').innerText = type.toUpperCase();
+            document.getElementById('globalModalHeading').innerText = title;
+            document.getElementById('globalModalMessage').innerHTML = message; // innerHTML allows bolding/breaks
+
+            // 5. Handle Action Button (Confirmation Mode)
+            if (actionCallback) {
+                actionBtn.style.display = 'inline-block';
+                actionBtn.innerText = "Yes, Proceed";
+                cancelBtn.innerText = "Cancel";
+                
+                // Assign onclick handler properly (remove old listeners to prevent stacking)
+                actionBtn.onclick = function() {
+                    actionCallback(); // Run the code you passed in
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('globalModal'));
+                    modal.hide();
+                };
+            } else {
+                // Alert Mode (No action button)
+                actionBtn.style.display = 'none';
+                cancelBtn.innerText = "OK";
+            }
+
+            // 6. Show Modal
+            const myModal = new bootstrap.Modal(document.getElementById('globalModal'));
+            myModal.show();
+        }
+    </script>
     
     <!-- Utility Functions -->
     <!-- <script src="{% static 'js/utils.js' %}"></script> -->

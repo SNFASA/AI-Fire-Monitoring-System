@@ -150,7 +150,7 @@
                         {% if current_layout %}{{ current_layout.name }}{% else %}House Layout{% endif %}
                     </h4>
                 </div>
-                <div class="card-body p-3 bg-light">
+                <div class="card-body p-3 ">
                     <div id="user-map-container" class="blueprint-wrapper">
                         
                         <div class="blueprint-label">
@@ -205,7 +205,7 @@
 <div class="modal fade" id="editLayoutModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header text-white">
                 <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Floor Plan</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -310,39 +310,42 @@
 
     // 4. CONFIRM DELETE LAYOUT
     function confirmDeleteLayout(layoutId, layoutName) {
-        if (confirm(`Are you sure you want to delete layout: "${layoutName}"? \nThis will also delete all sensors on this floor.`)) {
-            fetch(`/delete-layout/${layoutId}/`, { // Make sure this matches urls.py name exactly
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const item = document.getElementById(`layout-item-${layoutId}`);
-                    if (item) {
-                        item.style.transition = "all 0.5s";
-                        item.style.opacity = "0";
-                        setTimeout(() => {
-                            item.remove();
-                            // Reload if deleting current
-                            const urlParams = new URLSearchParams(window.location.search);
-                            if(urlParams.get('layout_id') == layoutId) {
-                                window.location.href = "{% url 'maps' %}";
-                            }
-                        }, 500);
+        // Call the global popup
+        showPopup(
+            'warning',               // Type (Color/Icon)
+            'Delete Layout?',        // Title
+            `Are you sure you want to delete <strong>${layoutName}</strong>?<br>All sensors on this floor will be lost.`, // Message
+            
+            // The Callback (What happens when they click Yes)
+            function() {
+                // --- YOUR FETCH LOGIC GOES HERE ---
+                fetch(`/delete-layout/${layoutId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success Message
+                        showPopup('success', 'Deleted!', data.message);
+                        
+                        // Remove Item from UI
+                        const item = document.getElementById(`layout-item-${layoutId}`);
+                        if (item) item.remove();
+                        
+                        // Check URL logic...
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if(urlParams.get('layout_id') == layoutId) {
+                            window.location.href = "{% url 'maps' %}";
+                        }
+                    } else {
+                        // Error Message
+                        showPopup('error', 'Error', data.message);
                     }
-                } else {
-                    alert("Error: " + data.message);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Failed to connect to server.");
-            });
-        }
+                })
+                .catch(err => showPopup('error', 'Connection Failed', 'Could not reach the server.'));
+            }
+        );
     }
 
     // 5. OPEN EDIT MODAL
@@ -417,9 +420,9 @@
                 <h5 class="modal-title">Live Incident Layouts</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body bg-light">
+            <div class="modal-body ">
                 <ul class="nav nav-tabs" id="victimLayoutTabs" role="tablist"></ul>
-                <div class="tab-content border border-top-0 p-0 bg-dark" id="victimLayoutContent" style="height: 70vh; position: relative;"></div>
+                <div class="tab-content border border-top-0 p-0 " id="victimLayoutContent" style="height: 70vh; position: relative;"></div>
             </div>
         </div>
     </div>
@@ -548,7 +551,7 @@
                     // Tab Button
                     const tabHTML = `
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link ${isActive} text-dark fw-bold" 
+                            <button class="nav-link ${isActive}  fw-bold" 
                                     id="tab-${layout.layout_id}" 
                                     data-bs-toggle="tab" 
                                     data-bs-target="#content-${layout.layout_id}" 
