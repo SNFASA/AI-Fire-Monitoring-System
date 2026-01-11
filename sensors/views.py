@@ -84,7 +84,7 @@ def register(request):
     else:
         form = SignUpForm()
     
-    return render(request, 'sensors/register.html', {'form': form})
+    return render(request, 'sensors/auth/register.html', {'form': form})
 
 
 # ==========================================
