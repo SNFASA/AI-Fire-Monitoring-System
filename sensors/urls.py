@@ -46,7 +46,7 @@ urlpatterns = [
     
     # API for ESP32 (The IoT Device sends data here)
     path('api/send-data/', views.receive_sensor_data, name='receive_data'),
-
+    path('api/mobilize/<int:report_id>/', views.mobilize_team, name='mobilize_team'),
     # Live Data API (The Website checks this every 2 seconds)
     path('api/live-data/', views.get_live_data, name='live_data'),
     

@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import os 
 
+# Constants
+STATUS_SYSTEM_DETECTED = 'System Detected'
 #===========================================
 # Helper (upload layout houses)
 #===========================================
@@ -88,22 +90,6 @@ class DutyAssignment(models.Model):
     end_time = models.DateTimeField()
     is_active = models.BooleanField(default=True) # To "soft delete" duties if needed
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def clean(self):
-        # Validation: Ensure firefighter isn't already working during this time
-        overlapping = DutyAssignment.objects.filter(
-            firefighter=self.firefighter,
-            start_time__lt=self.end_time,
-            end_time__gt=self.start_time
-        ).exclude(pk=self.pk)
-
-        if overlapping.exists():
-            raise ValidationError("This firefighter is already assigned to a shift during this time.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.firefighter.user.username}: {self.start_time} - {self.end_time}"
 #==================================
@@ -223,37 +209,29 @@ class Maintenance(models.Model):
 #+=========================================
 class Report(models.Model):
     STATUS_CHOICES = (
-        ('System Detected', 'System Detected'),
-        ('Confirmed', 'Confirmed Real Fire'),
+        (STATUS_SYSTEM_DETECTED, 'System Detected'),
+        ('Confirmed', 'Confirmed - Team Mobilized'),
         ('False Alarm', 'False Alarm'),
         ('Resolved', 'Resolved')
     )
-
-    # -- System Auto-Filled Info --
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='System Detected')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_SYSTEM_DETECTED)
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
-    # Snapshot of data when fire was detected
-    address = models.ForeignKey('Address', on_delete=models.SET_NULL, null=True)
-    trigger_sensor = models.ForeignKey('Sensor', on_delete=models.SET_NULL, null=True, help_text="The sensor that first detected the fire")
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
+    trigger_sensor = models.ForeignKey(Sensor, on_delete=models.SET_NULL, null=True)
+    trigger_reading = models.FloatField(null=True, blank=True)
     trigger_temperature = models.FloatField(null=True, blank=True)
     trigger_gas_level = models.IntegerField(null=True, blank=True, help_text="Combined Gas/Smoke level")
+    station = models.ForeignKey(FireStation, on_delete=models.SET_NULL, null=True, blank=True)
+    mobilized_team = models.ManyToManyField(UserProfile, related_name='incident_reports', blank=True)
+    in_charge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='led_reports')
     
-    # -- Firefighter Inputs (Nullable because system creates report first) --
-    station = models.ForeignKey('FireStation', on_delete=models.SET_NULL, null=True, blank=True)
-    in_charge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'userprofile__role': 'firefighter'})
-    fire_type = models.CharField(max_length=100, null=True, blank=True) 
-    cause = models.CharField(max_length=100, null=True, blank=True)
-    description = models.TextField(null=True, blank=True, help_text="Firefighter's detailed report")
+    description = models.TextField(blank=True, default='')
+    fire_type = models.CharField(max_length=100, blank=True, default='') 
+    cause = models.CharField(max_length=100, blank=True, default='')
 
-    class Meta:
-        ordering = ['-timestamp']
-    
-    def __str__(self):
-        return f"Report #{self.id} - {self.status} at {self.address}"
-
-# New Model for Multiple Images
+    def __str__(self): return f"Report #{self.id} - {self.status}"
 class ReportImage(models.Model):
     report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='reports/evidence/')

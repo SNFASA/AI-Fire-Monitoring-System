@@ -5,7 +5,6 @@
 
 {% block content %}
 <div class="container mt-5 mb-5">
-    <!-- Messages/Alerts -->
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -19,36 +18,31 @@
         <div class="col-lg-8 offset-lg-2">
             <div class="card border-danger shadow-lg">
                 <div class="card-header bg-danger text-white">
-                    <h3 class="mb-0">🆕 Create New Fire Report</h3>
+                    <h3 class="mb-0">Create New Fire Report</h3>
                 </div>
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data" novalidate>
                         {% csrf_token %}
 
-                        <!-- Fire Type -->
                         <div class="mb-4">
                             <label for="fire_type" class="form-label fw-bold">
-                                🔥 Fire Type <span class="text-danger">*</span>
+                                Fire Type <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control border-2" id="fire_type" 
-                                   name="fire_type" required placeholder="e.g., Building Fire, Vehicle Fire, Wildfire, Other">
-                            <small class="text-muted d-block mt-1">Type of fire incident reported</small>
+                                   name="fire_type" required placeholder="e.g., Building Fire, Vehicle Fire, Wildfire">
                         </div>
 
-                        <!-- Cause -->
                         <div class="mb-4">
                             <label for="cause" class="form-label fw-bold">
-                                💡 Cause of Fire <span class="text-danger">*</span>
+                                Cause of Fire <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control border-2" id="cause" 
                                    name="cause" required placeholder="e.g., Electrical, Cooking, Arson, Unknown">
-                            <small class="text-muted d-block mt-1">Known or suspected cause of the fire</small>
                         </div>
 
-                        <!-- Fire Station -->
                         <div class="mb-4">
                             <label for="station" class="form-label fw-bold">
-                                🏢 Responding Fire Station <span class="text-danger">*</span>
+                                Responding Fire Station <span class="text-danger">*</span>
                             </label>
                             <select class="form-control border-2" id="station" name="station" required>
                                 <option value="">-- Select a Fire Station --</option>
@@ -56,13 +50,11 @@
                                     <option value="{{ station.id }}">{{ station.name }}</option>
                                 {% endfor %}
                             </select>
-                            <small class="text-muted d-block mt-1">Station that responded to the incident</small>
                         </div>
 
-                        <!-- Location/Address -->
                         <div class="mb-4">
                             <label for="address" class="form-label fw-bold">
-                                📍 Incident Location <span class="text-muted">(Optional)</span>
+                                Incident Location <span class="text-muted">(Optional)</span>
                             </label>
                             <select class="form-control border-2" id="address" name="address">
                                 <option value="">-- Select an Address --</option>
@@ -70,65 +62,53 @@
                                     <option value="{{ address.id }}">{{ address.street }}, {{ address.city }}</option>
                                 {% endfor %}
                             </select>
-                            <small class="text-muted d-block mt-1">Location of the incident</small>
                         </div>
 
-                        <!-- Picture Upload -->
                         <div class="mb-4">
-                            <label for="picture" class="form-label fw-bold">
-                                📸 Scene Documentation <span class="text-muted">(Optional)</span>
+                            <label for="description" class="form-label fw-bold">
+                                Detailed Description <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea class="form-control border-2" id="description" name="description" rows="3" 
+                                      placeholder="Provide additional details about the incident..."></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="images" class="form-label fw-bold">
+                                Scene Documentation <span class="text-muted">(Optional)</span>
                             </label>
                             <div class="input-group">
-                                <input type="file" class="form-control border-2" id="picture" 
-                                       name="picture" accept="image/jpeg,image/png,image/gif">
-                                <span class="input-group-text bg-light">Upload Photo</span>
+                                <input type="file" class="form-control border-2" id="images" 
+                                       name="images" accept="image/jpeg,image/png,image/gif" multiple>
+                                <span class="input-group-text">Upload Photos</span>
                             </div>
                             <small class="text-muted d-block mt-1">
-                                📌 Max file size: 5MB | Supported: JPEG, PNG, GIF
+                                You can select multiple files. Max size: 5MB each.
                             </small>
-                            <div id="file-preview" class="mt-3"></div>
+                            <div id="file-preview" class="mt-3 row g-2"></div>
                         </div>
 
-                        <!-- Form Instructions -->
                         <div class="alert alert-info mb-4" role="alert">
-                            <h6 class="alert-heading">📋 Instructions</h6>
+                            <h6 class="alert-heading">Instructions</h6>
                             <ul class="mb-0 small">
                                 <li>All fields marked with <span class="text-danger">*</span> are required</li>
-                                <li>Provide accurate fire type and cause information</li>
-                                <li>Select the responding fire station</li>
-                                <li>Attach a photo for documentation (optional but recommended)</li>
+                                <li>Select the responding fire station accurately</li>
+                                <li>You can upload multiple photos of the scene</li>
                             </ul>
                         </div>
 
-                        <!-- Submit Buttons -->
                         <div class="row g-2">
                             <div class="col-6">
                                 <button type="submit" class="btn btn-danger w-100 btn-lg">
-                                    ✅ Create Report
+                                    Create Report
                                 </button>
                             </div>
                             <div class="col-6">
                                 <a href="{% url 'reports' %}" class="btn btn-outline-danger w-100 btn-lg">
-                                    ❌ Cancel
+                                    Cancel
                                 </a>
                             </div>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <!-- Tips Card -->
-            <div class="card mt-4 border-secondary">
-                <div class="card-header bg-secondary text-white">
-                    <h6 class="mb-0">💡 Report Writing Tips</h6>
-                </div>
-                <div class="card-body small">
-                    <ul class="mb-0">
-                        <li>Be as specific as possible when describing the fire type and cause</li>
-                        <li>Include relevant details about the incident location</li>
-                        <li>Attach clear, well-lit photos of the scene if possible</li>
-                        <li>Reports are stored for record-keeping and statistical analysis</li>
-                    </ul>
                 </div>
             </div>
         </div>
@@ -136,52 +116,48 @@
 </div>
 
 <script>
-    // File preview
-    const pictureInput = document.getElementById('picture');
-    const filePreview = document.getElementById('file-preview');
+    // Multiple File Preview Logic
+    const imageInput = document.getElementById('images');
+    const previewContainer = document.getElementById('file-preview');
 
-    pictureInput.addEventListener('change', function(e) {
-        filePreview.innerHTML = '';
+    imageInput.addEventListener('change', function(e) {
+        previewContainer.innerHTML = ''; // Clear previous previews
         
-        if (this.files && this.files[0]) {
-            const file = this.files[0];
+        if (this.files) {
+            const files = Array.from(this.files);
             
-            // Validate file size (5MB max)
-            if (file.size > 5242880) {
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger alert-dismissible fade show';
-                alert.innerHTML = '<strong>❌ Error:</strong> File size exceeds 5MB limit. Please choose a smaller file.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                filePreview.appendChild(alert);
-                pictureInput.value = '';
-                return;
-            }
-            
-            // Validate file type
-            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            if (!validTypes.includes(file.type)) {
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger alert-dismissible fade show';
-                alert.innerHTML = '<strong>❌ Error:</strong> Invalid file type. Please use JPEG, PNG, or GIF.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                filePreview.appendChild(alert);
-                pictureInput.value = '';
-                return;
-            }
-            
-            // Show preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.createElement('div');
-                preview.className = 'border border-2 border-danger rounded p-3';
-                preview.innerHTML = `
-                    <small class="text-muted d-block mb-2">Preview:</small>
-                    <img src="${e.target.result}" alt="Preview" class="img-fluid rounded" style="max-height: 250px;">
-                    <p class="mt-2 text-muted small mb-0">
-                        📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)
-                    </p>
-                `;
-                filePreview.appendChild(preview);
-            };
-            reader.readAsDataURL(file);
+            // Loop through all selected files
+            files.forEach(file => {
+                // Validate size (5MB)
+                if (file.size > 5242880) {
+                    alert(`❌ File "${file.name}" is too large (Max 5MB). It will be skipped.`);
+                    return; 
+                }
+
+                // Validate type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    alert(`❌ File "${file.name}" is not an image. It will be skipped.`);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // Create preview card for each image
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 col-sm-6';
+                    col.innerHTML = `
+                        <div class="card h-100 border-danger">
+                            <img src="${event.target.result}" class="card-img-top" style="height: 120px; object-fit: cover;" alt="Preview">
+                            <div class="card-body p-1 text-center bg-light">
+                                <small class="text-muted text-truncate d-block" style="font-size: 0.75rem;">${file.name}</small>
+                            </div>
+                        </div>
+                    `;
+                    previewContainer.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
         }
     });
 
@@ -197,13 +173,11 @@
             alert('❌ Please enter the fire type');
             return;
         }
-
         if (!cause) {
             e.preventDefault();
             alert('❌ Please enter the cause of fire');
             return;
         }
-
         if (!station) {
             e.preventDefault();
             alert('❌ Please select a fire station');

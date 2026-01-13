@@ -83,16 +83,20 @@ class MaintenanceViewTests(TestCase):
             'status': 'Pending' 
         }
         
-        response = self.client.post(url, data)
+        # Using `follow=True` will automatically follow any redirects,
+        # which is common after a successful form submission.
+        response = self.client.post(url, data, follow=True)
         
-        # --- DEBUG PRINT ---
-        # This will print to your console if the form is still invalid
-        if response.context and 'form' in response.context:
-            if response.context['form'].errors:
-                print("\n⚠️ FORM ERRORS FOUND:", response.context['form'].errors)
-        # -------------------
+        # 1. Assert the request was successful. A successful POST with an edit
+        #    usually redirects. With `follow=True`, the final status code should be 200.
+        self.assertEqual(response.status_code, 200, "Request failed. Check for form errors or incorrect view logic.")
+        #    If the form was invalid, it would be re-rendered with errors. This checks for that.
+        if 'form' in response.context:
+            self.assertFalse(response.context['form'].errors, f"Form errors found: {response.context['form'].errors}")
 
+        # 2. Refresh the object from the database to get the updated values.
         self.maintenance.refresh_from_db()
+        # 3. Assert that the details field was correctly updated.
         self.assertEqual(self.maintenance.details, 'Updated by Factory Boy')
 
     # =========================================================
@@ -125,10 +129,16 @@ class MaintenanceViewTests(TestCase):
             'technician_notes': 'Fixed via Test',
         }
         
-        self.client.post(url, data)
+        response = self.client.post(url, data, follow=True)
+
+        # Assert the request was successful and redirected properly
+        self.assertEqual(response.status_code, 200)
+
+        # Refresh and check updated values
         self.maintenance.refresh_from_db()
         
         self.assertEqual(self.maintenance.status, 'Completed')
+        # The view should assign the logged-in firefighter as 'in_charge'
         self.assertEqual(self.maintenance.in_charge, self.firefighter)
 
     # =========================================================

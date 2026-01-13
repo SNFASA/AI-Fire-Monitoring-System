@@ -8,17 +8,18 @@
     <link rel="shortcut icon" type="image/png" href="{% static 'images/bomba.png' %}"/>
     <title>{% block title %}AI Fire Monitoring System{% endblock %}</title>
     
-    <!-- Bootstrap CSS (Local) -->
     <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Dark Mode CSS -->
     <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
     
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
-    <!-- Initialize theme ONLY on html element before rendering to prevent flash -->
+    <style>
+        .animate-pulse { animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+    </style>
+
     <script>
         (function() {
             try {
@@ -36,15 +37,14 @@
     <main>
         {% block content %} 
         {% endblock %}
+
         <div class="modal fade" id="globalModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg">
-                    
                     <div class="modal-header text-white" id="globalModalHeader">
                         <h5 class="modal-title" id="globalModalTitle">Notification</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-
                     <div class="modal-body text-center py-4">
                         <div class="mb-3">
                             <i id="globalModalIcon" class="fas fa-info-circle fa-3x opacity-50"></i>
@@ -52,41 +52,65 @@
                         <h4 id="globalModalHeading" class="mb-2">Heading</h4>
                         <p id="globalModalMessage" class="text-muted mb-0">Message goes here...</p>
                     </div>
-
                     <div class="modal-footer justify-content-center bg-light">
                         <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" id="globalModalCancelBtn">Close</button>
-                        
                         <button type="button" class="btn btn-primary px-4 fw-bold" id="globalModalActionBtn" style="display: none;">Confirm</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        {% if user.userprofile.role == 'firefighter' %}
+        <div class="modal fade" id="globalFireAlertModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-danger border-3">
+                    <div class="modal-header bg-danger text-white">
+                        <h2 class="modal-title animate-pulse"><i class="fas fa-fire-extinguisher me-2"></i>FIRE DETECTED!</h2>
+                    </div>
+                    <div class="modal-body text-center">
+                        <h4 class="text-danger fw-bold mb-4">Immediate Mobilization Required</h4>
+                        <div class="row text-start bg-light p-3 rounded mx-1">
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-user"></i> Victim:</strong> <span id="g_alert_owner">Loading...</span></p>
+                                <p><strong><i class="fas fa-phone"></i> Contact:</strong> <span id="g_alert_phone">Loading...</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-map-marker-alt"></i> Address:</strong></p>
+                                <p id="g_alert_address" class="fw-bold fs-5">Loading...</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="g_current_report_id">
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal" onclick="stopSiren()">Ignore</button>
+                        <button type="button" class="btn btn-danger btn-lg fw-bold" id="g_mobilizeBtn" onclick="globalMobilize()">
+                            <i class="fas fa-truck-fast me-2"></i>MOBILIZE TEAM
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <audio id="global-siren-sound" src="{% static 'sound/alarm.mp3' %}" preload="auto"></audio>
+        {% endif %}
+
     </main>
     {% include 'sensors/layout/footer.html' %}
     
-    <!-- Bootstrap JS (Local) -->
     <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script>
         /**
         * GLOBAL POPUP FUNCTION
-        * type: 'success', 'error', 'warning', 'info'
-        * title: Bold text
-        * message: Smaller text
-        * actionCallback: Function to run if user clicks "Yes" (optional)
         */
         function showPopup(type, title, message, actionCallback = null) {
-            // 1. Get Elements
             const header = document.getElementById('globalModalHeader');
             const icon = document.getElementById('globalModalIcon');
             const actionBtn = document.getElementById('globalModalActionBtn');
             const cancelBtn = document.getElementById('globalModalCancelBtn');
             
-            // 2. Reset Styles
             header.className = 'modal-header text-white';
             icon.className = 'fas fa-3x opacity-50';
             actionBtn.className = 'btn px-4 fw-bold';
             
-            // 3. Apply Theme based on Type
             if (type === 'success') {
                 header.classList.add('bg-success');
                 icon.classList.add('fa-check-circle', 'text-success');
@@ -97,8 +121,8 @@
                 actionBtn.classList.add('btn-danger');
             } else if (type === 'warning') {
                 header.classList.add('bg-warning');
-                icon.classList.add('fa-exclamation-triangle', 'text-warning'); // Dark text for yellow
-                header.classList.remove('text-white'); // Text dark for contrast
+                icon.classList.add('fa-exclamation-triangle', 'text-warning');
+                header.classList.remove('text-white');
                 header.classList.add('text-dark');
                 actionBtn.classList.add('btn-warning');
             } else {
@@ -107,39 +131,102 @@
                 actionBtn.classList.add('btn-primary');
             }
 
-            // 4. Set Text
             document.getElementById('globalModalTitle').innerText = type.toUpperCase();
             document.getElementById('globalModalHeading').innerText = title;
-            document.getElementById('globalModalMessage').innerHTML = message; // innerHTML allows bolding/breaks
+            document.getElementById('globalModalMessage').innerHTML = message;
 
-            // 5. Handle Action Button (Confirmation Mode)
             if (actionCallback) {
                 actionBtn.style.display = 'inline-block';
                 actionBtn.innerText = "Yes, Proceed";
                 cancelBtn.innerText = "Cancel";
-                
-                // Assign onclick handler properly (remove old listeners to prevent stacking)
                 actionBtn.onclick = function() {
-                    actionCallback(); // Run the code you passed in
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('globalModal'));
-                    modal.hide();
+                    actionCallback();
+                    bootstrap.Modal.getInstance(document.getElementById('globalModal')).hide();
                 };
             } else {
-                // Alert Mode (No action button)
                 actionBtn.style.display = 'none';
                 cancelBtn.innerText = "OK";
             }
 
-            // 6. Show Modal
-            const myModal = new bootstrap.Modal(document.getElementById('globalModal'));
-            myModal.show();
+            new bootstrap.Modal(document.getElementById('globalModal')).show();
         }
+
+        // ============================================================
+        //  FIRE ALERT WEBSOCKET LOGIC (STRICTLY FIREFIGHTER ONLY)
+        // ============================================================
+        {% if user.is_authenticated %}
+            // Only run this logic if the role is specifically 'firefighter'
+            const userRole = "{{ user.userprofile.role|default:'public' }}";
+
+            if (userRole === 'firefighter') {
+                const siren = document.getElementById('global-siren-sound');
+                const myStationId = "{{ user.userprofile.station.id|default:'all' }}";
+
+                function stopSiren() {
+                    if(siren) {
+                        siren.pause();
+                        siren.currentTime = 0;
+                    }
+                }
+
+                console.log("🔥 FIREFIGHTER ALERT SYSTEM ACTIVE | Channel:", myStationId);
+                
+                const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+                const ws_url = ws_scheme + '://' + window.location.host + '/ws/alerts/' + myStationId + '/';
+                
+                const socket = new WebSocket(ws_url);
+
+                socket.onopen = () => console.log("✅ WebSocket Connected (Firefighter Channel)");
+                
+                socket.onmessage = function(e) {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'fire_alert') {
+                        // 1. Play Sound
+                        siren.play().catch(e => console.log("Audio blocked by browser policy"));
+                        
+                        // 2. Populate Modal
+                        document.getElementById('g_alert_owner').innerText = data.owner_name;
+                        document.getElementById('g_alert_phone').innerText = data.owner_phone;
+                        document.getElementById('g_alert_address').innerText = data.address;
+                        document.getElementById('g_current_report_id').value = data.report_id;
+
+                        // 3. Show Modal
+                        new bootstrap.Modal(document.getElementById('globalFireAlertModal')).show();
+                    }
+                };
+
+                // Mobilize Function
+                window.globalMobilize = function() {
+                    const reportId = document.getElementById('g_current_report_id').value;
+                    const btn = document.getElementById('g_mobilizeBtn');
+                    
+                    btn.disabled = true; 
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mobilizing...';
+
+                    fetch(`/api/mobilize/${reportId}/`, {
+                        method: 'POST',
+                        headers: { 
+                            'X-CSRFToken': '{{ csrf_token }}', 
+                            'Content-Type': 'application/json' 
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        stopSiren();
+                        if(data.success) { 
+                            alert(data.message); 
+                            window.location.href = "{% url 'report_detail' 0 %}".replace('0', reportId); 
+                        } else { 
+                            alert("Error: " + data.error); 
+                            btn.disabled = false; 
+                            btn.innerHTML = '<i class="fas fa-truck-fast me-2"></i>MOBILIZE TEAM';
+                        }
+                    });
+                };
+            }
+        {% endif %}
     </script>
     
-    <!-- Utility Functions -->
-    <!-- <script src="{% static 'js/utils.js' %}"></script> -->
-    
-    <!-- Page-specific Scripts -->
     {% block extra_js %}{% endblock %}
 </body>
 </html>

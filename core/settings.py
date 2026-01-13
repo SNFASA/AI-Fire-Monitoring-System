@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'sensors',
     'django_extensions',
 ]
@@ -72,8 +74,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
-
+#WSGI_APPLICATION = 'core.wsgi.application'
+ASGI_APPLICATION = 'core.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -320,3 +322,18 @@ JAZZMIN_SETTINGS = {
     "USE_I18N": False,
     
 }
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+# core/settings.py (Scroll to bottom)
+
+# --- TWILIO SMS SETTINGS ---
+TWILIO_ACCOUNT_SID = 'AC0946487b8bf38665232ae8c37af3bd94'  # Paste your SID here
+TWILIO_AUTH_TOKEN = '397f47ab54e8d4ab9854af9818bf2749'   # Paste your Token here
+TWILIO_WHATSAPP_FROM = 'whatsapp:+14155238886' # The Sandbox Number
+TWILIO_CONTENT_SID = 'HXb5b62575e6e4ff6129ad7c8efe1f983e' # Your Template ID
+
