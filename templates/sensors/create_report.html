@@ -4,7 +4,8 @@
 {% block title %}Create Fire Report{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
+<div class="container mt-4">
+    
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -14,173 +15,103 @@
         {% endfor %}
     {% endif %}
 
-    <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-            <div class="card border-danger shadow-lg">
-                <div class="card-header bg-danger text-white">
-                    <h3 class="mb-0">Create New Fire Report</h3>
+    <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+            <h4><i class="fas fa-fire-extinguisher"></i> Create New Fire Report</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="fire_type" class="fw-bold">Fire Type <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="fire_type" name="fire_type" 
+                               required placeholder="e.g., Building Fire, Vehicle Fire">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="cause" class="fw-bold">Cause of Fire <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="cause" name="cause" 
+                               required placeholder="e.g., Electrical, Arson">
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="POST" enctype="multipart/form-data" novalidate>
-                        {% csrf_token %}
 
-                        <div class="mb-4">
-                            <label for="fire_type" class="form-label fw-bold">
-                                Fire Type <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control border-2" id="fire_type" 
-                                   name="fire_type" required placeholder="e.g., Building Fire, Vehicle Fire, Wildfire">
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="cause" class="form-label fw-bold">
-                                Cause of Fire <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control border-2" id="cause" 
-                                   name="cause" required placeholder="e.g., Electrical, Cooking, Arson, Unknown">
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="station" class="form-label fw-bold">
-                                Responding Fire Station <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-control border-2" id="station" name="station" required>
-                                <option value="">-- Select a Fire Station --</option>
-                                {% for station in stations %}
-                                    <option value="{{ station.id }}">{{ station.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="address" class="form-label fw-bold">
-                                Incident Location <span class="text-muted">(Optional)</span>
-                            </label>
-                            <select class="form-control border-2" id="address" name="address">
-                                <option value="">-- Select an Address --</option>
-                                {% for address in addresses %}
-                                    <option value="{{ address.id }}">{{ address.street }}, {{ address.city }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="description" class="form-label fw-bold">
-                                Detailed Description <span class="text-muted">(Optional)</span>
-                            </label>
-                            <textarea class="form-control border-2" id="description" name="description" rows="3" 
-                                      placeholder="Provide additional details about the incident..."></textarea>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="images" class="form-label fw-bold">
-                                Scene Documentation <span class="text-muted">(Optional)</span>
-                            </label>
-                            <div class="input-group">
-                                <input type="file" class="form-control border-2" id="images" 
-                                       name="images" accept="image/jpeg,image/png,image/gif" multiple>
-                                <span class="input-group-text">Upload Photos</span>
-                            </div>
-                            <small class="text-muted d-block mt-1">
-                                You can select multiple files. Max size: 5MB each.
-                            </small>
-                            <div id="file-preview" class="mt-3 row g-2"></div>
-                        </div>
-
-                        <div class="alert alert-info mb-4" role="alert">
-                            <h6 class="alert-heading text-muted">Instructions</h6>
-                            <ul class="mb-0 small">
-                                <li class= "text-muted">All fields marked with <span class="text-danger">*</span> are required</li>
-                                <li class= "text-muted">Select the responding fire station accurately</li>
-                                <li class= "text-muted">You can upload multiple photos of the scene</li>
-                            </ul>
-                        </div>
-
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="submit" class="btn  btn-danger  w-100 btn-lg">
-                                    Create Report
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <a href="{% url 'reports' %}" class="btn btn-outline-warning text-white w-100 btn-lg">
-                                    Cancel
-                                </a>
-                            </div>
-                        </div>
-                    </form>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="station" class="fw-bold">Responding Station <span class="text-danger">*</span></label>
+                        <select class="form-control" id="station" name="station" required>
+                            <option value="">-- Select Fire Station --</option>
+                            {% for station in stations %}
+                                <option value="{{ station.id }}">{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="address" class="fw-bold">Incident Location <span class="text-muted">(Optional)</span></label>
+                        <select class="form-control" id="address" name="address">
+                            <option value="">-- Select Address --</option>
+                            {% for address in addresses %}
+                                <option value="{{ address.id }}">{{ address.street }}, {{ address.city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-            </div>
+
+                <div class="mb-3">
+                    <label for="description" class="fw-bold">Description <span class="text-muted">(Optional)</span></label>
+                    <textarea class="form-control" id="description" name="description" rows="3" 
+                              placeholder="Provide details about the incident..."></textarea>
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+                    <label for="images" class="fw-bold">Evidence Photos</label>
+                    <input type="file" class="form-control" id="images" name="images" 
+                           accept="image/jpeg,image/png,image/gif" multiple>
+                    <div id="file-preview" class="mt-3 row g-2"></div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'reports' %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-paper-plane"></i> Submit Report
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-    // Multiple File Preview Logic
+    // Simple Image Preview Logic
     const imageInput = document.getElementById('images');
     const previewContainer = document.getElementById('file-preview');
 
     imageInput.addEventListener('change', function(e) {
-        previewContainer.innerHTML = ''; // Clear previous previews
-        
+        previewContainer.innerHTML = ''; // Clear previous
         if (this.files) {
-            const files = Array.from(this.files);
-            
-            // Loop through all selected files
-            files.forEach(file => {
-                // Validate size (5MB)
-                if (file.size > 5242880) {
-                    alert(`❌ File "${file.name}" is too large (Max 5MB). It will be skipped.`);
-                    return; 
-                }
-
-                // Validate type
-                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                if (!validTypes.includes(file.type)) {
-                    alert(`❌ File "${file.name}" is not an image. It will be skipped.`);
+            Array.from(this.files).forEach(file => {
+                // Size validation (5MB)
+                if (file.size > 5*1024*1024) {
+                    alert(`File ${file.name} is too big!`);
                     return;
                 }
-
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    // Create preview card for each image
                     const col = document.createElement('div');
-                    col.className = 'col-md-4 col-sm-6';
+                    col.className = 'col-md-2 col-sm-4 col-6';
                     col.innerHTML = `
-                        <div class="card h-100 border-danger">
-                            <img src="${event.target.result}" class="card-img-top" style="height: 120px; object-fit: cover;" alt="Preview">
-                            <div class="card-body p-1 text-center bg-light">
-                                <small class="text-muted text-truncate d-block" style="font-size: 0.75rem;">${file.name}</small>
-                            </div>
-                        </div>
-                    `;
+                        <div class="card shadow-sm border-0">
+                            <img src="${event.target.result}" class="card-img-top rounded" style="height: 80px; object-fit: cover;">
+                        </div>`;
                     previewContainer.appendChild(col);
                 };
                 reader.readAsDataURL(file);
             });
-        }
-    });
-
-    // Form validation
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-        const fireType = document.getElementById('fire_type').value.trim();
-        const cause = document.getElementById('cause').value.trim();
-        const station = document.getElementById('station').value;
-
-        if (!fireType) {
-            e.preventDefault();
-            alert('❌ Please enter the fire type');
-            return;
-        }
-        if (!cause) {
-            e.preventDefault();
-            alert('❌ Please enter the cause of fire');
-            return;
-        }
-        if (!station) {
-            e.preventDefault();
-            alert('❌ Please select a fire station');
         }
     });
 </script>

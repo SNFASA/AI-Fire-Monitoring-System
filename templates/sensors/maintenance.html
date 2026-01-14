@@ -18,7 +18,7 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-lg-8">
-            <a href="{% url 'home' %}" class="btn btn-outline-danger">← Back to Dashboard</a>
+            <a href="{% url 'home' %}" class="btn text-white btn-outline-danger">← Back to Dashboard</a>
             <h2 class="display-6 fw-bold text-danger mb-2">Maintenance Records</h2>
             <p class="text-muted">View and manage equipment maintenance logs</p>
         </div>
@@ -125,7 +125,11 @@
             {% endfor %}
         {% else %}
             <div class="col-12 text-center py-5">
-                <h4 class="text-muted">No maintenance records found.</h4>
+                <div class="alert alert-light border-danger shadow-sm py-5">
+                    <h4 class="text-danger">No Maintenance Records Found</h4>
+                    <p class="text-muted">There are currently no maintenance records in the database.</p>
+                    <a href="{% url 'maintenance_create' %}" class="btn btn-danger text-white mt-2">Create First Maintenance</a>
+                </div>
             </div>
         {% endif %}
     </div>

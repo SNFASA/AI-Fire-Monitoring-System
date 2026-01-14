@@ -2,94 +2,126 @@
 {% block title %}Edit Maintenance{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header {% if user_role == 'public' %}bg-danger{% else %}bg-warning{% endif %} text-white">
-            <h4>{% if user_role == 'public' %}Edit Request{% else %}Update Maintenance Status{% endif %}</h4>
-        </div>
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <a href="{% url 'maintenance' %}" class="btn btn-outline-danger text-white">← Back to Maintenance Records</a>
+                </div>
+            </div>
 
-                {% if user_role == 'public' %}
-                    
-                    {{ form.as_p }} {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> You are viewing this as a Technician. Original request details are locked.
-                    </div>
+            <div class="card shadow">
+                <div class="card-header {% if user_role == 'public' %}bg-danger{% else %}bg-warning text-dark{% endif %} text-white">
+                    <h4 class="mb-0">
+                        {% if user_role == 'public' %}
+                            <i class="fas fa-edit"></i> Edit Request #{{ maintenance.id }}
+                        {% else %}
+                            <i class="fas fa-tools"></i> Update Maintenance Status
+                        {% endif %}
+                    </h4>
+                </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="fw-bold">Sensor:</label>
-                            <p class="form-control-plaintext border-bottom">{{ maintenance.sensor.name }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="fw-bold">Requested Date:</label>
-                            <p class="form-control-plaintext border-bottom">{{ maintenance.scheduled_date }}</p>
-                        </div>
-                    </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label class="fw-bold">Issue Details:</label>
-                        <div class="p-3 bg-light rounded border">
-                            {{ maintenance.details }}
-                        </div>
-                    </div>
+                        {% if user_role == 'public' %}
+                            <div class="mb-4">
+                                {{ form.as_p }}
+                            </div>
 
-                    <hr>
-                    <h5 class="text-primary">Technician Actions</h5>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Update Status</label>
-                            <select name="status" class="form-select">
-                                <option value="pending" {% if maintenance.status == 'pending' %}selected{% endif %}>Pending</option>
-                                <option value="in_progress" {% if maintenance.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                                <option value="completed" {% if maintenance.status == 'completed' %}selected{% endif %}>Completed</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Actual Maintenance Date</label>
-                            <input type="date" name="actual_date" class="form-control" 
-                                   value="{{ maintenance.actual_date|date:'Y-m-d' }}">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Technician Notes</label>
-                        <textarea name="technician_notes" class="form-control" rows="3">{{ maintenance.technician_notes }}</textarea>
-                    </div>
-                {% endif %}
+                        {% else %}
+                            <div class="alert alert-info border-info">
+                                <i class="fas fa-info-circle"></i> You are viewing this as a Technician. Original request details are locked.
+                            </div>
 
-                <div class="mt-4">
-                    <h5>Evidence / Photos</h5>
-                    
-                    {% if maintenance.images.all %}
-                        <div class="d-flex flex-wrap gap-3 mb-3">
-                            {% for img in maintenance.images.all %}
-                                <div class="text-center">
-                                    <a href="{{ img.image.url }}" target="_blank">
-                                        <img src="{{ img.image.url }}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
-                                    </a>
-                                    <div class="form-check mt-1">
-                                        <input class="form-check-input" type="checkbox" name="delete_images" value="{{ img.id }}">
-                                        <label class="small text-danger">Delete</label>
+                            <div class="card bg-light border-0 mb-4">
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted small">Target Sensor</label>
+                                            <div class="fs-5">{{ maintenance.sensor.name }}</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted small">Requested Date</label>
+                                            <div class="fs-5">{{ maintenance.scheduled_date }}</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="fw-bold text-muted small">Issue Details</label>
+                                        <p class="mb-0">{{ maintenance.details }}</p>
                                     </div>
                                 </div>
-                            {% endfor %}
+                            </div>
+
+                            <hr>
+
+                            <h5 class="text-primary mb-3">Technician Actions</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Update Status</label>
+                                    <select name="status" class="form-select border-primary">
+                                        <option value="pending" {% if maintenance.status == 'pending' %}selected{% endif %}>Pending</option>
+                                        <option value="in_progress" {% if maintenance.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                        <option value="completed" {% if maintenance.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Actual Completion Date</label>
+                                    <input type="date" name="actual_date" class="form-control border-primary" 
+                                           value="{{ maintenance.actual_date|date:'Y-m-d' }}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Technician Notes</label>
+                                <textarea name="technician_notes" class="form-control border-primary" rows="3" placeholder="Enter resolution details...">{{ maintenance.technician_notes }}</textarea>
+                            </div>
+                        {% endif %}
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">Evidence / Photos</h5>
+                        
+                        {% if maintenance.images.all %}
+                            <div class="row g-3 mb-3">
+                                {% for img in maintenance.images.all %}
+                                    <div class="col-6 col-md-3 text-center">
+                                        <div class="card h-100 border-secondary">
+                                            <a href="{{ img.image.url }}" target="_blank">
+                                                <img src="{{ img.image.url }}" class="card-img-top" style="height: 100px; object-fit: cover;"  alt="Evidence">
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label class="form-label">Upload New Photos</label>
+                            <input type="file" name="images" class="form-control" multiple accept="image/*">
                         </div>
-                    {% endif %}
 
-                    <label class="form-label">Upload New Photos:</label>
-                    <input type="file" name="images" class="form-control" multiple accept="image/*">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-success w-100 btn-lg">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'maintenance' %}" class="btn btn-outline-secondary w-100 btn-lg">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+
+                    </form>
                 </div>
-
-                <div class="mt-4 text-end">
-                    <a href="{% url 'maintenance_detail' maintenance.id %}" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                </div>
-
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
 {% endblock %}

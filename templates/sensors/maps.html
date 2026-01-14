@@ -70,7 +70,7 @@
                 <div class="list-group list-group-flush">
                     {% for l in layouts %}
                     <div class="list-group-item d-flex justify-content-between align-items-center {% if l.id == current_layout.id %}bg-light{% endif %}" id="layout-item-{{ l.id }}">
-                        <a href="?layout_id={{ l.id }}" class="text-decoration-none fw-bold text-dark text-truncate" style="max-width: 50%;">
+                        <a href="?layout_id={{ l.id }}" class="text-decoration-none fw-bold text-truncate" style="max-width: 50%;">
                             {{ l.name }}
                         </a>
                         <div class="btn-group btn-group-sm">

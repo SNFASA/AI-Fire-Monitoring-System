@@ -16,15 +16,17 @@
 
     <div class="row mb-4">
         <div class="col-lg-8">
-            <a href="{% url 'home' %}" class="btn btn-outline-danger">← Back to Dashboard</a>
+            <a href="{% url 'home' %}" class="btn text-white btn-outline-danger">← Back to Dashboard</a>
             <h2 class="display-6 fw-bold text-danger mb-2">Fire Incident Reports</h2>
             <p class="text-muted">Complete record of all fire incidents and responses</p>
         </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
-            <a href="{% url 'create_report' %}" class="btn btn-danger text-white btn-lg shadow-sm">
-                <i class="bi bi-plus-lg"></i> Create New Report
-            </a>
-        </div>
+        {% if user.userprofile.role == 'firefighter' %}
+            <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
+                <a href="{% url 'create_report' %}" class="btn btn-danger text-white btn-lg shadow-sm">
+                    <i class="bi bi-plus-lg"></i> Create New Report
+                </a>
+            </div>
+        {% endif %}
     </div>
 
     {% if reports %}
@@ -62,17 +64,19 @@
                                 {{ report.status|default:"Filed"|title }}
                             </span>
 
-                            <form action="{% url 'delete_report' report.id %}" method="POST">
-                                {% csrf_token %}
-                                <button type="button" 
-                                        class="btn btn-link text-white p-0 text-decoration-none ms-2" 
-                                        title="Delete Report"
-                                        onclick="confirmDelete(this.form)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                                    </svg>
-                                </button>
-                            </form>
+                            {% if user.userprofile.role == 'firefighter' %}
+                                <form action="{% url 'delete_report' report.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="button" 
+                                            class="btn btn-link text-white p-0 text-decoration-none ms-2" 
+                                            title="Delete Report"
+                                            onclick="confirmDelete(this.form)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            {%endif%}
                         </div>
                     </div>
 
@@ -134,7 +138,7 @@
                 <div class="alert alert-light border-danger shadow-sm py-5">
                     <h4 class="text-danger">No Fire Reports Found</h4>
                     <p class="text-muted">There are currently no incidents recorded in the database.</p>
-                    <a href="{% url 'create_report' %}" class="btn btn-danger mt-2">Create First Report</a>
+                    <a href="{% url 'create_report' %}" class="btn btn-danger text-white mt-2">Create First Report</a>
                 </div>
             </div>
         {% endif %}
