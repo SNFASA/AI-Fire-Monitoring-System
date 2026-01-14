@@ -185,6 +185,12 @@ def receive_sensor_data(request):
                             if phone_list:
                                 msg = f"FIRE ALERT! Loc: {user_address.street}. Station {target_station.name} mobilized."
                                 send_sms_broadcast(phone_list, msg)
+                            
+                            if sensor.owner.phone_number:
+                                owner_msg = f"URGENT: Fire detected at your property ({user_address.street}). Station {target_station.name} has been notified."
+                                # We pass it as a list because send_sms_broadcast expects a list
+                                send_sms_broadcast([sensor.owner.phone_number], owner_msg)
+                                print(f"Owner notified: {sensor.owner.phone_number}")
 
             return HttpResponse("1" if ml_result != "Safe" else "0")
 
@@ -193,7 +199,7 @@ def receive_sensor_data(request):
             return HttpResponse("0")
     return HttpResponse("0", status=405)
 
-# ==========================================
+# ==========================================send
 # 2. MOBILIZE TEAM (CONFIRMATION)
 # ==========================================
 @login_required
