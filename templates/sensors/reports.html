@@ -1,11 +1,10 @@
 {% extends "sensors/layout/master.html" %}
 {% load static %}
 
-{% block title %}Fire Reports{% endblock %}
+{% block title %}Fire Incident Reports{% endblock %}
 
 {% block content %}
 <div class="container mt-5 mb-5">
-    <!-- Messages/Alerts -->
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -15,130 +14,169 @@
         {% endfor %}
     {% endif %}
 
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-lg-8">
             <a href="{% url 'home' %}" class="btn btn-outline-danger">← Back to Dashboard</a>
-            <h2 class="display-6 fw-bold text-danger mb-2">🚒 Fire Reports</h2>
+            <h2 class="display-6 fw-bold text-danger mb-2">Fire Incident Reports</h2>
             <p class="text-muted">Complete record of all fire incidents and responses</p>
         </div>
-        <div class="col-lg-4 text-end">
-            <a href="{% url 'create_report' %}" class="btn btn-danger">
-                ➕ Create New Report
+        <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
+            <a href="{% url 'create_report' %}" class="btn btn-danger text-white btn-lg shadow-sm">
+                <i class="bi bi-plus-lg"></i> Create New Report
             </a>
         </div>
     </div>
 
-    <!-- Reports Grid -->
-    <div class="row">
-        {% if reports %}
-            {% for report in reports %}
-                <div class="col-lg-6 col-md-12 mb-4">
-                    <div class="card border-danger h-100 shadow-sm transition">
-                        <div class="card-header bg-danger text-white">
-                            <h5 class="mb-0">🔥 {{ report.fire_type }}</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Fire Type & Cause -->
-                            <div class="mb-3">
-                                <small class="text-muted d-block">Cause</small>
-                                <p class="mb-0 text-dark fw-bold">{{ report.cause }}</p>
-                            </div>
-
-                            <!-- Location -->
-                            <div class="mb-3">
-                                <small class="text-muted d-block">📍 Location</small>
-                                <p class="mb-0 text-dark">{{ report.address }}</p>
-                            </div>
-
-                            <!-- Station & Officer -->
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <small class="text-muted d-block">Fire Station</small>
-                                    <span class="badge bg-secondary">🏢 {{ report.station.name }}</span>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block">Officer In Charge</small>
-                                    <span class="badge bg-secondary">👤 {{ report.in_charge.username }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Image -->
-                            {% if report.picture %}
-                                <div class="mb-3">
-                                    <small class="text-muted d-block mb-2">Scene Documentation</small>
-                                    <img src="{{ report.picture.url }}" alt="Fire incident scene" 
-                                         class="img-fluid rounded" style="max-height: 200px; object-fit: cover; border: 2px solid #df2020;">
-                                </div>
-                            {% else %}
-                                <div class="mb-3 p-3 bg-light rounded text-center">
-                                    <small class="text-muted">No scene photo attached</small>
-                                </div>
-                            {% endif %}
-
-                            <!-- Date & Time -->
-                            <div class="text-sm">
-                                <small class="text-muted d-block">Date & Time</small>
-                                <small class="text-dark fw-bold">📅 {{ report.timestamp|date:"M d, Y - H:i A" }}</small>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white border-top border-danger">
-                            <a href="{% url 'report_detail' report.id %}" class="btn btn-sm btn-danger w-100">
-                                View Full Details
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <!-- Empty State -->
-            <div class="col-lg-8 offset-lg-2">
-                <div class="alert alert-info text-center py-5">
-                    <h4 class="alert-heading mb-3">📭 No Reports Yet</h4>
-                    <p class="mb-3">No fire reports have been created yet. When incidents occur, they will appear here.</p>
-                    <a href="{% url 'create_report' %}" class="btn btn-danger">
-                        Create First Report
-                    </a>
-                </div>
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- Statistics Footer -->
     {% if reports %}
-        <div class="row mt-5">
-            <div class="col-lg-8 offset-lg-2">
-                <div class="card border-secondary bg-light">
-                    <div class="card-body">
-                        <div class="row text-center">
-                            <div class="col-md-3 mb-3">
-                                <h5 class="text-danger fw-bold">{{ reports|length }}</h5>
-                                <small class="text-muted">Total Reports</small>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <h5 class="text-warning fw-bold">
-                                    {% widthratio building_fires reports|length 1 %}%
-                                </h5>
-                                <small class="text-muted">Building Fires</small>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <h5 class="text-info fw-bold">
-                                    {% widthratio vehicle_fires reports|length 1 %}%
-                                </h5>
-                                <small class="text-muted">Vehicle Fires</small>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <h5 class="text-success fw-bold">
-                                    {% widthratio other_fires reports|length 1 %}%
-                                </h5>
-                                <small class="text-muted">Other Incidents</small>
-                            </div>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light border-0 shadow-sm">
+                <div class="card-body py-2">
+                    <div class="row text-center align-items-center">
+                        <div class="col-md-3 border-end">
+                            <span class="h4 fw-bold text-danger mb-0">{{ reports|length }}</span>
+                            <small class="text-muted d-block">Total Incidents</small>
                         </div>
+                        <div class="col-md-9 text-start ps-4">
+                            <small class="text-muted"><i>Recent activity log for station operations.</i></small>
+                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     {% endif %}
+
+    <div class="row">
+        {% if reports %}
+            {% for report in reports %}
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="card border-danger h-100 shadow-sm">
+                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <div class="d-flex flex-column">
+                            <h5 class="mb-0 text-truncate">{{ report.address|truncatechars:30 }}</h5>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-white text-danger fw-bold shadow-sm">
+                                {{ report.status|default:"Filed"|title }}
+                            </span>
+
+                            <form action="{% url 'delete_report' report.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="button" 
+                                        class="btn btn-link text-white p-0 text-decoration-none ms-2" 
+                                        title="Delete Report"
+                                        onclick="confirmDelete(this.form)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        {% if report.reportimage.all %}
+                            <div class="mb-3 text-center  rounded" style="cursor: pointer;" onclick="openModal('{{ report.picture.url }}')">
+                                <div class="ratio ratio-21x9">
+                                    <img src="{{ report.picture.url }}" class="object-fit-cover rounded border" alt="Incident Scene">
+                                </div>
+                                <small class="text-muted mt-1 d-block"><i class="bi bi-zoom-in"></i> Click to enlarge evidence</small>
+                            </div>
+                        {% else %}
+                            <div class="mb-3 p-4  rounded text-center border border-dashed">
+                                <small class="text-muted">No scene photo attached</small>
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Cause of Fire</small>
+                                <strong class="text-dark">{{ report.cause }}</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Fire Station</small>
+                                <span class="badge bg-secondary">{{ report.station.name|default:"Unassigned" }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row text-sm mt-3 border-top pt-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Incident Date</small>
+                                <strong class="text-primary">{{ report.timestamp|date:"d M Y, H:i" }}</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <small class="text-muted d-block">Officer In Charge</small>
+                                <span class="badge bg-light text-dark border">
+                                    {% if report.in_charge %}
+                                        {{ report.in_charge.username }}
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-top border-danger p-2">
+                        <div class="d-grid">
+                            <a href="{% url 'report_detail' report.id %}" class="btn btn-outline-warning text-white shadow-sm fw-bold">
+                                <i class="bi bi-file-earmark-text  me-1"></i> View Full Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="alert alert-light border-danger shadow-sm py-5">
+                    <h4 class="text-danger">No Fire Reports Found</h4>
+                    <p class="text-muted">There are currently no incidents recorded in the database.</p>
+                    <a href="{% url 'create_report' %}" class="btn btn-danger mt-2">Create First Report</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 </div>
+
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function openModal(imageUrl) {
+        document.getElementById('modalImage').src = imageUrl;
+        var myModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        myModal.show();
+    }
+    function confirmDelete(formElement) {
+        if (typeof showPopup === "function") {
+            showPopup(
+                'warning', 
+                'Delete Report?', 
+                'Are you sure you want to delete this fire report?<br>This action cannot be undone.',
+                function() {
+                    formElement.submit();
+                }
+            );
+        } else {
+            if (confirm("Are you sure you want to delete this report? This cannot be undone.")) {
+                formElement.submit();
+            }
+        }
+    }
+</script>
 
 {% endblock %}

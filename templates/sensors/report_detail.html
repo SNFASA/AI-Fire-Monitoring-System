@@ -45,21 +45,21 @@
                 </div>
 
                 <div class="card-body">
-                    
+
                     <div class="alert alert-light border rounded p-3 mb-4">
                         <h5 class="text-muted border-bottom pb-2"><i class="fas fa-microchip"></i> AI Detection Snapshot</h5>
                         <div class="row">
                             <div class="col-md-4">
                                 <small class="text-muted d-block">Time Detected</small>
-                                <strong>{{ report.timestamp|date:"M d, Y - H:i:s" }}</strong>
+                                <strong class="text-muted d-block">{{ report.timestamp|date:"M d, Y - H:i:s" }}</strong>
                             </div>
                             <div class="col-md-4">
                                 <small class="text-muted d-block">Trigger Location</small>
-                                <strong>{{ report.address }}</strong>
+                                <strong class="text-muted d-block">{{ report.address }}</strong>
                             </div>
                             <div class="col-md-4">
                                 <small class="text-muted d-block">Sensor</small>
-                                <strong>{{ report.trigger_sensor.name }}</strong>
+                                <strong class="text-muted d-block">{{ report.trigger_sensor.name }}</strong>
                             </div>
                         </div>
                         <div class="row mt-3">
@@ -128,7 +128,7 @@
                         </div>
 
                         {% if is_firefighter %}
-                        <div class="mb-4 p-3 bg-light border rounded">
+                        <div class="mb-4 p-3  border rounded">
                             <label class="form-label fw-bold"><i class="fas fa-camera"></i> Upload Evidence Photos</label>
                             <input type="file" name="images" class="form-control" multiple accept="image/*">
                             <small class="text-muted">You can select multiple files at once.</small>
@@ -153,7 +153,7 @@
                         {% endif %}
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'reports' %}" class="btn btn-secondary me-md-2">Back to List</a>
+                            <a href="{% url 'reports' %}" class="btn btn-outline-warning text-white">Back to List</a>
                             
                             {% if is_firefighter %}
                                 <button type="submit" class="btn btn-primary btn-lg">

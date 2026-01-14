@@ -87,3 +87,16 @@ class MaintenanceForm(forms.ModelForm):
             self.fields['sensor'].queryset = Sensor.objects.filter(is_active=True)
         if 'nearest_fire_station' in self.fields:
             self.fields['nearest_fire_station'].empty_label = "Select Nearest Fire Station (Optional)"
+class ReportUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Report
+        fields = ['fire_type', 'cause', 'description', 'status', 'station', 'address']
+        # Add Bootstrap classes to inputs
+        widgets = {
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'fire_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'cause': forms.TextInput(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'station': forms.Select(attrs={'class': 'form-select'}),
+            'address': forms.Select(attrs={'class': 'form-select'}),
+        }

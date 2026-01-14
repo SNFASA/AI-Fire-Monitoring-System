@@ -43,6 +43,8 @@ urlpatterns = [
     path('reports/', views.reports, name='reports'),
     path('reports/<int:report_id>/', views.report_detail, name='report_detail'),
     path('reports/create/', views.create_report, name='create_report'),
+    path('reports/edit/<int:report_id>/', views.edit_report, name='edit_report'),
+    path('reports/delete/<int:report_id>/', views.delete_report, name='delete_report'),
     
     # API for ESP32 (The IoT Device sends data here)
     path('api/send-data/', views.receive_sensor_data, name='receive_data'),
