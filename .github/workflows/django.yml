@@ -62,4 +62,4 @@ jobs:
         DB_HOST: 'localhost'
         DB_PORT: '5432'
       run: |
-        python manage.py test sensors
+       python manage.py test sensors.tests
