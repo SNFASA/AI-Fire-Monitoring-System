@@ -19,8 +19,7 @@ from sklearn.metrics import (accuracy_score, precision_score, recall_score, f1_s
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, 'fire_model.pkl')
 SCALER_PATH = os.path.join(BASE_DIR, 'scaler.pkl')
-CSV_PATH = os.path.join(BASE_DIR, '..', 'sensor_data.csv') # Assumes csv is in root or modify path
-
+CSV_PATH = os.path.join(BASE_DIR, '..', 'sensor_data.csv') 
 # --- 1. DATA LOADING ---
 def load_data():
     # Check if CSV exists
@@ -153,7 +152,7 @@ def train_and_select():
             best_obj = clf
             
     print("-" * 50)
-    print(f"🏆 Winner: {best_name} with HDBMS Score: {best_score:.5f}")
+    print(f" Winner: {best_name} with HDBMS Score: {best_score:.5f}")
     
     # Generate Plots for the Winner using Test Set
     plot_results(best_obj, X_test_scaled, y_test, best_name)

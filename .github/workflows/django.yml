@@ -9,36 +9,57 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
+    # Service Container: Creates a temporary Postgres DB for the CI run
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: django_user
+          POSTGRES_PASSWORD: django_password
+        ports:
+          - 5432:5432
+        # Checks if the DB is ready before starting steps
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.9, 3.10, 3.11] # Tested on modern Python versions
+        python-version: [3.10, 3.11, 3.12] # Testing on modern, supported versions
 
     steps:
     # 1. Check out the code
     - uses: actions/checkout@v4
-    
-    # 2. Set up Python
+
+    # 2. Set up Python (Using v5 for better performance)
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        
+        cache: 'pip' # Caches dependencies to speed up future runs
+
     # 3. Install Dependencies
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        
-    # 4. Run Tests (Targeting your 'sensors' app)
+
+    # 4. Run Tests
+    # We pass the 'test_db' credentials here so settings.py uses them instead of your local ones
     - name: Run Tests
       env:
-        # Dummy values to prevent "KeyError" during CI
         SECRET_KEY: 'django-insecure-test-key-for-ci'
         DEBUG: 'True'
-        # If you use a DB url in settings, add a dummy one here:
-        # DATABASE_URL: 'sqlite:///db.sqlite3' 
+        DB_ENGINE: 'django.db.backends.postgresql'
+        DB_NAME: 'test_db'
+        DB_USER: 'django_user'
+        DB_PASSWORD: 'django_password'
+        DB_HOST: 'localhost'
+        DB_PORT: '5432'
       run: |
-        # This will find all tests in sensors/tests/*.py
         python manage.py test sensors
