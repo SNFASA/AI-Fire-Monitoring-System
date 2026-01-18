@@ -15,7 +15,10 @@ class MaintenanceViewTests(TestCase):
         self.public_user = self.public_profile.user 
 
         # 2. Firefighter User
+        # Force the role assignment explicitly to be safe
         self.firefighter_profile = UserProfileFactory(role='firefighter')
+        self.firefighter_profile.role = 'firefighter'
+        self.firefighter_profile.save()
         self.firefighter = self.firefighter_profile.user
 
         # 3. Create Sensor 
@@ -28,7 +31,6 @@ class MaintenanceViewTests(TestCase):
             details='Initial details'
         )
 
-        # 5. Dummy Image
         self.image_file = SimpleUploadedFile(
             name='test_image.jpg', 
             content=b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x05\x04\x04\x00', 
@@ -88,10 +90,9 @@ class MaintenanceViewTests(TestCase):
         self.client.force_login(self.firefighter)
         url = reverse('maintenance_edit', args=[self.maintenance.id])
         
-        # We must send ALL fields required by the view manual update
         data = {
             'status': 'Completed', 
-            'actual_date': date.today().isoformat(), # Send as string
+            'actual_date': date.today().isoformat(), # Send as string (YYYY-MM-DD)
             'technician_notes': 'Fixed via Test',
         }
         
@@ -99,11 +100,6 @@ class MaintenanceViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.maintenance.refresh_from_db()
-        
-        # Debugging: If this fails, the view treated user as 'public'
-        if self.maintenance.status != 'Completed':
-            print(f"\n[DEBUG] Status failed to update. Current role: {self.firefighter.userprofile.role}")
-
         self.assertEqual(self.maintenance.status, 'Completed')
         self.assertEqual(self.maintenance.in_charge, self.firefighter)
 

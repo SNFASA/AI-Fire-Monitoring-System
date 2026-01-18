@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
-from sensors.models import SensorDataLog, Report, DutyAssignment, FireStation
+from sensors.models import SensorDataLog, Report, DutyAssignment
 from .factories import UserProfileFactory, SensorFactory, FireStationFactory, AddressFactory
 import json
 from unittest.mock import patch
@@ -15,14 +15,20 @@ class AlertSystemTest(TestCase):
         except:
             self.url = reverse('receive_data')
 
-        # 1. Create Public User (Owner) WITH PHONE NUMBER
-        self.owner_profile = UserProfileFactory(role='public', phone_number='+60123456789')
-        if not self.owner_profile.address:
-            self.owner_profile.address = AddressFactory()
-            self.owner_profile.save()
+        # 1. Create Public User (Owner) AT A SPECIFIC LOCATION
+        # Lat: 1.0, Lng: 1.0
+        self.owner_addr = AddressFactory(latitude=1.0, longitude=1.0)
+        self.owner_profile = UserProfileFactory(
+            role='public', 
+            phone_number='+60123456789', 
+            address=self.owner_addr
+        )
 
-        # 2. Create Fire Station & Firefighter WITH PHONE NUMBER
-        self.station = FireStationFactory()
+        # 2. Create Fire Station NEARBY (approx 11km away is fine, or closer)
+        # Lat: 1.01, Lng: 1.0 (Small difference)
+        self.station_addr = AddressFactory(latitude=1.01, longitude=1.0)
+        self.station = FireStationFactory(address=self.station_addr)
+        
         self.ff_profile = UserProfileFactory(role='firefighter', phone_number='+60198765432')
         self.ff_profile.station = self.station
         self.ff_profile.save()
@@ -30,7 +36,7 @@ class AlertSystemTest(TestCase):
         # 3. Create Sensor
         self.sensor = SensorFactory(owner=self.owner_profile, name="Kitchen Sensor")
 
-        # 4. Assign Duty (Ensure times cover NOW)
+        # 4. Assign Duty
         DutyAssignment.objects.create(
             firefighter=self.ff_profile,
             start_time=timezone.now() - timezone.timedelta(hours=1),
@@ -44,7 +50,6 @@ class AlertSystemTest(TestCase):
     @patch('sensors.views.get_channel_layer')      
     def test_fire_detected_scenario(self, mock_channel, mock_sms, mock_predict, mock_async_to_sync):
         mock_predict.return_value = "Fire"
-        # Mock async_to_sync to simply execute the function passed to it
         mock_async_to_sync.side_effect = lambda func: lambda *args, **kwargs: None
 
         payload = {
@@ -59,8 +64,8 @@ class AlertSystemTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content.decode(), "1") 
         
-        # Check that SMS was tried at least once (for Owner OR Firefighter)
-        self.assertTrue(mock_sms.called, "SMS should be sent to Owner or Firefighter")
+        # This assertion was failing. Hardcoding coordinates ensures a station is found.
+        self.assertTrue(mock_sms.called, "SMS should be sent (Station found & Staff active)")
 
     @patch('sensors.views.predictor.predict')
     def test_safe_scenario(self, mock_predict):
@@ -79,7 +84,7 @@ class AlertSystemTest(TestCase):
         mock_predict.return_value = "Fire"
         Report.objects.create(
             status='System Detected',
-            address=self.owner_profile.address,
+            address=self.owner_addr,
             station=self.station,
             trigger_sensor=self.sensor
         )
@@ -90,13 +95,12 @@ class AlertSystemTest(TestCase):
     @patch('sensors.views.predictor.predict')
     def test_no_active_staff_fallback(self, mock_predict):
         mock_predict.return_value = "Fire"
-        DutyAssignment.objects.all().delete() # No staff on duty
+        DutyAssignment.objects.all().delete() 
 
         payload = {"sensor_id": self.sensor.id, "dht22_temp": 90}
         self.client.post(self.url, json.dumps(payload), content_type="application/json")
 
         self.assertEqual(Report.objects.count(), 1)
-        # Should fallback to the nearest station
         self.assertEqual(Report.objects.first().station, self.station)
 
     def test_invalid_sensor_id(self):
