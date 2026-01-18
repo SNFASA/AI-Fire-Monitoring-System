@@ -67,7 +67,7 @@ jobs:
         DB_NAME: 'test_db'
         DB_USER: 'postgres'      # <--- Matches Service above
         DB_PASSWORD: 'postgres'  # <--- Matches Service above
-        DB_HOST: 'localhost'
+        DB_HOST: 'postgres'
         DB_PORT: '5432'
       run: |
         python manage.py test sensors.tests
