@@ -2,11 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import date
-
-# 1. Import Models
-from sensors.models import Maintenance, MaintenanceImage
-
-# 2. Import Factories (Fixed Import Path)
+from sensors.models import Maintenance
 from .factories import UserProfileFactory, MaintenanceFactory, SensorFactory
 
 class MaintenanceViewTests(TestCase):
@@ -20,16 +16,12 @@ class MaintenanceViewTests(TestCase):
 
         # 2. Firefighter User
         self.firefighter_profile = UserProfileFactory(role='firefighter')
-        # Force save role to ensure it sticks
-        self.firefighter_profile.role = 'firefighter'
-        self.firefighter_profile.save()
         self.firefighter = self.firefighter_profile.user
 
         # 3. Create Sensor 
         self.sensor = SensorFactory(owner=self.public_profile)
 
         # 4. Create Maintenance Request
-        # FIX: Use 'Pending' (Capital P) to match your Model Choices exactly
         self.maintenance = MaintenanceFactory(
             sensor=self.sensor,
             status='Pending', 
@@ -43,9 +35,6 @@ class MaintenanceViewTests(TestCase):
             content_type='image/jpeg'
         )
 
-    # =========================================================
-    # TEST 1: CREATE MAINTENANCE
-    # =========================================================
     def test_create_maintenance_success(self):
         self.client.force_login(self.public_user)
         url = reverse('maintenance_create')
@@ -53,22 +42,17 @@ class MaintenanceViewTests(TestCase):
         data = {
             'sensor': self.sensor.id,
             'maintenance_type': 'HealthCheck', 
-            'frequency': 'monthly',         # Required field
+            'frequency': 'monthly',
             'details': 'New Request',
             'scheduled_date': date.today(),
             'images': [self.image_file],
-            # Status is usually excluded from Create forms, so we might not need it here
             'status': 'Pending' 
         }
         
         response = self.client.post(url, data, follow=True)
-        
         self.assertRedirects(response, reverse('maintenance'))
         self.assertEqual(Maintenance.objects.count(), 2)
 
-    # =========================================================
-    # TEST 2: PUBLIC EDIT (The One Failing)
-    # =========================================================
     def test_public_can_edit_pending(self):
         self.client.force_login(self.public_user)
         url = reverse('maintenance_edit', args=[self.maintenance.id])
@@ -76,34 +60,19 @@ class MaintenanceViewTests(TestCase):
         data = {
             'sensor': self.sensor.id,
             'maintenance_type': 'HealthCheck', 
-            'frequency': 'monthly',         # Required field
+            'frequency': 'monthly',
             'details': 'Updated by Factory Boy',
             'scheduled_date': date.today(),
-            # FIX: We must send status because {{ form.as_p }} likely renders it
             'status': 'Pending' 
         }
         
-        # Using `follow=True` will automatically follow any redirects,
-        # which is common after a successful form submission.
         response = self.client.post(url, data, follow=True)
-        
-        # 1. Assert the request was successful. A successful POST with an edit
-        #    usually redirects. With `follow=True`, the final status code should be 200.
-        self.assertEqual(response.status_code, 200, "Request failed. Check for form errors or incorrect view logic.")
-        #    If the form was invalid, it would be re-rendered with errors. This checks for that.
-        if 'form' in response.context:
-            self.assertFalse(response.context['form'].errors, f"Form errors found: {response.context['form'].errors}")
+        self.assertEqual(response.status_code, 200)
 
-        # 2. Refresh the object from the database to get the updated values.
         self.maintenance.refresh_from_db()
-        # 3. Assert that the details field was correctly updated.
         self.assertEqual(self.maintenance.details, 'Updated by Factory Boy')
 
-    # =========================================================
-    # TEST 3: PUBLIC EDIT (Blocked if Processing)
-    # =========================================================
     def test_public_cannot_edit_processing(self):
-        # Change status to In Progress (Capitalized)
         self.maintenance.status = 'In Progress' 
         self.maintenance.save()
         
@@ -115,35 +84,23 @@ class MaintenanceViewTests(TestCase):
         self.maintenance.refresh_from_db()
         self.assertNotEqual(self.maintenance.details, 'Hacked')
 
-    # =========================================================
-    # TEST 4: FIREFIGHTER UPDATE
-    # =========================================================
     def test_firefighter_update(self):
         self.client.force_login(self.firefighter)
         url = reverse('maintenance_edit', args=[self.maintenance.id])
         
         data = {
-            # FIX: Use 'Completed' (Capital C) to match Model Choices
             'status': 'Completed', 
             'actual_date': date.today(),
             'technician_notes': 'Fixed via Test',
         }
         
         response = self.client.post(url, data, follow=True)
-
-        # Assert the request was successful and redirected properly
         self.assertEqual(response.status_code, 200)
 
-        # Refresh and check updated values
         self.maintenance.refresh_from_db()
-        
         self.assertEqual(self.maintenance.status, 'Completed')
-        # The view should assign the logged-in firefighter as 'in_charge'
         self.assertEqual(self.maintenance.in_charge, self.firefighter)
 
-    # =========================================================
-    # TEST 5: DELETE MAINTENANCE
-    # =========================================================
     def test_delete_maintenance(self):
         self.client.force_login(self.public_user)
         url = reverse('delete_maintenance', args=[self.maintenance.id])

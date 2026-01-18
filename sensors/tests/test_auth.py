@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from .factories import UserFactory
 
 class RegistrationTest(TestCase):
-    
     def setUp(self):
         self.url = reverse('register')
         user_data = UserFactory.build() 
@@ -28,23 +27,17 @@ class RegistrationTest(TestCase):
         data['username'] = 'taken_user'
         
         response = self.client.post(self.url, data)
-
         self.assertEqual(response.status_code, 200)
 
 
 class LoginTest(TestCase):
-
     def setUp(self):
         self.password = 'secret_login_pass'
-        
-        # 1. Create the user using the Factory
+        # Create user via factory
         self.user = UserFactory()
-        
-        # 2. 🔴 CRITICAL FIX: Hash the password manually
-        # Without this, the password in the DB is plain text and login fails.
+        # Manually set the password so we know it for login
         self.user.set_password(self.password)
         self.user.save()
-        
         self.url = reverse('login')
 
     def test_login_success(self):
@@ -52,17 +45,7 @@ class LoginTest(TestCase):
             'username': self.user.username,
             'password': self.password
         })
-        
-        # Debug block (Optional, you can keep it just in case)
-        if response.status_code == 200:
-            print("\n LOGIN FAILED - DEBUG INFO:")
-            if 'form' in response.context:
-                print(response.context['form'].errors)
-
-        # Check for success redirect (302)
         self.assertEqual(response.status_code, 302)
-        
-        # Check that the session now has the user ID (meaning they are logged in)
         self.assertIn('_auth_user_id', self.client.session)
         self.assertRedirects(response, reverse('home'))
     
