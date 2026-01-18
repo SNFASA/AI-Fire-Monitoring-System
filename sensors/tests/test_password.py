@@ -1,6 +1,8 @@
+from urllib import response
 from django.test import TestCase, Client
 from django.urls import reverse
 from .factories import UserFactory
+from django.test import override_settings
 
 class ChangePasswordTest(TestCase):
 
@@ -38,7 +40,11 @@ class ChangePasswordTest(TestCase):
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Current password is incorrect")
+        
+        # FIX: Check if form has errors instead of matching exact text
+        form = response.context['form']
+        self.assertTrue(form.errors) 
+        self.assertIn('old_password', form.errors)
 
     def test_password_mismatch(self):
         data = {
@@ -48,7 +54,8 @@ class ChangePasswordTest(TestCase):
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, 200)
-
+        
+    @override_settings(AUTH_PASSWORD_VALIDATORS=[{'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}}])
     def test_password_too_short(self):
         data = {
             'old_password': self.old_password,
@@ -57,3 +64,6 @@ class ChangePasswordTest(TestCase):
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, 200)
+        
+        form = response.context['form']
+        self.assertTrue(form.errors)

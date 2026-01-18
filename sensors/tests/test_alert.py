@@ -10,29 +10,26 @@ class AlertSystemTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        # Fallback URL finding
         try:
             self.url = reverse('sensors:receive_data')
         except:
             self.url = reverse('receive_data')
 
-        # 1. Create Public User (Owner)
-        self.owner_profile = UserProfileFactory(role='public')
-        # Ensure address exists (Factories usually handle this, but this is a safety net)
+        # 1. Force Phone Number for Owner
+        self.owner_profile = UserProfileFactory(role='public', phone_number='+60123456789')
+        # Ensure address exists
         if not self.owner_profile.address:
             self.owner_profile.address = AddressFactory()
             self.owner_profile.save()
 
-        # 2. Create Fire Station & Firefighter
+        # 2. Force Phone Number for Firefighter
         self.station = FireStationFactory()
-        self.ff_profile = UserProfileFactory(role='firefighter')
+        self.ff_profile = UserProfileFactory(role='firefighter', phone_number='+60198765432')
         self.ff_profile.station = self.station
         self.ff_profile.save()
 
-        # 3. Create Sensor
         self.sensor = SensorFactory(owner=self.owner_profile, name="Kitchen Sensor")
 
-        # 4. Assign Duty
         DutyAssignment.objects.create(
             firefighter=self.ff_profile,
             start_time=timezone.now() - timezone.timedelta(hours=1),
