@@ -88,9 +88,10 @@ class MaintenanceViewTests(TestCase):
         self.client.force_login(self.firefighter)
         url = reverse('maintenance_edit', args=[self.maintenance.id])
         
+        # We must send ALL fields required by the view manual update
         data = {
             'status': 'Completed', 
-            'actual_date': date.today(),
+            'actual_date': date.today().isoformat(), # Send as string
             'technician_notes': 'Fixed via Test',
         }
         
@@ -98,6 +99,11 @@ class MaintenanceViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.maintenance.refresh_from_db()
+        
+        # Debugging: If this fails, the view treated user as 'public'
+        if self.maintenance.status != 'Completed':
+            print(f"\n[DEBUG] Status failed to update. Current role: {self.firefighter.userprofile.role}")
+
         self.assertEqual(self.maintenance.status, 'Completed')
         self.assertEqual(self.maintenance.in_charge, self.firefighter)
 
