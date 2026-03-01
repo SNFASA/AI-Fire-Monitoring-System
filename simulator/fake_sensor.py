@@ -13,7 +13,17 @@ SENSORS_CONFIG = [
     {"id": 2, "location": "Bedroom1"},
     {"id": 3, "location": "Bedroom2"},
     {"id": 4, "location": "Bedroom3"},
-    {"id": 5, "location": "Living Room"}
+    {"id": 5, "location": "Living Room"},
+    {"id": 70, "location": "Kitchen"},
+    {"id": 71, "location": "Ruang Tamu"},
+    {"id": 72, "location": "Bedroom1"},
+    {"id": 73, "location": "Bedroom2"},
+    {"id": 74, "location": "Bedroom3"},
+    {"id": 75, "location": "Kitchen"},
+    {"id": 76, "location": "Ruang Tamu"},
+    {"id": 77, "location": "Bedroom1"},
+    {"id": 78, "location": "Bedroom2"},
+    {"id": 79, "location": "Bedroom3"}
 ]
 
 class VirtualSensor:

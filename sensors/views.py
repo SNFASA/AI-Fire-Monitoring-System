@@ -315,13 +315,15 @@ def maps(request):
         context['sensors'] = Sensor.objects.filter(owner=user_profile, layout=current_layout) if current_layout else []
 
     elif user_profile.role == 'firefighter':
-        station = user_profile.station
-        if not station: station = FireStation.objects.first()
-        
-        context['station_lat'] = float(station.address.latitude) if station and station.address else 1.8548
-        context['station_lng'] = float(station.address.longitude) if station and station.address else 103.0848
-        context['station_radius'] = math.sqrt(station.cover_area_sqm / math.pi) / 1000 if station and station.cover_area_sqm else 3.0
-        context['station_name'] = station.name if station else "HQ"
+            all_stations = FireStation.objects.all()
+            station = user_profile.station
+            
+            context['all_stations'] = all_stations
+            context['station_name'] = station.name if station else "HQ"
+            context['station_lat'] = float(station.address.latitude) if station and station.address else 1.8548
+            context['station_lng'] = float(station.address.longitude) if station and station.address else 103.0848
+            context['station_radius'] = math.sqrt(station.cover_area_sqm / math.pi) / 1000 if station and station.cover_area_sqm else 3.0
+            
 
     return render(request, 'sensors/maps.html', context)
 
@@ -640,11 +642,33 @@ def get_live_data(request):
 def get_victim_layout(request, user_id):
     if not hasattr(request.user, 'userprofile') or request.user.userprofile.role != 'firefighter':
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
-    layouts = Houselayout.objects.filter(user_id=user_id).prefetch_related('sensors')
+    
+    # Use user_id (the owner of the house) to get layouts
+    layouts = Houselayout.objects.filter(user_id=user_id)
     results = []
+    
     for l in layouts:
-        sensors = [{'id': s.id, 'name': s.name, 'x': s.x_position, 'y': s.y_position, 'status': get_sensor_status(s)} for s in l.sensors.all()]
-        results.append({'layout_id': l.id, 'layout_name': l.name, 'image_url': l.image.url, 'sensors': sensors})
+        # Fetch sensors associated with this specific layout
+        # Note: Ensure your Sensor model has a 'layout' ForeignKey
+        sensors_in_layout = Sensor.objects.filter(layout=l) 
+        
+        sensors_data = []
+        for s in sensors_in_layout:
+            sensors_data.append({
+                'id': s.id,
+                'name': s.name,
+                'x': s.x_position, # Changed to 'x' to match JS s.x
+                'y': s.y_position, # Changed to 'y' to match JS s.y
+                'status': get_sensor_status(s)
+            })
+            
+        results.append({
+            'layout_id': l.id,
+            'layout_name': l.name,
+            'image_url': l.image.url,
+            'sensors': sensors_data
+        })
+        
     return JsonResponse({'success': True, 'layouts': results})
 
 @csrf_exempt

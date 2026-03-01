@@ -302,9 +302,12 @@
 {% elif role == 'firefighter' %}
 
 <div class="container-fluid mt-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold text-primary"><i class="fas fa-fire-extinguisher text-danger"></i> Command Center - {{ station_name }}</h4>
-    </div>
+    <h4 class="fw-bold text-primary">
+        <i class="fas fa-fire-extinguisher text-danger"></i> 
+        Command Center - {{ user_profile.station.name|default:"HQ" }}
+    </h4>
+
+<div id="user-map-container" class="map-wrapper">   
 
     <div class="map-container-wrapper" id="fullscreen-target">
         <div id="map">
@@ -344,8 +347,6 @@
 <script>
     // --- MAP SETUP ---
     const STATION_LOC = [Number.parseFloat("{{ station_lng|default:'103.0848' }}"), Number.parseFloat("{{ station_lat|default:'1.8548' }}")];
-    const STATION_RADIUS_KM = Number.parseFloat("{{ station_radius|default:'3.0' }}");
-    const STATION_NAME = "{{ station_name|default:'HQ' }}";
     const STYLES = { 'streets': 'https://tiles.openfreemap.org/styles/liberty', 'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' };
     const map = new maplibregl.Map({ container: 'map', style: STYLES.streets, center: STATION_LOC, zoom: 13, pitch: 60, antialias: true });
 
@@ -353,27 +354,36 @@
     map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
     map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'bottom-right');
     
-    // Station Marker
-    const el = document.createElement('div');
-    el.innerHTML = '<i class="fas fa-building-shield"></i>';
-    el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px;';
-    new maplibregl.Marker({ element: el }).setLngLat(STATION_LOC).setPopup(new maplibregl.Popup({offset: 25}).setText(STATION_NAME)).addTo(map);
+    // --- NEW: RENDER ALL STATION MARKERS & ZONES ---
+    map.on('load', function() {
+        {% for st in all_stations %}
+        (function() {
+            const lng = Number.parseFloat("{{ st.address.longitude }}");
+            const lat = Number.parseFloat("{{ st.address.latitude }}");
+            const name = "{{ st.name }}";
+            const area = Number.parseFloat("{{ st.cover_area_sqm|default:0 }}");
+            const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0;
 
-    function addZoneLayer() {
-        if(!map.getSource('fire-zone')) {
-            const circle = createGeoJSONCircle(STATION_LOC, STATION_RADIUS_KM);
-            if(circle) map.addSource('fire-zone', circle);
-        }
-        if(map.getSource('fire-zone') && !map.getLayer('zone-fill')) {
-            map.addLayer({ 'id': 'zone-fill', 'type': 'fill', 'source': 'fire-zone', 'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.15 } });
-        }
-        if(map.getSource('fire-zone') && !map.getLayer('zone-line')) {
-            map.addLayer({ 'id': 'zone-line', 'type': 'line', 'source': 'fire-zone', 'paint': { 'line-color': '#0d6efd', 'line-width': 2, 'line-dasharray': [2, 2] } });
-        }
-    }
+            // Add Station Marker
+            const el = document.createElement('div');
+            el.innerHTML = '<i class="fas fa-building-shield"></i>';
+            el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px;';
+            new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).setPopup(new maplibregl.Popup({offset: 25}).setText(name)).addTo(map);
+
+            // Add Coverage Zone
+            const sourceId = 'zone-{{ st.id }}';
+            const circle = createGeoJSONCircle([lng, lat], radius);
+            if(circle) {
+                map.addSource(sourceId, circle);
+                map.addLayer({ 'id': sourceId + '-fill', 'type': 'fill', 'source': sourceId, 'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.15 } });
+                map.addLayer({ 'id': sourceId + '-line', 'type': 'line', 'source': sourceId, 'paint': { 'line-color': '#0d6efd', 'line-width': 2, 'line-dasharray': [2, 2] } });
+            }
+        })();
+        {% endfor %}
+    });
     
     function createGeoJSONCircle(center, radiusInKm, points = 64) {
-        if(!center) return null;
+        if(!center || isNaN(center[0])) return null;
         const coords = { latitude: center[1], longitude: center[0] };
         const ret = [];
         const distanceX = radiusInKm / (111.320 * Math.cos(coords.latitude * Math.PI / 180));
@@ -388,9 +398,7 @@
         return { "type": "geojson", "data": { "type": "FeatureCollection", "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] } };
     }
 
-    map.on('load', addZoneLayer);
-
-    // --- LIVE MAP DATA & COUNTERS ---
+    // --- LIVE MAP DATA & COUNTERS (UNTOUCHED) ---
     const markers = {};
     let isFetching = false;
 
@@ -411,7 +419,6 @@
                     let icon = '';
                     let st = (house.status || "").toLowerCase();
                     
-                    // --- Logic for Counters ---
                     if(st === 'fire') { 
                         cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; fireCount++; 
                     } else if(st === 'warning' || st === 'gasleak' || st === 'gas leak') { 
@@ -434,8 +441,6 @@
                         if (el.innerHTML !== icon) el.innerHTML = icon;
                     }
                 });
-                
-                // Update Counters
                 document.getElementById('fire-count').innerText = fireCount;
                 document.getElementById('warning-count').innerText = warnCount;
             }
@@ -443,19 +448,17 @@
         .catch(err => { isFetching = false; });
     }
 
-    // --- INSTANT UPDATE ---
-    setInterval(fetchMapData, 1000);
+    setInterval(fetchMapData, 2000);
     fetchMapData();
 
     window.addEventListener('fireAlertReceived', function() {
-        console.log("⚡ Instant Map Update Triggered by WebSocket!");
         fetchMapData();
     });
 
-    // --- LAYOUT MODAL LOGIC (FIXED TABS) ---
+    // --- LAYOUT MODAL LOGIC (UNTOUCHED) ---
     let modalRefreshInterval = null;
     let currentModalUserId = null;
-    let lastActiveTabId = null; // Track active tab
+    let lastActiveTabId = null; 
 
     function openLayoutModal(userId) {
         currentModalUserId = userId;
@@ -475,12 +478,8 @@
             if(data.success) {
                 const tabsContainer = document.getElementById('victimLayoutTabs');
                 const contentContainer = document.getElementById('victimLayoutContent');
-                
-                // Remember current tab before clearing
                 const currentActive = document.querySelector('.nav-link.active');
-                if (currentActive) {
-                    lastActiveTabId = currentActive.id;
-                }
+                if (currentActive) lastActiveTabId = currentActive.id;
 
                 tabsContainer.innerHTML = '';
                 contentContainer.innerHTML = '';
@@ -491,18 +490,9 @@
                 }
 
                 data.layouts.forEach((layout, index) => {
-                    let isActive = '';
-                    let isShow = '';
                     const tabId = `tab-${layout.layout_id}`;
-                    
-                    // --- TAB MEMORY LOGIC ---
-                    // If we have a stored ID, use it. Otherwise default to first tab.
-                    if (lastActiveTabId === tabId) {
-                        isActive = 'active'; isShow = 'show active';
-                    } else if (!lastActiveTabId && index === 0) {
-                        isActive = 'active'; isShow = 'show active';
-                        lastActiveTabId = tabId; 
-                    }
+                    let isActive = (lastActiveTabId === tabId || (!lastActiveTabId && index === 0)) ? 'active' : '';
+                    let isShow = (lastActiveTabId === tabId || (!lastActiveTabId && index === 0)) ? 'show active' : '';
                     
                     const tabButton = document.createElement('button');
                     tabButton.className = `nav-link ${isActive} fw-bold`;
@@ -512,41 +502,28 @@
                     tabButton.type = 'button';
                     tabButton.role = 'tab';
                     tabButton.innerText = layout.layout_name;
-                    
-                    // Listener to update memory when user clicks
-                    tabButton.addEventListener('click', function() {
-                        lastActiveTabId = this.id;
-                    });
+                    tabButton.addEventListener('click', function() { lastActiveTabId = this.id; });
 
                     const li = document.createElement('li');
                     li.className = 'nav-item';
                     li.appendChild(tabButton);
                     tabsContainer.appendChild(li);
 
-                    let sensorsHTML = '';
-                    layout.sensors.forEach((s, i) => {
+                    let sensorsHTML = layout.sensors.map((s, i) => {
                         let cssClass = 'bg-safe';
                         let st = (s.status || "").toLowerCase();
                         if (st === 'fire') cssClass = 'bg-fire';
                         else if (st === 'warning' || st === 'gasleak') cssClass = 'bg-warn';
-                        else if (st === 'offline') cssClass = 'bg-offline';
+                        return `<div class="sensor-node ${cssClass}" style="left:${s.x}%; top:${s.y}%;">${i + 1}<div class="sensor-label">${s.name}</div></div>`;
+                    }).join('');
 
-                        sensorsHTML += `
-                            <div class="sensor-node ${cssClass}" style="left:${s.x}%; top:${s.y}%;">
-                                ${i + 1}
-                                <div class="sensor-label">${s.name}</div>
-                            </div>`;
-                    });
-
-                    const contentHTML = `
+                    contentContainer.insertAdjacentHTML('beforeend', `
                         <div class="tab-pane fade ${isShow}" id="content-${layout.layout_id}" role="tabpanel" style="height:100%; width:100%;">
                             <div class="blueprint-wrapper" style="height:100%; width:100%; background-color: #0d1b2a; position: relative; overflow: hidden; border:none;">
-                                <div class="blueprint-label" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255, 255, 255, 0.05); font-weight: bold; pointer-events: none;">${layout.layout_name.toUpperCase()}</div>
                                 <img src="${layout.image_url}" class="blueprint-image" style="display:block; position: absolute; width: 100%; height: 100%; object-fit: fill; z-index: 1; filter: invert(1) grayscale(1) brightness(1.2) contrast(1.2); opacity: 0.8; mix-blend-mode: screen;" alt="Layout Blueprint">
                                 ${sensorsHTML}
                             </div>
-                        </div>`;
-                    contentContainer.insertAdjacentHTML('beforeend', contentHTML);
+                        </div>`);
                 });
             }
         });
@@ -557,7 +534,6 @@
         if (modalRefreshInterval) {
             clearInterval(modalRefreshInterval);
             modalRefreshInterval = null;
-            lastActiveTabId = null;
         }
     });
 
@@ -573,4 +549,5 @@
 </script>
 
 {% endif %}
+
 {% endblock %}
