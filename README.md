@@ -1,10 +1,10 @@
-🔥 AI Fire Monitoring System
+🔥 AI Fire Monitoring System 
 
 An AI-powered IoT-based fire detection and monitoring system that provides real-time alerts, data analytics, and automated reporting to improve fire safety and emergency response efficiency.
 
 🚀 Overview
 
-The AI Fire Monitoring System integrates IoT sensors and machine learning algorithms to detect heat, gas, smoke, humidity, air quality  in real time. Once a potential fire is identified, the system instantly sends alerts to relevant authorities such as BOMBA JBPM officers, enabling faster response and reducing the risk of major damage.
+The AI Fire Monitoring System integrates IoT sensors and machine learning algorithms to detect heat, gas, smoke, humidity, air quality and using satellite capture image for detect forest fire in real time. Once a potential fire is identified, the system instantly sends alerts to relevant authorities such as BOMBA JBPM officers, enabling faster response and reducing the risk of major damage.
 
 🧠 Key Features
 
