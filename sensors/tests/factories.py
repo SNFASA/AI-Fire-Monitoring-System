@@ -46,7 +46,6 @@ class UserProfileFactory(DjangoModelFactory):
     role = 'public'
     phone_number = factory.Faker('numerify', text='01########')
     address = factory.SubFactory(AddressFactory)
-    station = None
 
 class HouselayoutFactory(DjangoModelFactory):
     class Meta:
@@ -61,8 +60,28 @@ class SensorFactory(DjangoModelFactory):
     owner = factory.SubFactory(UserProfileFactory)
     name = factory.Faker('word')
     is_active = True
-    latitude = factory.Faker('latitude')
-    longitude = factory.Faker('longitude')
-    layout = factory.SubFactory(HouselayoutFactory)
+    latitude = 3.1390
+    longitude = 101.6869
     x_position = 50.0
     y_position = 50.0
+
+class SensorDataLogFactory(DjangoModelFactory):
+    class Meta:
+        model = SensorDataLog
+    sensor = factory.SubFactory(SensorFactory)
+    methane = 200
+    lpg = 200
+    co = 20
+    air_quality = 30
+    flame_val = 4095
+    dht22_temp = 25.0
+    humidity = 60.0
+    status = 'Safe'
+
+class MaintenanceFactory(DjangoModelFactory):
+    class Meta:
+        model = Maintenance
+    sensor = factory.SubFactory(SensorFactory)
+    maintenance_type = 'HealthCheck'
+    details = "Routine Check"
+    status = 'pending'
