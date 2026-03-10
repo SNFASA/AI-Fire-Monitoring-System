@@ -18,8 +18,11 @@ class AlertSystemTest(TestCase):
         # 1. Create explicit Address with float coordinates
         self.owner_addr = AddressFactory(latitude=3.1390, longitude=101.6869)
         
-        # 2. Create Owner and link to address
-        self.owner_profile = UserProfileFactory(role='public', address=self.owner_addr)
+        # 2. CRITICAL FIX: Explicitly assign address to bypass post_save signal interference
+        self.owner_profile = UserProfileFactory()
+        self.owner_profile.role = 'public'
+        self.owner_profile.address = self.owner_addr
+        self.owner_profile.save()
         
         # 3. Create Sensor linked to this owner
         self.sensor = Sensor.objects.create(
@@ -32,8 +35,12 @@ class AlertSystemTest(TestCase):
         self.station_addr = AddressFactory(latitude=3.1400, longitude=101.6900)
         self.station = FireStationFactory(address=self.station_addr)
         
-        # 5. Assign active staff
-        self.ff = UserProfileFactory(role='firefighter', station=self.station)
+        # 5. CRITICAL FIX: Explicitly assign station and role to bypass signal interference
+        self.ff = UserProfileFactory()
+        self.ff.role = 'firefighter'
+        self.ff.station = self.station
+        self.ff.save()
+
         DutyAssignment.objects.create(
             firefighter=self.ff,
             start_time=timezone.now() - timezone.timedelta(hours=1),
@@ -72,7 +79,7 @@ class AlertSystemTest(TestCase):
         if Report.objects.count() == 0:
             print(f"DEBUG: Response Content: {response.content.decode()}")
 
-        self.assertEqual(Report.objects.count(), 1)
+        self.assertEqual(Report.objects.count(), 1, "Report should be created when a valid address exists")
 
     @patch('sensors.views.predictor.predict')
     def test_safe_scenario(self, mock_predict):
@@ -99,7 +106,7 @@ class AlertSystemTest(TestCase):
         mock_predict.return_value = "Fire"
         mock_hav.return_value = 1.0
         
-        # Use self.owner_addr to fix the AttributeError
+        # Create initial report using the valid explicitly-saved address
         Report.objects.create(
             status='System Detected', 
             address=self.owner_addr, 
