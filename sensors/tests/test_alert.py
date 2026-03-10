@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
 from sensors.models import SensorDataLog, Report, DutyAssignment, FireStation, Sensor
 import json
@@ -8,35 +8,32 @@ from .factories import UserProfileFactory, SensorFactory, FireStationFactory, Ad
 
 class AlertSystemTest(TestCase):
     def setUp(self):
-        self.client = Client()
-        self.url = reverse('sensors:receive_data')
+            self.client = Client()
+            
+            # Defensive URL lookup
+            try:
+                self.url = reverse('sensors:receive_data')
+            except NoReverseMatch:
+                self.url = reverse('receive_data')
 
-        # Create Address with forced floats
-        self.addr = AddressFactory(latitude=3.1390, longitude=101.6869)
-        
-        # Ensure Owner has the address
-        self.owner = UserProfileFactory(role='public', address=self.addr)
-        
-        # Ensure Sensor has coordinates and an owner with an address
-        self.sensor = Sensor.objects.create(
-            id=1, # Explicit ID to match payload if needed
-            owner=self.owner,
-            name="Test Sensor",
-            latitude=3.1390,
-            longitude=101.6869,
-            is_active=True
-        )
-
-        self.station = FireStationFactory(address=AddressFactory(latitude=3.1400, longitude=101.6900))
-        
-        # Active firefighter for the station
-        self.ff = UserProfileFactory(role='firefighter', station=self.station)
-        DutyAssignment.objects.create(
-            firefighter=self.ff,
-            start_time=timezone.now() - timezone.timedelta(hours=1),
-            end_time=timezone.now() + timezone.timedelta(hours=1),
-            is_active=True
-        )
+            # Setup remains the same...
+            self.addr = AddressFactory(latitude=3.1390, longitude=101.6869)
+            self.owner = UserProfileFactory(role='public', address=self.addr)
+            self.sensor = Sensor.objects.create(
+                owner=self.owner,
+                name="Test Sensor",
+                latitude=3.1390,
+                longitude=101.6869,
+                is_active=True
+            )
+            self.station = FireStationFactory(address=AddressFactory(latitude=3.1400, longitude=101.6900))
+            self.ff = UserProfileFactory(role='firefighter', station=self.station)
+            DutyAssignment.objects.create(
+                firefighter=self.ff,
+                start_time=timezone.now() - timezone.timedelta(hours=1),
+                end_time=timezone.now() + timezone.timedelta(hours=1),
+                is_active=True
+            )
 
     @patch('sensors.views.async_to_sync')          
     @patch('sensors.views.predictor.predict')      

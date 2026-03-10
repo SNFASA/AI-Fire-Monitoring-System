@@ -3,7 +3,7 @@ from django.contrib.auth import views as auth_views
 from . import views
 from django.contrib.auth.views import LoginView
 
-
+app_name = 'sensors'
 urlpatterns = [
     # Home / Dashboard
     path('', views.dashboard, name='home'),
