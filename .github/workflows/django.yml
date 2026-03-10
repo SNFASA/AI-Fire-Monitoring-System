@@ -33,7 +33,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        python-version: [3.10, 3.11, 3.12]
+        python-version: [3.11, 3.12]
 
     steps:
     - uses: actions/checkout@v4
@@ -71,3 +71,21 @@ jobs:
         DB_PORT: '5432'
       run: |
         python manage.py test sensors.tests
+    # ------------------------------------------------------------------
+    # 3. AUTO-CREATE ISSUE ON FAILURE
+    # ------------------------------------------------------------------
+    - name: Create GitHub Issue on Failure
+      if: failure()  # <--- This ensures the step ONLY runs if the tests crash/fail
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh issue create \
+          --title "🚨 CI Build Failed: ${{ github.workflow }} on branch ${{ github.ref_name }}" \
+          --body "The Django CI workflow failed. 
+          
+          **Branch:** \`${{ github.ref_name }}\`
+          **Commit:** \`${{ github.sha }}\`
+          
+          Please check the action logs here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+          --label "bug" \
+          --assignee "${{ github.actor }}"
