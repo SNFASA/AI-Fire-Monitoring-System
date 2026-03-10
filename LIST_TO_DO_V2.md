@@ -22,4 +22,12 @@
 - fix the locaation for case to fire station 
 - fix duty 
 - fix notification that uses indepentent API
-- add double verification using phone number with 6 code 
+- add double verification using phone number with 6 code
+
+## 5. Integrate NASA Wildfire into system 
+- craete api key
+- implemented backed
+- combine current maps with selection functions
+
+## 6. Web to app using PWA (can) 
+- follow instructions Chatcpt
