@@ -6,7 +6,7 @@ class ChangePasswordTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.url = reverse('change_password') 
+        self.url = reverse('sensors:change_password') 
         self.old_password = 'OldPassword123!'
         
         self.user = UserFactory()

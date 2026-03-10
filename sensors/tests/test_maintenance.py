@@ -39,7 +39,7 @@ class MaintenanceViewTests(TestCase):
 
     def test_create_maintenance_success(self):
         self.client.force_login(self.public_user)
-        url = reverse('maintenance_create')
+        url = reverse('sensors:maintenance_create')
         
         data = {
             'sensor': self.sensor.id,
@@ -52,12 +52,12 @@ class MaintenanceViewTests(TestCase):
         }
         
         response = self.client.post(url, data, follow=True)
-        self.assertRedirects(response, reverse('maintenance'))
+        self.assertRedirects(response, reverse('sensors:maintenance'))
         self.assertEqual(Maintenance.objects.count(), 2)
 
     def test_public_can_edit_pending(self):
         self.client.force_login(self.public_user)
-        url = reverse('maintenance_edit', args=[self.maintenance.id])
+        url = reverse('sensors:maintenance_edit', args=[self.maintenance.id])
         
         data = {
             'sensor': self.sensor.id,
@@ -79,7 +79,7 @@ class MaintenanceViewTests(TestCase):
         self.maintenance.save()
         
         self.client.force_login(self.public_user)
-        url = reverse('maintenance_edit', args=[self.maintenance.id])
+        url = reverse('sensors:maintenance_edit', args=[self.maintenance.id])
         
         self.client.post(url, {'details': 'Hacked'})
         
@@ -88,7 +88,7 @@ class MaintenanceViewTests(TestCase):
 
     def test_firefighter_update(self):
         self.client.force_login(self.firefighter)
-        url = reverse('maintenance_edit', args=[self.maintenance.id])
+        url = reverse('sensors:maintenance_edit', args=[self.maintenance.id])
         
         data = {
             'status': 'Completed', 
@@ -105,7 +105,7 @@ class MaintenanceViewTests(TestCase):
 
     def test_delete_maintenance(self):
         self.client.force_login(self.public_user)
-        url = reverse('delete_maintenance', args=[self.maintenance.id])
+        url = reverse('sensors:delete_maintenance', args=[self.maintenance.id])
         
         response = self.client.post(url, follow=True)
         self.assertEqual(Maintenance.objects.count(), 0)

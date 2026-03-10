@@ -22,7 +22,7 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
-    path('', include('sensors.urls')),
+    path('', include('sensors.urls', namespace='sensors')),
     path('favicon.ico', RedirectView.as_view(url='/static/images/favicon.png')),
 ]
 

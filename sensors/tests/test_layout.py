@@ -17,9 +17,9 @@ class LayoutAndSensorTests(TestCase):
         self.client.login(username=self.user.username, password='password123')
 
         # 2. URLs
-        self.upload_url = reverse('upload_layout')
-        self.add_sensor_url = reverse('add_sensor')
-        self.update_pos_url = reverse('update_sensor_pos')
+        self.upload_url = reverse('sensors:upload_layout')
+        self.add_sensor_url = reverse('sensors:add_sensor')
+        self.update_pos_url = reverse('sensors:update_sensor_pos')
 
     def test_upload_layout_success(self):
         """TC-001: Test uploading multiple layouts"""

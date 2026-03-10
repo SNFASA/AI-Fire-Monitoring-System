@@ -5,7 +5,7 @@ from .factories import UserFactory
 
 class RegistrationTest(TestCase):
     def setUp(self):
-        self.url = reverse('register')
+        self.url = reverse('sensors:register')
         user_data = UserFactory.build() 
         self.valid_data = {
             'username': user_data.username,
@@ -16,14 +16,17 @@ class RegistrationTest(TestCase):
             'password2': 'StrongPass123!',
         }
 
-    def test_register_user_success(self):
-        # Use valid_data defined in setUp to ensure all required fields are present
-        response = self.client.post(self.url, self.valid_data)
-        
-        if response.status_code == 200:
-            print(f"FORM ERRORS: {response.context['form'].errors}")
-            
-        self.assertRedirects(response, reverse('login'))
+def test_register_user_success(self):
+    data = {
+        'username': 'newuser',
+        'first_name': 'New',
+        'last_name': 'User',
+        'email': 'new@example.com',
+        'password1': 'Password123!',
+        'password2': 'Password123!',
+    }
+    response = self.client.post(reverse('sensors:register'), data)
+    self.assertRedirects(response, reverse('sensors:login'))
 
     def test_register_duplicate_username(self):
         UserFactory(username='taken_user')
@@ -42,7 +45,7 @@ class LoginTest(TestCase):
         # Manually set the password so we know it for login
         self.user.set_password(self.password)
         self.user.save()
-        self.url = reverse('login')
+        self.url = reverse('sensors:login')
 
     def test_login_success(self):
         response = self.client.post(self.url, {
@@ -51,7 +54,7 @@ class LoginTest(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertIn('_auth_user_id', self.client.session)
-        self.assertRedirects(response, reverse('home'))
+        self.assertRedirects(response, reverse('sensors:home'))
     
     def test_login_wrong_password(self):
         response = self.client.post(self.url, {

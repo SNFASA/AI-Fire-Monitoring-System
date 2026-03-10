@@ -12,7 +12,7 @@ class AlertSystemTest(TestCase):
         try:
             self.url = reverse('sensors:receive_data')
         except NoReverseMatch:
-            self.url = reverse('receive_data')
+            self.url = reverse('sensors:receive_data')
 
         # Setup address and owner correctly
         self.addr = AddressFactory(latitude=3.1390, longitude=101.6869)

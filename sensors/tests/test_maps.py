@@ -57,7 +57,7 @@ class FirefighterMapLoadTest(TestCase):
         self.assertTrue(login_success, "Firefighter login failed - check setUp()")
 
         # 2. Call the API
-        response = self.client.get(reverse('map_data')) 
+        response = self.client.get(reverse('sensors:map_data')) 
         
         # 3. Check Status
         self.assertEqual(response.status_code, 200, f"API failed with status {response.status_code}")

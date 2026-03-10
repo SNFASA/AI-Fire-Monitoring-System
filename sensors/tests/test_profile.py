@@ -7,7 +7,7 @@ class UserProfileViewTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.url = reverse('profile')
+        self.url = reverse('sensors:profile')
         
         # Create user with profile automatically
         self.profile = UserProfileFactory()
