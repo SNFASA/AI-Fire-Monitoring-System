@@ -8,32 +8,33 @@ from .factories import UserProfileFactory, SensorFactory, FireStationFactory, Ad
 
 class AlertSystemTest(TestCase):
     def setUp(self):
-            self.client = Client()
-            
-            # Defensive URL lookup
-            try:
-                self.url = reverse('sensors:receive_data')
-            except NoReverseMatch:
-                self.url = reverse('receive_data')
+        self.client = Client()
+        try:
+            self.url = reverse('sensors:receive_data')
+        except NoReverseMatch:
+            self.url = reverse('receive_data')
 
-            # Setup remains the same...
-            self.addr = AddressFactory(latitude=3.1390, longitude=101.6869)
-            self.owner = UserProfileFactory(role='public', address=self.addr)
-            self.sensor = Sensor.objects.create(
-                owner=self.owner,
-                name="Test Sensor",
-                latitude=3.1390,
-                longitude=101.6869,
-                is_active=True
-            )
-            self.station = FireStationFactory(address=AddressFactory(latitude=3.1400, longitude=101.6900))
-            self.ff = UserProfileFactory(role='firefighter', station=self.station)
-            DutyAssignment.objects.create(
-                firefighter=self.ff,
-                start_time=timezone.now() - timezone.timedelta(hours=1),
-                end_time=timezone.now() + timezone.timedelta(hours=1),
-                is_active=True
-            )
+        # Setup address and owner correctly
+        self.addr = AddressFactory(latitude=3.1390, longitude=101.6869)
+        self.owner = UserProfileFactory(role='public', address=self.addr)
+        
+        self.sensor = Sensor.objects.create(
+            owner=self.owner,
+            name="Test Sensor",
+            latitude=3.1390,
+            longitude=101.6869,
+            is_active=True
+        )
+        
+        self.station = FireStationFactory(address=AddressFactory(latitude=3.1400, longitude=101.6900))
+        self.ff = UserProfileFactory(role='firefighter', station=self.station)
+        
+        DutyAssignment.objects.create(
+            firefighter=self.ff,
+            start_time=timezone.now() - timezone.timedelta(hours=1),
+            end_time=timezone.now() + timezone.timedelta(hours=1),
+            is_active=True
+        )
 
     @patch('sensors.views.async_to_sync')          
     @patch('sensors.views.predictor.predict')      
@@ -77,13 +78,16 @@ class AlertSystemTest(TestCase):
         mock_predict.return_value = "Fire"
         mock_hav.return_value = 1.0
         
-        # Create an existing report
-        Report.objects.create(status='System Detected', address=self.owner_addr, station=self.station, trigger_sensor=self.sensor)
+        # FIX: Changed self.owner_addr to self.addr
+        Report.objects.create(
+            status='System Detected', 
+            address=self.addr, 
+            station=self.station, 
+            trigger_sensor=self.sensor
+        )
         
         payload = {"sensor_id": self.sensor.id, "dht22_temp": 90}
         self.client.post(self.url, json.dumps(payload), content_type="application/json")
-        
-        # Count should remain 1 (updated, not new)
         self.assertEqual(Report.objects.count(), 1)
 
     @patch('sensors.views.haversine') 

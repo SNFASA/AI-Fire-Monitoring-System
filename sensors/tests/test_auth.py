@@ -17,17 +17,11 @@ class RegistrationTest(TestCase):
         }
 
     def test_register_user_success(self):
-        data = {
-            'username': 'newuser',
-            'password': 'Password123!',
-            'email': 'new@example.com',
-            # Add any other fields your UserProfile or Registration form requires
-        }
-        response = self.client.post(reverse('register'), data)
+        # Use valid_data defined in setUp to ensure all required fields are present
+        response = self.client.post(self.url, self.valid_data)
         
-        # If this fails, it will print why the form was rejected
         if response.status_code == 200:
-            print(response.context['form'].errors) 
+            print(f"FORM ERRORS: {response.context['form'].errors}")
             
         self.assertRedirects(response, reverse('login'))
 

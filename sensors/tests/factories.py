@@ -12,6 +12,8 @@ class UserFactory(DjangoModelFactory):
         model = User
         django_get_or_create = ('username',)
     username = factory.Faker('user_name')
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
     email = factory.Faker('email')
     @factory.post_generation
     def password(self, create, extracted, **kwargs):
