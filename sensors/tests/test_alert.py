@@ -9,8 +9,11 @@ from .factories import UserProfileFactory, SensorFactory, FireStationFactory, Ad
 class AlertSystemTest(TestCase):
     def setUp(self):
         self.client = Client()
-        # Use the namespace
-        self.url = reverse('sensors:receive_data')
+        # Use the namespace as the primary URL lookup
+        try:
+            self.url = reverse('sensors:receive_data')
+        except NoReverseMatch:
+            self.url = reverse('receive_data')
 
         # 1. Create explicit Address with float coordinates
         self.owner_addr = AddressFactory(latitude=3.1390, longitude=101.6869)
@@ -48,13 +51,19 @@ class AlertSystemTest(TestCase):
         mock_hav.return_value = 0.5
         mock_async.side_effect = lambda func: lambda *args, **kwargs: None
 
+        # Full payload to satisfy SensorDataLog model requirements
         payload = {
             "sensor_id": self.sensor.id,
-            "methane": 800, "lpg": 700, "co": 300, 
-            "dht22_temp": 65.5, "humidity": 20, "flame_val": 100 
+            "methane": 800, 
+            "lpg": 700, 
+            "co": 300, 
+            "air_quality": 500,
+            "dht22_temp": 65.5, 
+            "humidity": 20, 
+            "flame_val": 100 
         }
         
-        # We clear reports before the test to be 100% sure
+        # Clear reports before the test to be 100% sure of count
         Report.objects.all().delete()
         
         response = self.client.post(self.url, json.dumps(payload), content_type="application/json")
@@ -68,7 +77,17 @@ class AlertSystemTest(TestCase):
     @patch('sensors.views.predictor.predict')
     def test_safe_scenario(self, mock_predict):
         mock_predict.return_value = "Safe"
-        payload = {"sensor_id": self.sensor.id, "methane": 50, "dht22_temp": 28}
+        # Even safe scenarios should send full logs to avoid database integrity errors
+        payload = {
+            "sensor_id": self.sensor.id,
+            "methane": 100, 
+            "lpg": 100, 
+            "co": 20, 
+            "air_quality": 30,
+            "dht22_temp": 28.0, 
+            "humidity": 60.0, 
+            "flame_val": 4095
+        }
         response = self.client.post(self.url, json.dumps(payload), content_type="application/json")
         
         self.assertEqual(response.content.decode(), "0") 
@@ -80,16 +99,28 @@ class AlertSystemTest(TestCase):
         mock_predict.return_value = "Fire"
         mock_hav.return_value = 1.0
         
-        # FIX: Changed self.owner_addr to self.addr
+        # Use self.owner_addr to fix the AttributeError
         Report.objects.create(
             status='System Detected', 
-            address=self.addr, 
+            address=self.owner_addr, 
             station=self.station, 
             trigger_sensor=self.sensor
         )
         
-        payload = {"sensor_id": self.sensor.id, "dht22_temp": 90}
+        # Updated with complete payload
+        payload = {
+            "sensor_id": self.sensor.id,
+            "methane": 850, 
+            "lpg": 750, 
+            "co": 350, 
+            "air_quality": 550,
+            "dht22_temp": 90.0, 
+            "humidity": 15.0, 
+            "flame_val": 80
+        }
         self.client.post(self.url, json.dumps(payload), content_type="application/json")
+        
+        # Count should remain 1 (updated existing report instead of creating a new one)
         self.assertEqual(Report.objects.count(), 1)
 
     @patch('sensors.views.haversine') 
@@ -100,13 +131,23 @@ class AlertSystemTest(TestCase):
         mock_hav.return_value = 5.0
         mock_async.side_effect = lambda func: lambda *args, **kwargs: None
         
-        # Clear all duties
+        # Clear all duties to trigger fallback logic
         DutyAssignment.objects.all().delete() 
 
-        payload = {"sensor_id": self.sensor.id, "dht22_temp": 90}
+        # Updated with complete payload
+        payload = {
+            "sensor_id": self.sensor.id,
+            "methane": 900, 
+            "lpg": 800, 
+            "co": 400, 
+            "air_quality": 600,
+            "dht22_temp": 95.0, 
+            "humidity": 10.0, 
+            "flame_val": 50
+        }
         self.client.post(self.url, json.dumps(payload), content_type="application/json")
 
-        # Should fall back to nearest station even if no staff
+        # Fallback should correctly assign to nearest station even if no staff are on duty
         self.assertEqual(Report.objects.count(), 1)
         self.assertEqual(Report.objects.first().station, self.station)
 
