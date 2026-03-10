@@ -16,17 +16,23 @@ class RegistrationTest(TestCase):
             'password2': 'StrongPass123!',
         }
 
-def test_register_user_success(self):
-    data = {
-        'username': 'newuser',
-        'first_name': 'New',
-        'last_name': 'User',
-        'email': 'new@example.com',
-        'password1': 'Password123!',
-        'password2': 'Password123!',
-    }
-    response = self.client.post(reverse('sensors:register'), data)
-    self.assertRedirects(response, reverse('sensors:login'))
+    def test_register_user_success(self):
+        data = {
+            'username': 'newuser',
+            'email': 'new@example.com',
+            'password1': 'Password123!',  
+            'password2': 'Password123!',
+            'first_name': 'New',
+            'last_name': 'User'
+        }
+        # Use namespaced URL
+        response = self.client.post(reverse('sensors:register'), data)
+        
+        # Debug: if it still fails, see why
+        if response.status_code == 200:
+            print(response.context['form'].errors)
+            
+        self.assertRedirects(response, reverse('sensors:login'))
 
     def test_register_duplicate_username(self):
         UserFactory(username='taken_user')

@@ -9,26 +9,28 @@ from .factories import UserProfileFactory, SensorFactory, FireStationFactory, Ad
 class AlertSystemTest(TestCase):
     def setUp(self):
         self.client = Client()
-        try:
-            self.url = reverse('sensors:receive_data')
-        except NoReverseMatch:
-            self.url = reverse('sensors:receive_data')
+        # Use the namespace
+        self.url = reverse('sensors:receive_data')
 
-        # Setup address and owner correctly
-        self.addr = AddressFactory(latitude=3.1390, longitude=101.6869)
-        self.owner = UserProfileFactory(role='public', address=self.addr)
+        # 1. Create explicit Address with float coordinates
+        self.owner_addr = AddressFactory(latitude=3.1390, longitude=101.6869)
         
+        # 2. Create Owner and link to address
+        self.owner_profile = UserProfileFactory(role='public', address=self.owner_addr)
+        
+        # 3. Create Sensor linked to this owner
         self.sensor = Sensor.objects.create(
-            owner=self.owner,
-            name="Test Sensor",
-            latitude=3.1390,
-            longitude=101.6869,
+            owner=self.owner_profile,
+            name="Kitchen Sensor",
             is_active=True
         )
+
+        # 4. Create Station with valid coordinates
+        self.station_addr = AddressFactory(latitude=3.1400, longitude=101.6900)
+        self.station = FireStationFactory(address=self.station_addr)
         
-        self.station = FireStationFactory(address=AddressFactory(latitude=3.1400, longitude=101.6900))
+        # 5. Assign active staff
         self.ff = UserProfileFactory(role='firefighter', station=self.station)
-        
         DutyAssignment.objects.create(
             firefighter=self.ff,
             start_time=timezone.now() - timezone.timedelta(hours=1),
