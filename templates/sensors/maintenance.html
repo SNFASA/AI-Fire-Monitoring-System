@@ -18,13 +18,13 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-lg-8">
-            <a href="{% url 'home' %}" class="btn text-white btn-outline-danger">← Back to Dashboard</a>
+            <a href="{% url 'sensors:home' %}" class="btn text-white btn-outline-danger">← Back to Dashboard</a>
             <h2 class="display-6 fw-bold text-danger mb-2">Maintenance Records</h2>
             <p class="text-muted">View and manage equipment maintenance logs</p>
         </div>
         {% if user.userprofile.role == 'public' %}
             <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
-                <a href="{% url 'maintenance_create' %}" class="btn btn-danger text-white btn-lg">
+                <a href="{% url 'sensors:maintenance_create' %}" class="btn btn-danger text-white btn-lg">
                     Request Maintenance
                 </a>
             </div>
@@ -41,7 +41,7 @@
                             <span class="badge bg-light text-danger fw-bold shadow-sm">
                                 {{ item.status }}
                             </span>
-                            <form action="{% url 'delete_maintenance' item.id %}" method="POST">
+                            <form action="{% url 'sensors:delete_maintenance' item.id %}" method="POST">
                                 {% csrf_token %}
                                 <button type="button" 
                                         class="btn btn-link text-white p-0 text-decoration-none" 
@@ -95,7 +95,7 @@
                             
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <a href="{% url 'maintenance_edit' item.id %}" class="btn text-white btn-warning w-100">
+                                    <a href="{% url 'sensors:maintenance_edit' item.id %}" class="btn text-white btn-warning w-100">
                                         {% if user_role == 'firefighter' %}
                                             Update
                                         {% else %}
@@ -105,7 +105,7 @@
                                 </div>
 
                                 <div class="col-6">
-                                    <a href="{% url 'maintenance_detail' item.id %}" class="btn text-white btn-danger w-100">
+                                    <a href="{% url 'sensors:maintenance_detail' item.id %}" class="btn text-white btn-danger w-100">
                                         View Details
                                     </a>
                                 </div>
@@ -113,7 +113,7 @@
 
                         {% else %}
                             <div class="text-center">
-                                <a href="{% url 'maintenance_detail' item.id %}" class="btn btn-secondary w-100 text-white">
+                                <a href="{% url 'sensors:maintenance_detail' item.id %}" class="btn btn-secondary w-100 text-white">
                                     View Full Record
                                 </a>
                             </div>
@@ -128,7 +128,7 @@
                 <div class="alert alert-light border-danger shadow-sm py-5">
                     <h4 class="text-danger">No Maintenance Records Found</h4>
                     <p class="text-muted">There are currently no maintenance records in the database.</p>
-                    <a href="{% url 'maintenance_create' %}" class="btn btn-danger text-white mt-2">Create First Maintenance</a>
+                    <a href="{% url 'sensors:maintenance_create' %}" class="btn btn-danger text-white mt-2">Create First Maintenance</a>
                 </div>
             </div>
         {% endif %}

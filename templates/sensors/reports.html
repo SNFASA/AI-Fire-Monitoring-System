@@ -16,13 +16,13 @@
 
     <div class="row mb-4">
         <div class="col-lg-8">
-            <a href="{% url 'home' %}" class="btn text-white btn-outline-danger">← Back to Dashboard</a>
+            <a href="{% url 'sensors:home' %}" class="btn text-white btn-outline-danger">← Back to Dashboard</a>
             <h2 class="display-6 fw-bold text-danger mb-2">Fire Incident Reports</h2>
             <p class="text-muted">Complete record of all fire incidents and responses</p>
         </div>
         {% if user.userprofile.role == 'firefighter' %}
             <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
-                <a href="{% url 'create_report' %}" class="btn btn-danger text-white btn-lg shadow-sm">
+                <a href="{% url 'sensors:create_report' %}" class="btn btn-danger text-white btn-lg shadow-sm">
                     <i class="bi bi-plus-lg"></i> Create New Report
                 </a>
             </div>
@@ -65,7 +65,7 @@
                             </span>
 
                             {% if user.userprofile.role == 'firefighter' %}
-                                <form action="{% url 'delete_report' report.id %}" method="POST">
+                                <form action="{% url 'sensors:delete_report' report.id %}" method="POST">
                                     {% csrf_token %}
                                     <button type="button" 
                                             class="btn btn-link text-white p-0 text-decoration-none ms-2" 
@@ -125,7 +125,7 @@
 
                     <div class="card-footer border-top border-danger p-2">
                         <div class="d-grid">
-                            <a href="{% url 'report_detail' report.id %}" class="btn btn-outline-warning text-white shadow-sm fw-bold">
+                            <a href="{% url 'sensors:report_detail' report.id %}" class="btn btn-outline-warning text-white shadow-sm fw-bold">
                                 <i class="bi bi-file-earmark-text  me-1"></i> View Full Details
                             </a>
                         </div>
@@ -138,7 +138,7 @@
                 <div class="alert alert-light border-danger shadow-sm py-5">
                     <h4 class="text-danger">No Fire Reports Found</h4>
                     <p class="text-muted">There are currently no incidents recorded in the database.</p>
-                    <a href="{% url 'create_report' %}" class="btn btn-danger text-white mt-2">Create First Report</a>
+                    <a href="{% url 'sensors:create_report' %}" class="btn btn-danger text-white mt-2">Create First Report</a>
                 </div>
             </div>
         {% endif %}

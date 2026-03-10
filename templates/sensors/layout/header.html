@@ -5,7 +5,7 @@
             <div class="d-flex align-items-center">
                 <img src="{% static 'images/jatanagara.png' %}" alt="JATA NEGARA MALAYSIA" width="40" height="40" class="d-inline-block align-text-top me-2">
                 <img src="{% static 'images/bomba.png' %}" alt="JABATAN BOMBA DAN PENYELAMAT MALAYSIA" height="40" class="d-inline-block align-text-top me-3">
-                <a class="navbar-brand" href="{% url 'home' %}">AI FIRE MONITORING</a>
+                <a class="navbar-brand" href="{% url 'sensors:home' %}">AI FIRE MONITORING</a>
             </div>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -14,16 +14,16 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'home' %}">Dashboard</a>
+                            <a class="nav-link" href="{% url 'sensors:home' %}">Dashboard</a>
                         </li>
                         <li class="nav-item">
-                        <a class="nav-link" href="{% url 'maps' %}">Maps</a>
+                        <a class="nav-link" href="{% url 'sensors:maps' %}">Maps</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'maintenance' %}">Maintenance</a>
+                            <a class="nav-link" href="{% url 'sensors:maintenance' %}">Maintenance</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'reports' %}">Reports</a>
+                            <a class="nav-link" href="{% url 'sensors:reports' %}">Reports</a>
                         </li>
                         <li class="nav-item dropdown">
                             <button class="nav-link dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -42,11 +42,11 @@
                                 {{ user.username }}
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="{% url 'profile' %}">My Profile</a></li>
-                                <li><a class="dropdown-item" href="{% url 'change_password' %}">Change Password</a></li>
+                                <li><a class="dropdown-item" href="{% url 'sensors:profile' %}">My Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'sensors:change_password' %}">Change Password</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                                    <form method="post" action="{% url 'sensors:logout' %}" style="display: inline;">
                                         {% csrf_token %}
                                         <button type="submit" class="dropdown-item" >
                                             Logout

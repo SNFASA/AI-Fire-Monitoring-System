@@ -28,7 +28,9 @@ SECRET_KEY = 'django-insecure-change-this-key-for-production-usage'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+# In settings.py
+LOGIN_REDIRECT_URL = 'sensors:home'
+LOGOUT_REDIRECT_URL = 'sensors:login'
 
 # Application definition
 

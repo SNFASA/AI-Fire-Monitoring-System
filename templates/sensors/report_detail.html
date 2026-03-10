@@ -19,7 +19,7 @@
             <h2 class="display-6 fw-bold text-danger mb-2">Report  #{{ report.id }} Details</h2>
         </div>
         <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
-            <a href="{% url 'reports' %}" class="btn btn-danger text-white btn-lg">
+            <a href="{% url 'sensors:reports' %}" class="btn btn-danger text-white btn-lg">
                 Report List
             </a>
         </div>
@@ -158,7 +158,7 @@
                         {% endif %}
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'reports' %}" class="btn btn-outline-warning ">Back to List</a>
+                            <a href="{% url 'sensors:reports' %}" class="btn btn-outline-warning ">Back to List</a>
                             
                             {% if is_firefighter %}
                                 <button type="submit" class="btn btn-primary btn-lg">

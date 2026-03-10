@@ -230,7 +230,7 @@
                         stopSiren();
                         if(data.success) { 
                             alert(data.message); 
-                            window.location.href = "{% url 'report_detail' 0 %}".replace('0', reportId); 
+                            window.location.href = "{% url 'sensors:report_detail' 0 %}".replace('0', reportId); 
                         } else { 
                             alert("Error: " + data.error); 
                             btn.disabled = false; 

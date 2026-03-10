@@ -357,7 +357,7 @@ def profile(request):
                 user_profile.address = address_instance
                 user_profile.save()
             messages.success(request, 'Profile updated!')
-            return redirect('profile')
+            return redirect('sensors:profile')
     else:
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=user_profile)
@@ -372,8 +372,8 @@ def logout_view(request):
     if request.method == 'POST':
         logout(request)
         messages.success(request, 'Logged out successfully!')
-        return redirect('login')
-    return redirect('home')
+        return redirect('sensors:login')
+    return redirect('sensors:home')
 
 def register(request):
     if request.method == 'POST':
@@ -385,7 +385,7 @@ def register(request):
             user.email = form.cleaned_data.get('email')
             user.save()
             messages.success(request, f'Account created for {user.username}!')
-            return redirect('login')
+            return redirect('sensors:login')
         else:
             messages.error(request, 'Registration failed.')
     else:
@@ -406,7 +406,7 @@ def change_password(request):
             request.user.set_password(new_password)
             request.user.save()
             messages.success(request, 'Password changed!')
-            return redirect('login')
+            return redirect('sensors:login')
     return render(request, 'sensors/change_password.html')
 
 # ==========================================
@@ -427,7 +427,7 @@ def maintenance_detail(request, maintenance_id):
     if request.method == 'POST' and 'picture' in request.FILES:
         MaintenanceImage.objects.create(maintenance=maintenance, image=request.FILES['picture'])
         messages.success(request, 'Evidence uploaded!')
-        return redirect('maintenance_detail', maintenance_id=maintenance.id)
+        return redirect('sensors:maintenance_detail', maintenance_id=maintenance.id)
     return render(request, 'sensors/maintenance_detail.html', {'maintenance': maintenance})
 
 @login_required(login_url='login')
@@ -438,7 +438,7 @@ def create_maintenance(request):
             m = form.save()
             for img in request.FILES.getlist('images'):
                 MaintenanceImage.objects.create(maintenance=m, image=img)
-            return redirect('maintenance')
+            return redirect('sensors:maintenance')
     else:
         form = MaintenanceForm()
     return render(request, 'sensors/maintenance_create.html', {'form': form})
@@ -459,7 +459,7 @@ def edit_maintenance(request, maintenance_id):
             if form.is_valid():
                 m = form.save()
                 # handle_images(request, m) # Ensure this helper exists or import it
-                return redirect('maintenance_detail', maintenance_id=m.id)
+                return redirect('sensors:maintenance_detail', maintenance_id=m.id)
         else:
             # Firefighter/Technician Logic
             task.status = request.POST.get('status')
@@ -469,7 +469,7 @@ def edit_maintenance(request, maintenance_id):
                 task.in_charge = request.user
             task.save()
             # handle_images(request, task)
-            return redirect('maintenance_detail', maintenance_id=task.id)
+            return redirect('sensors:maintenance_detail', maintenance_id=task.id)
     else:
         form = MaintenanceForm(instance=task)
         
@@ -488,7 +488,7 @@ def handle_images(request, maintenance_instance):
 @login_required(login_url='login')
 def delete_maintenance(request, maintenance_id):
     get_object_or_404(Maintenance, id=maintenance_id).delete()
-    return redirect('maintenance')
+    return redirect('sensors:maintenance')
 
 @login_required(login_url='login')
 def reports(request):
@@ -510,7 +510,7 @@ def report_detail(request, report_id):
         for img in request.FILES.getlist('images'):
             ReportImage.objects.create(report=report, image=img)
         messages.success(request, 'Report updated!')
-        return redirect('reports')
+        return redirect('sensors:reports')
     return render(request, 'sensors/report_detail.html', {'report': report, 'stations': FireStation.objects.all(), 'is_firefighter': is_firefighter})
 
 @login_required(login_url='login')
@@ -530,7 +530,7 @@ def create_report(request):
             )
             for img in request.FILES.getlist('images'):
                 ReportImage.objects.create(report=report, image=img)
-            return redirect('report_detail', report_id=report.id)
+            return redirect('sensors:report_detail', report_id=report.id)
         except Exception as e:
             messages.error(request, str(e))
     return render(request, 'sensors/create_report.html', {'stations': FireStation.objects.all(), 'addresses': Address.objects.all()})
@@ -562,7 +562,7 @@ def edit_report(request, report_id):
             handle_report_images(request, updated_report)
 
             messages.success(request, f'Report #{report.id} updated successfully!')
-            return redirect('report_detail', report_id=report.id)
+            return redirect('sensors:report_detail', report_id=report.id)
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -594,7 +594,7 @@ def delete_report(request, report_id):
     report.delete()
     
     messages.success(request, f'Report #{report_id_ref} deleted.')
-    return redirect('reports')
+    return redirect('sensors:reports')
 
 # --- IMAGE HANDLER (Kept mostly same, added file cleanup) ---
 def handle_report_images(request, report_instance):
@@ -626,7 +626,7 @@ def upload_layout(request):
             layout = form.save(commit=False)
             layout.user = request.user
             layout.save()
-            return redirect('maps')
+            return redirect('sensors:maps')
     else:
         form = HouseLayoutForm()
     return render(request, 'sensors/upload_layout.html', {'form': form, 'existing_layouts': Houselayout.objects.filter(user=request.user)})
@@ -740,5 +740,5 @@ def get_dashboard_sensor_data(request):
 def delete_sensor(request, sensor_id): # Fallback non-ajax delete
     if request.method == "POST":
         Sensor.objects.get(id=sensor_id, owner__user=request.user).delete()
-        return redirect('dashboard')
-    return redirect('dashboard')
+        return redirect('sensors:dashboard')
+    return redirect('sensors:dashboard')

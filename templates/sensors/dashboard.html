@@ -184,10 +184,10 @@
                 <div class="card-body">
                     <h4 class="card-title mb-4 fw-bold">Quick Actions</h4>
                     <div class="row g-3">
-                        <div class="col-md-3"><a href="{% url 'home' %}" class="btn btn-outline-primary w-100">View All Sensors</a></div>
-                        <div class="col-md-3"><a href="{% url 'maintenance' %}" class="btn btn-outline-primary w-100">Manage Maintenance</a></div>
-                        <div class="col-md-3"><a href="{% url 'reports' %}" class="btn btn-outline-primary w-100">View Reports</a></div>
-                        <div class="col-md-3"><a href="{% url 'profile' %}" class="btn btn-outline-primary w-100">My Profile</a></div>
+                        <div class="col-md-3"><a href="{% url 'sensors:home' %}" class="btn btn-outline-primary w-100">View All Sensors</a></div>
+                        <div class="col-md-3"><a href="{% url 'sensors:maintenance' %}" class="btn btn-outline-primary w-100">Manage Maintenance</a></div>
+                        <div class="col-md-3"><a href="{% url 'sensors:reports' %}" class="btn btn-outline-primary w-100">View Reports</a></div>
+                        <div class="col-md-3"><a href="{% url 'sensors:profile' %}" class="btn btn-outline-primary w-100">My Profile</a></div>
                     </div>
                 </div>
             </div>
@@ -232,7 +232,7 @@
     
     // A. Update Readings (AJAX Polling)
     function updateSensorReadings() {
-        fetch("{% url 'dashboard_data' %}")
+        fetch("{% url 'sensors:dashboard_data' %}")
         .then(response => response.json())
         .then(data => {
             if (data.sensors) {
