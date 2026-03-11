@@ -17,26 +17,25 @@ jobs:
 # -------------------------------
 # BUILD PROVENANCE (Security)
 # -------------------------------
-  attest-build-provenance:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write      # Required for OIDC token
-      attestations: write  # Required to write the attestation
-      contents: read
-    steps:
-      - uses: actions/checkout@v5
-      
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-          
-      - name: Attest Build Provenance
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-name: "AI-Fire-Monitoring-System"
-          # Since you aren't building a Docker image or a .whl file yet, 
-          # we typically point to the source code or a specific diagram.
-          subject-path: "manage.py"
+#  attest-build-provenance:
+#    runs-on: ubuntu-latest
+#    permissions:
+#      id-token: write      # Required for OIDC token
+#      attestations: write  # Required to write the attestation
+#      contents: read
+#    steps:
+#      - uses: actions/checkout@v5      
+#      - uses: actions/setup-python@v6
+#        with:
+#          python-version: "3.12"
+#          
+#      - name: Attest Build Provenance
+#        uses: actions/attest-build-provenance@v2
+#        with:
+#          subject-name: "AI-Fire-Monitoring-System"
+#          # Since you aren't building a Docker image or a .whl file yet, 
+#          # we typically point to the source code or a specific diagram.
+#          subject-path: "manage.py"
 # -------------------------------
 # LINT + QUALITY CHECK
 # -------------------------------
@@ -282,7 +281,7 @@ jobs:
     runs-on: ubuntu-latest
     # This job only runs if any of the specified jobs fail
     if: failure()
-    needs: [lint, security, tests, static-analysis, docs, db-diagram, architecture, load-test, attest-build-provenance, ai-tests]
+    needs: [lint, security, tests, static-analysis, docs, db-diagram, architecture, load-test, ai-tests]
     
     steps:
       - name: Create GitHub Issue
