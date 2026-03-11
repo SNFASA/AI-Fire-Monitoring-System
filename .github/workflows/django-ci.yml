@@ -261,46 +261,64 @@ jobs:
       issues: write
       pull-requests: write
       contents: write
+      packages: read # Critical for downloading @SNAFASA package
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Specify your version (18, 20, 22, etc.)
-          cache: 'npm'       # This automatically caches your ~/.npm folder
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com' 
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci          # 'npm ci' is faster and cleaner for CI/CD than 'npm install'
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Tests
         id: test_step
-        # continue-on-error ensures the workflow doesn't mark the whole job as "red" 
-        # until the AI has a chance to analyze it.
         continue-on-error: true 
         run: |
-          set +e  # Disable "exit on error"
-          
+          set +e
           echo "Running tests..."
           TEST_LOG=$(npm test 2>&1)
           EXIT_CODE=$?
           
-          # Pass logs to the next steps via GITHUB_OUTPUT
           echo "results<<EOF" >> $GITHUB_OUTPUT
           echo "$TEST_LOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          # Set a status variable for the AI to check
           if [ $EXIT_CODE -ne 0 ]; then
             echo "status=failed" >> $GITHUB_OUTPUT
-            echo "Test failed with exit code $EXIT_CODE"
           else
             echo "status=passed" >> $GITHUB_OUTPUT
-            echo "Test passed!"
           fi
-          
-          set -e  # Re-enable "exit on error"
+          set -e
+
+      # IF TESTS FAIL: Gemini creates a GitHub Issue
+      - name: Gemini Failure Analysis
+        if: steps.test_step.outputs.status == 'failed'
+        uses: Codium-ai/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          args: "/ask Create a detailed GitHub Issue titled '🔴 Test Failure' analyzing these logs: ${{ steps.test_step.outputs.results }}"
+
+      # IF TESTS PASS: Gemini summarizes the PR
+      - name: Gemini Success Summary
+        if: steps.test_step.outputs.status == 'passed'
+        uses: Codium-ai/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          args: "/describe --pr_description.extra_instructions='Tests passed! Add a summary of the test stability.'"
           
 # -------------------------------
 # AUTOMATIC ISSUE CREATION
