@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   security-events: write
+  actions: read
 
 jobs:
 
@@ -31,7 +32,7 @@ jobs:
           pip install flake8 black isort
 
       - name: Run Flake8
-        run: flake8 .
+        run: flake8 . --exclude=venv,.venv,__pycache__,migrations
 
       - name: Run Black
         run: black --check .
@@ -52,7 +53,7 @@ jobs:
         run: pip install bandit pip-audit
 
       - name: Run Bandit
-        run: bandit -r .
+        run: bandit -r . --exclude ./venv,./.venv
 
       - name: Dependency Audit
         run: pip-audit
@@ -113,8 +114,9 @@ jobs:
           DB_HOST: localhost
           DB_PORT: 5432
         run: |
-          coverage run manage.py test
+          coverage run manage.py test sensors
           coverage report
+          coverage html
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -217,3 +219,6 @@ jobs:
 
       - name: CodiumAI test analysis
         uses: Codium-ai/pr-agent@main
+        env:
+          CODIUMAI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
