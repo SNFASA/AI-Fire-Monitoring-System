@@ -1,3 +1,4 @@
+
 name: Django Ultimate CI
 
 on:
@@ -10,8 +11,6 @@ permissions:
   contents: read
   security-events: write
   actions: read
-  issues: write
-  pull-requests: write
 
 jobs:
 
@@ -29,7 +28,7 @@ jobs:
         run: pip install flake8 black isort autoflake
       
       - name: Run Black Check
-        run: black --check . --exclude migrations || true
+        run: black --check .
         
       - name: Run Flake8
         # It will now automatically use your .flake8 config file
@@ -45,15 +44,15 @@ jobs:
       high_count: ${{ steps.bandit_stats.outputs.high }}
     steps:
       - uses: actions/checkout@v5
-
+      
       - name: Install Bandit
         run: pip install bandit
-
+        
       - name: Run Bandit Scan
         id: run_bandit
         # We save the report to JSON so we can parse the numbers
         run: bandit -r . -f json -o bandit_report.json || true
-
+        
       - name: Parse Bandit Stats
         id: bandit_stats
         run: |
@@ -113,14 +112,6 @@ jobs:
           name: coverage-html
           path: htmlcov/
 
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: SNFASA/AI-Fire-Monitoring-System
-
-
 # -------------------------------
 # STATIC ANALYSIS
 # -------------------------------
@@ -148,21 +139,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install sphinx sphinx-rtd-theme  # Added a nice theme
+      - name: Install Sphinx
+        run: pip install sphinx
 
       - name: Build docs
         run: |
-          # The -v flag (verbose) will show you exactly why it's skipping files
-          sphinx-build -v -b html doc doc/_build
-
+          sphinx-build -b html doc doc/_build
       - name: Upload Sphinx Docs
         uses: actions/upload-artifact@v4
         with:
@@ -240,19 +222,23 @@ jobs:
 # -------------------------------
   ai-tests:
     runs-on: ubuntu-latest
-    # ADDED: AI needs write permissions to comment on your PRs!
     permissions:
       issues: write
       pull-requests: write
       contents: write
     steps:
       - uses: actions/checkout@v5
-      - name: CodiumAI test analysis
+      - name: Gemini AI Analysis
         uses: Codium-ai/pr-agent@main
         env:
+          # Required for GitHub API access
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CODIUMAI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          
+          # Tell PR-Agent to use Gemini instead of OpenAI
+          config.model: "gemini/gemini-1.5-flash"
+          
+          # Provide your Gemini API Key
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 # -------------------------------
 # AUTOMATIC ISSUE CREATION
 # -------------------------------
