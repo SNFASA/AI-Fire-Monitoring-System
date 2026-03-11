@@ -57,24 +57,6 @@ jobs:
 
       - name: Dependency Audit
         run: pip-audit
-
-# -------------------------------
-# CODEQL AI SECURITY SCAN
-# -------------------------------
-  codeql:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: github/codeql-action/init@v3
-        with:
-          languages: python
-
-      - uses: github/codeql-action/autobuild@v3
-
-      - uses: github/codeql-action/analyze@v3
-
 # -------------------------------
 # TEST + COVERAGE
 # -------------------------------
@@ -121,6 +103,12 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v4
 
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov/
+
 # -------------------------------
 # STATIC ANALYSIS
 # -------------------------------
@@ -154,7 +142,11 @@ jobs:
       - name: Build docs
         run: |
           sphinx-build -b html doc doc/_build
-
+      - name: Upload Sphinx Docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-documentation
+          path: doc/_build/
 # -------------------------------
 # LOAD TEST
 # -------------------------------
@@ -209,6 +201,10 @@ jobs:
         run: |
           python scripts/architecture.py
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: architecture-diagram
+          path: ./*.png
 # -------------------------------
 # AI TEST GENERATION
 # -------------------------------

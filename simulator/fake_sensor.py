@@ -125,12 +125,14 @@ while True:
         client.publish(TOPIC, json.dumps(data))
         
         status_txt = "SAFE"
-        if s.state == "Fire": 
+        if s.state == "Fire":
             status_txt = "FIRE"
-        elif s.state == "Warning": 
+        elif s.state == "Warning":
             status_txt = "WARN"
-        
-    print(f"[{s.id}] {status_txt} | Gas:{data['methane']} | "
-      f"Temp:{data['dht22_temp']} | Hum:{data['humidity']}")
-    time.sleep(0.5)
+
+        print(
+            f"[{s.id}] {status_txt} | Gas:{data['methane']} | "
+            f"Temp:{data['dht22_temp']} | Hum:{data['humidity']}"
+        )
+        time.sleep(0.5)
     time.sleep(1)
