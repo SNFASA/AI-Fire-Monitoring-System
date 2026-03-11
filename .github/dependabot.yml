@@ -1,27 +1,14 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
 updates:
-  # 1. Automated updates for your Python packages (Django, Scikit-Learn, etc.)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
-    # This helps keep your requirements.txt clean
     open-pull-requests-limit: 10
-    # Labels make it easy to filter in your Issues/PRs tab
     labels:
       - "security"
-      - "dependencies"
 
-  # 2. Automated updates for your GitHub Actions (checkout, setup-python, etc.)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    labels:
-      - "ci/cd"
-      - "dependencies"
