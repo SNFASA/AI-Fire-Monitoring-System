@@ -92,11 +92,21 @@ jobs:
           coverage run manage.py test sensors.tests || true
           coverage report
           coverage html
-      - name: Upload Coverage Report
+
+      # FIX: Use the token HERE to send data to Codecov.io
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: SNFASA/AI-Fire-Monitoring-System
+
+      # This saves the HTML files so YOU can download them from GitHub
+      - name: Upload Coverage Report Artifact
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
           path: htmlcov/
+
 # -------------------------------
 # STATIC ANALYSIS
 # -------------------------------
@@ -207,10 +217,13 @@ jobs:
 # -------------------------------
   ai-tests:
     runs-on: ubuntu-latest
-
+    # ADDED: AI needs write permissions to comment on your PRs!
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
     steps:
       - uses: actions/checkout@v4
-
       - name: CodiumAI test analysis
         uses: Codium-ai/pr-agent@main
         env:
