@@ -6,23 +6,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensors', '0008_remove_maintenance_picture_and_more'),
+        ("sensors", "0008_remove_maintenance_picture_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='maintenance',
-            name='actual_date',
+            model_name="maintenance",
+            name="actual_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='maintenance',
-            name='technician_notes',
-            field=models.TextField(blank=True, help_text='Notes from the technician after maintenance.', null=True),
+            model_name="maintenance",
+            name="technician_notes",
+            field=models.TextField(
+                blank=True,
+                help_text="Notes from the technician after maintenance.",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='maintenance',
-            name='updated',
+            model_name="maintenance",
+            name="updated",
             field=models.DateTimeField(auto_now=True),
         ),
     ]

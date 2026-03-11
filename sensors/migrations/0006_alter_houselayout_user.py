@@ -8,14 +8,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensors', '0005_dutyassignment'),
+        ("sensors", "0005_dutyassignment"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='houselayout',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='layouts', to=settings.AUTH_USER_MODEL),
+            model_name="houselayout",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="layouts",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

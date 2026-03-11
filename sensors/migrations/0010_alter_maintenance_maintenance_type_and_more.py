@@ -6,18 +6,40 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensors', '0009_maintenance_actual_date_maintenance_technician_notes_and_more'),
+        (
+            "sensors",
+            "0009_maintenance_actual_date_maintenance_technician_notes_and_more",
+        ),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='maintenance',
-            name='maintenance_type',
-            field=models.CharField(choices=[('HealthCheck', 'Sensor Health Check'), ('Connectivity', 'Connectivity Issue'), ('AlarmTest', 'Alarm Test'), ('FullAudit', 'Full System Audit'), ('Repair', 'Repair/Damage Fix')], default='HealthCheck', max_length=20),
+            model_name="maintenance",
+            name="maintenance_type",
+            field=models.CharField(
+                choices=[
+                    ("HealthCheck", "Sensor Health Check"),
+                    ("Connectivity", "Connectivity Issue"),
+                    ("AlarmTest", "Alarm Test"),
+                    ("FullAudit", "Full System Audit"),
+                    ("Repair", "Repair/Damage Fix"),
+                ],
+                default="HealthCheck",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='maintenance',
-            name='status',
-            field=models.CharField(choices=[('Pending', 'pending'), ('In Progress', 'in_progress'), ('Completed', 'completed'), ('Rejected', 'rejected')], default='pending', max_length=20),
+            model_name="maintenance",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("Pending", "pending"),
+                    ("In Progress", "in_progress"),
+                    ("Completed", "completed"),
+                    ("Rejected", "rejected"),
+                ],
+                default="pending",
+                max_length=20,
+            ),
         ),
     ]

@@ -6,18 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensors', '0013_remove_report_trigger_gas_level_alter_report_cause_and_more'),
+        ("sensors", "0013_remove_report_trigger_gas_level_alter_report_cause_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='report',
-            name='trigger_gas_level',
-            field=models.IntegerField(blank=True, help_text='Combined Gas/Smoke level', null=True),
+            model_name="report",
+            name="trigger_gas_level",
+            field=models.IntegerField(
+                blank=True, help_text="Combined Gas/Smoke level", null=True
+            ),
         ),
         migrations.AddField(
-            model_name='report',
-            name='trigger_temperature',
+            model_name="report",
+            name="trigger_temperature",
             field=models.FloatField(blank=True, null=True),
         ),
     ]

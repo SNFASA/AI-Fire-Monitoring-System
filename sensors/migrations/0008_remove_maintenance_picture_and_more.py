@@ -8,61 +8,117 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensors', '0007_userprofile_rank_userprofile_team_and_more'),
+        ("sensors", "0007_userprofile_rank_userprofile_team_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='maintenance',
-            name='picture',
+            model_name="maintenance",
+            name="picture",
         ),
         migrations.RemoveField(
-            model_name='maintenance',
-            name='updated',
+            model_name="maintenance",
+            name="updated",
         ),
         migrations.AddField(
-            model_name='maintenance',
-            name='frequency',
-            field=models.CharField(choices=[('adHoc', 'Ad-Hoc/Emergency'), ('monthly', 'Monthly'), ('quarterly', 'Quarterly'), ('yearly', 'Yearly')], default='monthly', max_length=20),
+            model_name="maintenance",
+            name="frequency",
+            field=models.CharField(
+                choices=[
+                    ("adHoc", "Ad-Hoc/Emergency"),
+                    ("monthly", "Monthly"),
+                    ("quarterly", "Quarterly"),
+                    ("yearly", "Yearly"),
+                ],
+                default="monthly",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='maintenance',
-            name='maintenance_type',
-            field=models.CharField(choices=[('HealthCheck', 'Sensor Health Check'), ('Connnectivity', 'Connectivity Issue'), ('AlarmTest', 'Alarm Test'), ('FullAudit', 'Full System Audit'), ('Repair', 'Repair/Damage Fix')], default='HealthCheck', max_length=20),
+            model_name="maintenance",
+            name="maintenance_type",
+            field=models.CharField(
+                choices=[
+                    ("HealthCheck", "Sensor Health Check"),
+                    ("Connnectivity", "Connectivity Issue"),
+                    ("AlarmTest", "Alarm Test"),
+                    ("FullAudit", "Full System Audit"),
+                    ("Repair", "Repair/Damage Fix"),
+                ],
+                default="HealthCheck",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='maintenance',
-            name='nearest_fire_station',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='sensors.firestation'),
+            model_name="maintenance",
+            name="nearest_fire_station",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="sensors.firestation",
+            ),
         ),
         migrations.AddField(
-            model_name='maintenance',
-            name='scheduled_date',
+            model_name="maintenance",
+            name="scheduled_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='maintenance',
-            name='details',
-            field=models.TextField(help_text='Describe the issue or reason for maintenance.'),
+            model_name="maintenance",
+            name="details",
+            field=models.TextField(
+                help_text="Describe the issue or reason for maintenance."
+            ),
         ),
         migrations.AlterField(
-            model_name='maintenance',
-            name='in_charge',
-            field=models.ForeignKey(blank=True, limit_choices_to={'userprofile__role': 'firefighter'}, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="maintenance",
+            name="in_charge",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"userprofile__role": "firefighter"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='maintenance',
-            name='status',
-            field=models.CharField(choices=[('Pending', 'pending'), ('In Progress', 'in_progress'), ('Completed', 'completed'), ('Rejected', 'rejected')], default='Pending', max_length=20),
+            model_name="maintenance",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("Pending", "pending"),
+                    ("In Progress", "in_progress"),
+                    ("Completed", "completed"),
+                    ("Rejected", "rejected"),
+                ],
+                default="Pending",
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
-            name='MaintenanceImage',
+            name="MaintenanceImage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(upload_to='maintenance/images/')),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('maintenance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='sensors.maintenance')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("image", models.ImageField(upload_to="maintenance/images/")),
+                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "maintenance",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="images",
+                        to="sensors.maintenance",
+                    ),
+                ),
             ],
         ),
     ]

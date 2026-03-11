@@ -6,23 +6,44 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensors', '0006_alter_houselayout_user'),
+        ("sensors", "0006_alter_houselayout_user"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='rank',
-            field=models.CharField(blank=True, choices=[('KB', 'Ketua Balai (Station Chief)'), ('PBK', 'Pegawai Bomba Kanan (Senior Officer/Commander)'), ('PB', 'Pegawai Bomba (Firefighter/Crew)'), ('Pemandu', 'Driver/Pump Operator')], help_text='Official Rank', max_length=20, null=True),
+            model_name="userprofile",
+            name="rank",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("KB", "Ketua Balai (Station Chief)"),
+                    ("PBK", "Pegawai Bomba Kanan (Senior Officer/Commander)"),
+                    ("PB", "Pegawai Bomba (Firefighter/Crew)"),
+                    ("Pemandu", "Driver/Pump Operator"),
+                ],
+                help_text="Official Rank",
+                max_length=20,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='team',
-            field=models.CharField(blank=True, help_text='E.g. Alpha Squad, Truck 1 Crew', max_length=50, null=True),
+            model_name="userprofile",
+            name="team",
+            field=models.CharField(
+                blank=True,
+                help_text="E.g. Alpha Squad, Truck 1 Crew",
+                max_length=50,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='position',
-            field=models.CharField(blank=True, help_text='Specific role on the truck (e.g., Nozzleman)', max_length=100, null=True),
+            model_name="userprofile",
+            name="position",
+            field=models.CharField(
+                blank=True,
+                help_text="Specific role on the truck (e.g., Nozzleman)",
+                max_length=100,
+                null=True,
+            ),
         ),
     ]

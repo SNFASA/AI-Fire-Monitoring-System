@@ -8,67 +8,111 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensors', '0001_initial'),
+        ("sensors", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='report',
-            name='picture',
+            model_name="report",
+            name="picture",
         ),
         migrations.AddField(
-            model_name='report',
-            name='description',
-            field=models.TextField(blank=True, help_text="Firefighter's detailed report", null=True),
+            model_name="report",
+            name="description",
+            field=models.TextField(
+                blank=True, help_text="Firefighter's detailed report", null=True
+            ),
         ),
         migrations.AddField(
-            model_name='report',
-            name='status',
-            field=models.CharField(choices=[('System Detected', 'System Detected'), ('Confirmed', 'Confirmed Real Fire'), ('False Alarm', 'False Alarm'), ('Resolved', 'Resolved')], default='System Detected', max_length=20),
+            model_name="report",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("System Detected", "System Detected"),
+                    ("Confirmed", "Confirmed Real Fire"),
+                    ("False Alarm", "False Alarm"),
+                    ("Resolved", "Resolved"),
+                ],
+                default="System Detected",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='report',
-            name='trigger_gas_level',
-            field=models.IntegerField(blank=True, help_text='Combined Gas/Smoke level', null=True),
+            model_name="report",
+            name="trigger_gas_level",
+            field=models.IntegerField(
+                blank=True, help_text="Combined Gas/Smoke level", null=True
+            ),
         ),
         migrations.AddField(
-            model_name='report',
-            name='trigger_sensor',
-            field=models.ForeignKey(help_text='The sensor that first detected the fire', null=True, on_delete=django.db.models.deletion.SET_NULL, to='sensors.sensor'),
+            model_name="report",
+            name="trigger_sensor",
+            field=models.ForeignKey(
+                help_text="The sensor that first detected the fire",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="sensors.sensor",
+            ),
         ),
         migrations.AddField(
-            model_name='report',
-            name='trigger_temperature',
+            model_name="report",
+            name="trigger_temperature",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='cause',
+            model_name="report",
+            name="cause",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='fire_type',
+            model_name="report",
+            name="fire_type",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='in_charge',
-            field=models.ForeignKey(blank=True, limit_choices_to={'userprofile__role': 'firefighter'}, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="report",
+            name="in_charge",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"userprofile__role": "firefighter"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='station',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='sensors.firestation'),
+            model_name="report",
+            name="station",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="sensors.firestation",
+            ),
         ),
         migrations.CreateModel(
-            name='ReportImage',
+            name="ReportImage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(upload_to='reports/evidence/')),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('report', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='sensors.report')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("image", models.ImageField(upload_to="reports/evidence/")),
+                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "report",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="images",
+                        to="sensors.report",
+                    ),
+                ),
             ],
         ),
     ]

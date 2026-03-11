@@ -8,47 +8,68 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensors', '0011_alter_houselayout_image_alter_maintenance_status_and_more'),
+        ("sensors", "0011_alter_houselayout_image_alter_maintenance_status_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='report',
+            name="report",
             options={},
         ),
         migrations.RemoveField(
-            model_name='report',
-            name='trigger_temperature',
+            model_name="report",
+            name="trigger_temperature",
         ),
         migrations.AddField(
-            model_name='report',
-            name='mobilized_team',
-            field=models.ManyToManyField(blank=True, related_name='incident_reports', to='sensors.userprofile'),
+            model_name="report",
+            name="mobilized_team",
+            field=models.ManyToManyField(
+                blank=True, related_name="incident_reports", to="sensors.userprofile"
+            ),
         ),
         migrations.AddField(
-            model_name='report',
-            name='trigger_reading',
+            model_name="report",
+            name="trigger_reading",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='description',
+            model_name="report",
+            name="description",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='in_charge',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='led_reports', to=settings.AUTH_USER_MODEL),
+            model_name="report",
+            name="in_charge",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="led_reports",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='status',
-            field=models.CharField(choices=[('System Detected', 'System Detected'), ('Confirmed', 'Confirmed - Team Mobilized'), ('False Alarm', 'False Alarm'), ('Resolved', 'Resolved')], default='System Detected', max_length=50),
+            model_name="report",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("System Detected", "System Detected"),
+                    ("Confirmed", "Confirmed - Team Mobilized"),
+                    ("False Alarm", "False Alarm"),
+                    ("Resolved", "Resolved"),
+                ],
+                default="System Detected",
+                max_length=50,
+            ),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='trigger_sensor',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='sensors.sensor'),
+            model_name="report",
+            name="trigger_sensor",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="sensors.sensor",
+            ),
         ),
     ]

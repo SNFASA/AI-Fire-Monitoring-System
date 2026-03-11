@@ -22,8 +22,9 @@ SENSORS_CONFIG = [
     {"id": 76, "location": "Ruang Tamu"},
     {"id": 77, "location": "Bedroom1"},
     {"id": 78, "location": "Bedroom2"},
-    {"id": 79, "location": "Bedroom3"}
+    {"id": 79, "location": "Bedroom3"},
 ]
+
 
 class VirtualSensor:
     def __init__(self, sensor_id, location):
@@ -31,7 +32,7 @@ class VirtualSensor:
         self.location = location
         self.state = "Safe"
         self.fire_timer = 0
-        
+
         # Baselines
         self.temp = 28.0
         self.humidity = 60.0
@@ -39,7 +40,7 @@ class VirtualSensor:
         self.lpg = 300
         self.co = 80
         self.air_quality = 90
-        self.flame_val = 4095 
+        self.flame_val = 4095
 
     def update(self):
         # --- STATE LOGIC ---
@@ -52,7 +53,7 @@ class VirtualSensor:
         # Warning can turn into Fire
         elif self.state == "Warning":
             self.fire_timer -= 1
-            if random.randint(0, 100) > 80: # Chance to ignite
+            if random.randint(0, 100) > 80:  # Chance to ignite
                 self.state = "Fire"
                 self.fire_timer = 20
                 print(f"!!! [{self.location}] FIRE STARTED !!!")
@@ -68,32 +69,32 @@ class VirtualSensor:
         # --- DATA GENERATION ---
         if self.state == "Fire":
             # Fire Logic: Temp UP, Humidity DOWN, Gas UP
-            self.temp += random.uniform(1.5, 3.0) 
-            self.humidity -= random.uniform(2.0, 4.0) # <--- Humidity drops fast
+            self.temp += random.uniform(1.5, 3.0)
+            self.humidity -= random.uniform(2.0, 4.0)  # <--- Humidity drops fast
             self.methane = random.randint(800, 1500)
             self.co = random.randint(100, 300)
-            self.flame_val = random.randint(200, 600) 
-            
+            self.flame_val = random.randint(200, 600)
+
         elif self.state == "Warning":
             # Warning Logic: Temp slight UP, Humidity slight DOWN
-            self.methane = random.randint(800, 1200) 
+            self.methane = random.randint(800, 1200)
             self.lpg = random.randint(800, 1200)
             self.co = random.randint(150, 250)
-            self.temp += random.uniform(0.0, 0.2) 
-            self.humidity -= random.uniform(0.5, 1.0) # <--- Humidity drops slowly
-            self.flame_val = min(4095, self.flame_val + 50) 
+            self.temp += random.uniform(0.0, 0.2)
+            self.humidity -= random.uniform(0.5, 1.0)  # <--- Humidity drops slowly
+            self.flame_val = min(4095, self.flame_val + 50)
 
         else:
             # Safe Recovery Logic
             if self.temp > 28:
                 self.temp -= 0.5
-            
+
             # Recover Humidity back to 60%
-            if self.humidity < 60: 
+            if self.humidity < 60:
                 self.humidity += 0.5
             elif self.humidity > 60:
                 self.humidity -= 0.1
-                
+
             if self.methane > 300:
                 self.methane -= 50
             self.flame_val = min(4095, self.flame_val + 50)
@@ -118,14 +119,14 @@ class VirtualSensor:
 
 client = mqtt.Client()
 client.connect(BROKER, 1883, 60)
-sensors = [VirtualSensor(c['id'], c['location']) for c in SENSORS_CONFIG]
+sensors = [VirtualSensor(c["id"], c["location"]) for c in SENSORS_CONFIG]
 
 print("Simulating... (Ctrl+C to stop)")
 while True:
     for s in sensors:
         data = s.update()
         client.publish(TOPIC, json.dumps(data))
-        
+
         status_txt = "SAFE"
         if s.state == "Fire":
             status_txt = "FIRE"
@@ -137,5 +138,5 @@ while True:
             f"Temp:{data['dht22_temp']} | Hum:{data['humidity']}"
         )
         time.sleep(0.5)
-        
+
     time.sleep(1)
