@@ -1,0 +1,219 @@
+name: Django Ultimate CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+
+# -------------------------------
+# LINT + QUALITY CHECK
+# -------------------------------
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install flake8 black isort
+
+      - name: Run Flake8
+        run: flake8 .
+
+      - name: Run Black
+        run: black --check .
+
+      - name: Run isort
+        run: isort --check-only .
+
+# -------------------------------
+# SECURITY SCAN
+# -------------------------------
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: pip install bandit pip-audit
+
+      - name: Run Bandit
+        run: bandit -r .
+
+      - name: Dependency Audit
+        run: pip-audit
+
+# -------------------------------
+# CODEQL AI SECURITY SCAN
+# -------------------------------
+  codeql:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: python
+
+      - uses: github/codeql-action/autobuild@v3
+
+      - uses: github/codeql-action/analyze@v3
+
+# -------------------------------
+# TEST + COVERAGE
+# -------------------------------
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install coverage
+
+      - name: Run tests
+        env:
+          SECRET_KEY: test
+          DEBUG: True
+          DB_ENGINE: django.db.backends.postgresql
+          DB_NAME: test_db
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: localhost
+          DB_PORT: 5432
+        run: |
+          coverage run manage.py test
+          coverage report
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+
+# -------------------------------
+# STATIC ANALYSIS
+# -------------------------------
+  static-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: pip install pylint radon
+
+      - name: Run pylint
+        run: pylint core sensors ml_engine || true
+
+      - name: Complexity check
+        run: radon cc . -a
+
+# -------------------------------
+# DOCUMENTATION BUILD
+# -------------------------------
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Sphinx
+        run: pip install sphinx
+
+      - name: Build docs
+        run: |
+          sphinx-build -b html doc doc/_build
+
+# -------------------------------
+# LOAD TEST
+# -------------------------------
+  load-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Locust
+        run: pip install locust
+
+      - name: Run Load Test
+        run: |
+          locust -f simulator/load_test.py --headless -u 50 -r 10 -t 30s || true
+
+# -------------------------------
+# DATABASE SCHEMA DIAGRAM
+# -------------------------------
+  db-diagram:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install graph tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install graphviz
+          pip install django-extensions
+
+      - name: Generate ERD
+        run: |
+          python manage.py graph_models -a -o doc/db_schema.png
+
+# -------------------------------
+# ARCHITECTURE DIAGRAM
+# -------------------------------
+  architecture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install diagrams
+        run: |
+          pip install diagrams
+          sudo apt install graphviz
+
+      - name: Generate architecture
+        run: |
+          python scripts/architecture.py
+
+# -------------------------------
+# AI TEST GENERATION
+# -------------------------------
+  ai-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CodiumAI test analysis
+        uses: Codium-ai/pr-agent@main

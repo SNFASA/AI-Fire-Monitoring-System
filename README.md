@@ -63,6 +63,12 @@ Supervisor: [Dr. MOHD ZANES BIN SAHID]
 
 Institution: Universiti Tun Hussein Onn Malaysia (UTHM)
 
+![Build](https://github.com/USER/REPO/actions/workflows/django-ci.yml/badge.svg)
+
+![Coverage](https://img.shields.io/codecov/c/github/USER/REPO)
+
+![Security](https://img.shields.io/badge/security-passed-green)
+
 📫 Contact
 
 For inquiries or collaboration:
