@@ -86,7 +86,8 @@ class VirtualSensor:
 
         else:
             # Safe Recovery Logic
-            if self.temp > 28: self.temp -= 0.5
+            if self.temp > 28:
+                self.temp -= 0.5
             
             # Recover Humidity back to 60%
             if self.humidity < 60: 
@@ -94,7 +95,8 @@ class VirtualSensor:
             elif self.humidity > 60:
                 self.humidity -= 0.1
                 
-            if self.methane > 300: self.methane -= 50
+            if self.methane > 300:
+                self.methane -= 50
             self.flame_val = min(4095, self.flame_val + 50)
 
         # Clamp values to realistic ranges
@@ -113,6 +115,7 @@ class VirtualSensor:
             "dht22_temp": self.temp,
             "humidity": self.humidity,
         }
+
 
 client = mqtt.Client()
 client.connect(BROKER, 1883, 60)
@@ -135,4 +138,5 @@ while True:
             f"Temp:{data['dht22_temp']} | Hum:{data['humidity']}"
         )
         time.sleep(0.5)
+        
     time.sleep(1)
