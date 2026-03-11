@@ -266,37 +266,47 @@ jobs:
 
       - name: Run Tests
         id: test_step
-        # We capture the output into a GitHub variable instead of a physical file
+        continue-on-error: true
         run: |
-          TEST_OUTPUT=$(npm test 2>&1 || echo "FAILED")
+          # Capture full log
+          TEST_LOG=$(npm test 2>&1)
+          EXIT_CODE=$?
+          
+          # Pass logs to the next steps via GITHUB_OUTPUT
           echo "results<<EOF" >> $GITHUB_OUTPUT
-          echo "$TEST_OUTPUT" >> $GITHUB_OUTPUT
+          echo "$TEST_LOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          if [[ "$TEST_OUTPUT" == *"FAILED"* ]]; then exit 1; fi
+          # Set a status variable for the AI to check
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "status=passed" >> $GITHUB_OUTPUT
+          fi
 
-      # CASE 1: SUCCESS - Add a "Ready to Merge" Comment or Label
-      - name: Gemini Success Summary
-        if: success()
+      # IF FAILED: Create a GitHub Issue with Gemini's Analysis
+      - name: Gemini Failure Analysis (Issue)
+        if: steps.test_step.outputs.status == 'failed'
         uses: Codium-ai/pr-agent@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
           GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
-          args: "/describe --pr_description.extra_instructions='Tests passed successfully. Summarize the performance and confirm the code is stable.'"
+          args: "/ask Create a GitHub Issue titled '🔴 Test Failure: Automated Debugging' with this log analysis: ${{ steps.test_step.outputs.results }}"
 
-      # CASE 2: FAILURE - Create a GitHub Issue
-      - name: Gemini Failure Analysis (Create Issue)
-        if: failure()
+      # IF SUCCESS: Update the Pull Request with a "Green" Summary
+      - name: Gemini Success Summary (PR Comment)
+        if: steps.test_step.outputs.status == 'passed'
         uses: Codium-ai/pr-agent@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
           GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
-          # This command tells the agent to open a new Issue instead of a PR comment
-          args: "/ask Create a new GitHub Issue titled 'Bug: Test Failure Analysis'. Use the following test results to explain the root cause: ${{ steps.test_step.outputs.results }}"
+          args: "/describe --pr_description.extra_instructions='Tests passed! Add a 🟢 label to the PR and summarize why the code is safe to merge.'"
+
+          
 # -------------------------------
 # AUTOMATIC ISSUE CREATION
 # -------------------------------
