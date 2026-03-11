@@ -1,8 +1,7 @@
 import json
 import paho.mqtt.client as mqtt
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from sensors.models import Sensor, SensorDataLog, UserProfile
+from sensors.models import Sensor, SensorDataLog
 from ml_engine.predictor import FirePredictor
 from sensors.logger import add_log  # <--- CRITICAL IMPORT
 

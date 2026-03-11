@@ -6,7 +6,6 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied

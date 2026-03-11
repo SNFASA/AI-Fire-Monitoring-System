@@ -1,7 +1,6 @@
 import random
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from sensors.models import UserProfile, Sensor, SensorDataLog, Report, FireStation, Maintenance
 from sensors.tests.factories import (
     UserProfileFactory, SensorFactory, SensorDataLogFactory, 
     FireStationFactory, ReportFactory, ReportImageFactory

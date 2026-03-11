@@ -2,8 +2,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from django.forms import ModelForm
-from .models import UserProfile, Address, Houselayout, Sensor, SensorDataLog, Maintenance,MaintenanceImage, Report, FireStation
+from .models import UserProfile, Address, Houselayout, Sensor, Maintenance, Report
 
 class SignUpForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True)

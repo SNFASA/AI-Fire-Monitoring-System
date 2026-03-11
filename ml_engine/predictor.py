@@ -1,7 +1,6 @@
 import pickle
 import os
 import numpy as np
-import datetime
 # Import logging function to allow predictor to log decisions
 from sensors.logger import add_log 
 

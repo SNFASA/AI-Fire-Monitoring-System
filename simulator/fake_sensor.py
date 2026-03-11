@@ -1,7 +1,6 @@
 import time
 import json
 import random
-import sys
 import paho.mqtt.client as mqtt
 
 BROKER = "broker.emqx.io"

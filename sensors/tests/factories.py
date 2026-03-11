@@ -1,10 +1,9 @@
 import factory
-from django.utils import timezone
 from factory.django import DjangoModelFactory
 from django.contrib.auth.models import User
 from sensors.models import (
     UserProfile, Address, FireStation, Sensor, 
-    SensorDataLog, Report, ReportImage, Maintenance, Houselayout
+    SensorDataLog, Maintenance, Houselayout
 )
 
 class UserFactory(DjangoModelFactory):

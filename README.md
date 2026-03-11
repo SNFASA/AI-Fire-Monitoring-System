@@ -63,11 +63,11 @@ Supervisor: [Dr. MOHD ZANES BIN SAHID]
 
 Institution: Universiti Tun Hussein Onn Malaysia (UTHM)
 
-![Build](https://github.com/USER/REPO/actions/workflows/django-ci.yml/badge.svg)
+[![Django Ultimate CI](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions/workflows/django-ci.yml/badge.svg)](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions/workflows/django-ci.yml)
 
-![Coverage](https://img.shields.io/codecov/c/github/USER/REPO)
+[![codecov](https://codecov.io/gh/SNFASA/AI-Fire-Monitoring-System/branch/main/graph/badge.svg?token=YOUR_CODECOV_TOKEN)](https://codecov.io/gh/SNFASA/AI-Fire-Monitoring-System)
 
-![Security](https://img.shields.io/badge/security-passed-green)
+![Security Scan](https://img.shields.io/badge/Security-Bandit%20%7C%20Audit-blue)
 
 📫 Contact
 

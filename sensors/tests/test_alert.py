@@ -1,10 +1,10 @@
 from django.test import TestCase, Client
 from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
-from sensors.models import SensorDataLog, Report, DutyAssignment, FireStation, Sensor
+from sensors.models import Report, DutyAssignment, Sensor
 import json
 from unittest.mock import patch
-from .factories import UserProfileFactory, SensorFactory, FireStationFactory, AddressFactory
+from .factories import UserProfileFactory, FireStationFactory, AddressFactory
 
 class AlertSystemTest(TestCase):
     def setUp(self):

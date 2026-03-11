@@ -1,7 +1,5 @@
 import time
-import json
 import random
-import sys
 import requests # <--- The key difference (HTTP instead of MQTT)
 
 # CONFIGURATION
