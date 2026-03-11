@@ -28,7 +28,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("", include("sensors.urls", namespace="sensors")),
-    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path("login/", auth_views.LoginView.as_view(), name="login"),
     path("", views.dashboard, name="home"),
     path("favicon.ico", RedirectView.as_view(url="/static/images/favicon.png")),
 ]
