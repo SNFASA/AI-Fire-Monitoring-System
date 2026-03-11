@@ -1,0 +1,15 @@
+[run]
+source = sensors
+omit =
+    */migrations/*
+    manage.py
+    core/wsgi.py
+    core/asgi.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if settings.DEBUG:
+    raise AssertionError
+    raise NotImplementedError
+show_missing = True
