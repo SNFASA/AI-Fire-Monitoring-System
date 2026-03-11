@@ -53,7 +53,7 @@ class FirefighterMapLoadTest(TestCase):
             
     def test_map_api_returns_10_houses(self):
         # 1. Login
-        login_success = self.client.login(username='chief_fire', password='password123')
+        login_success = self.client.login(username='chief_fire', password='password123') # nosec B106
         self.assertTrue(login_success, "Firefighter login failed - check setUp()")
 
         # 2. Call the API

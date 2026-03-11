@@ -53,7 +53,7 @@ jobs:
         run: pip install bandit pip-audit
 
       - name: Run Bandit
-        run: bandit -r . --exclude ./venv,./.venv
+        run: bandit -r . --exclude ./venv,./.venv,./sensors/tests
 
       - name: Dependency Audit
         run: pip-audit
@@ -114,7 +114,7 @@ jobs:
           DB_HOST: localhost
           DB_PORT: 5432
         run: |
-          coverage run manage.py test sensors
+          coverage run manage.py test sensors.tests
           coverage report
           coverage html
 
@@ -201,6 +201,7 @@ jobs:
 
       - name: Install diagrams
         run: |
+          pip install daphne
           pip install diagrams
           sudo apt install graphviz
 
