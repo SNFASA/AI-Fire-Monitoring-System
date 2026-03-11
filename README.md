@@ -1,4 +1,14 @@
-🔥 AI Fire Monitoring System 
+# AI Fire Monitoring System 🛰️🔥
+
+[![Django Ultimate CI](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions/workflows/django-ci.yml/badge.svg)](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions/workflows/django-ci.yml)
+[![codecov](https://codecov.io/gh/SNFASA/AI-Fire-Monitoring-System/branch/main/graph/badge.svg)](https://codecov.io/gh/SNFASA/AI-Fire-Monitoring-System)
+[![Maintainability](https://img.shields.io/badge/Maintainability-Radon%20A-brightgreen)](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions)
+
+[![Security: Bandit](https://img.shields.io/badge/Security-Bandit-yellow.svg)](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions)
+[![Dependency Audit](https://img.shields.io/badge/Dependencies-pip--audit-blue)](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+----
 
 An AI-powered IoT-based fire detection and monitoring system that provides real-time alerts, data analytics, and automated reporting to improve fire safety and emergency response efficiency.
 
@@ -62,12 +72,7 @@ Project Leader: [SNFASE]
 Supervisor: [Dr. MOHD ZANES BIN SAHID]
 
 Institution: Universiti Tun Hussein Onn Malaysia (UTHM)
-
-[![Django Ultimate CI](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions/workflows/django-ci.yml/badge.svg)](https://github.com/SNFASA/AI-Fire-Monitoring-System/actions/workflows/django-ci.yml)
-
-[![codecov](https://codecov.io/gh/SNFASA/AI-Fire-Monitoring-System/branch/main/graph/badge.svg?token=YOUR_CODECOV_TOKEN)](https://codecov.io/gh/SNFASA/AI-Fire-Monitoring-System)
-
-![Security Scan](https://img.shields.io/badge/Security-Bandit%20%7C%20Audit-blue)
+---
 
 📫 Contact
 
