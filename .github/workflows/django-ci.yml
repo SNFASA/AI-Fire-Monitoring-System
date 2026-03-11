@@ -130,7 +130,7 @@ jobs:
           slug: SNFASA/AI-Fire-Monitoring-System
           fail_ci_if_error: false
       - name: Upload Coverage Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-html
           path: htmlcov/
@@ -181,7 +181,7 @@ jobs:
 
       - name: Upload Sphinx Docs
         if: always() # Upload even if it partially failed so you can see the error logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: html-documentation
           path: doc/_build/
@@ -225,7 +225,7 @@ jobs:
           python manage.py graph_models -a -o doc/db_schema.png
 
       - name: Upload ERD Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: database-schema
           path: doc/db_schema.png
@@ -248,7 +248,7 @@ jobs:
         run: |
           python scripts/architecture.py
       - name: Upload Architecture
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: architecture-diagram
           path: ./*.png
