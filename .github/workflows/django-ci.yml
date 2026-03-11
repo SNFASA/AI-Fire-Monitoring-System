@@ -262,18 +262,41 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v6
-      - name: Gemini AI Analysis
+      - uses: actions/checkout@v4
+
+      - name: Run Tests
+        id: test_step
+        # We capture the output into a GitHub variable instead of a physical file
+        run: |
+          TEST_OUTPUT=$(npm test 2>&1 || echo "FAILED")
+          echo "results<<EOF" >> $GITHUB_OUTPUT
+          echo "$TEST_OUTPUT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          if [[ "$TEST_OUTPUT" == *"FAILED"* ]]; then exit 1; fi
+
+      # CASE 1: SUCCESS - Add a "Ready to Merge" Comment or Label
+      - name: Gemini Success Summary
+        if: success()
         uses: Codium-ai/pr-agent@main
         env:
-          # Required for GitHub API access
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-          # Tell PR-Agent to use Gemini instead of OpenAI
-          config.model: "gemini/gemini-1.5-flash"
-          
-          # Provide your Gemini API Key
+          PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
           GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          args: "/describe --pr_description.extra_instructions='Tests passed successfully. Summarize the performance and confirm the code is stable.'"
+
+      # CASE 2: FAILURE - Create a GitHub Issue
+      - name: Gemini Failure Analysis (Create Issue)
+        if: failure()
+        uses: Codium-ai/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          # This command tells the agent to open a new Issue instead of a PR comment
+          args: "/ask Create a new GitHub Issue titled 'Bug: Test Failure Analysis'. Use the following test results to explain the root cause: ${{ steps.test_step.outputs.results }}"
 # -------------------------------
 # AUTOMATIC ISSUE CREATION
 # -------------------------------
