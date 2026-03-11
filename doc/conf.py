@@ -36,11 +36,11 @@ html_theme = "sphinx_rtd_theme"
 
 # Add these options for a better user experience
 html_theme_options = {
-    'navigation_depth': 4,
-    'collapse_navigation': False,
-    'sticky_navigation': True,
-    'includehidden': True,
-    'titles_only': False
+    "navigation_depth": 4,
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+    "includehidden": True,
+    "titles_only": False,
 }
 html_static_path = ["_static"]
 html_last_updated_fmt = "%b %d, %Y"
