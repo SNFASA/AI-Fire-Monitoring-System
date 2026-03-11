@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="7" failures="0" skipped="0" tests="7" time="4.769" timestamp="2026-03-11T23:38:49.433243+08:00" hostname="MSI"><testcase classname="" name="sensors.tests.test_alert" file="sensors/tests/test_alert.py" time="0.000"><error message="collection failure">sensors\tests\test_alert.py:4: in &lt;module&gt;
+    from sensors.models import Report, DutyAssignment, Sensor
+sensors\models.py:2: in &lt;module&gt;
+    from django.contrib.auth.models import User
+.venv\Lib\site-packages\django\contrib\auth\models.py:3: in &lt;module&gt;
+    from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+.venv\Lib\site-packages\django\contrib\auth\base_user.py:57: in &lt;module&gt;
+    class AbstractBaseUser(models.Model):
+.venv\Lib\site-packages\django\db\models\base.py:129: in __new__
+    app_config = apps.get_containing_app_config(module)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\apps\registry.py:260: in get_containing_app_config
+    self.check_apps_ready()
+.venv\Lib\site-packages\django\apps\registry.py:137: in check_apps_ready
+    settings.INSTALLED_APPS
+.venv\Lib\site-packages\django\conf\__init__.py:102: in __getattr__
+    self._setup(name)
+.venv\Lib\site-packages\django\conf\__init__.py:82: in _setup
+    raise ImproperlyConfigured(
+E   django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.</error></testcase><testcase classname="" name="sensors.tests.test_auth" file="sensors/tests/test_auth.py" time="0.000"><error message="collection failure">sensors\tests\test_auth.py:3: in &lt;module&gt;
+    from .factories import UserFactory
+sensors\tests\factories.py:3: in &lt;module&gt;
+    from django.contrib.auth.models import User
+.venv\Lib\site-packages\django\contrib\auth\models.py:3: in &lt;module&gt;
+    from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+.venv\Lib\site-packages\django\contrib\auth\base_user.py:57: in &lt;module&gt;
+    class AbstractBaseUser(models.Model):
+.venv\Lib\site-packages\django\db\models\base.py:129: in __new__
+    app_config = apps.get_containing_app_config(module)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\apps\registry.py:260: in get_containing_app_config
+    self.check_apps_ready()
+.venv\Lib\site-packages\django\apps\registry.py:137: in check_apps_ready
+    settings.INSTALLED_APPS
+.venv\Lib\site-packages\django\conf\__init__.py:102: in __getattr__
+    self._setup(name)
+.venv\Lib\site-packages\django\conf\__init__.py:82: in _setup
+    raise ImproperlyConfigured(
+E   django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.</error></testcase><testcase classname="" name="sensors.tests.test_layout" file="sensors/tests/test_layout.py" time="0.000"><error message="collection failure">sensors\tests\test_layout.py:5: in &lt;module&gt;
+    from sensors.models import Sensor, Houselayout
+sensors\models.py:2: in &lt;module&gt;
+    from django.contrib.auth.models import User
+.venv\Lib\site-packages\django\contrib\auth\models.py:3: in &lt;module&gt;
+    from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+.venv\Lib\site-packages\django\contrib\auth\base_user.py:57: in &lt;module&gt;
+    class AbstractBaseUser(models.Model):
+.venv\Lib\site-packages\django\db\models\base.py:129: in __new__
+    app_config = apps.get_containing_app_config(module)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\apps\registry.py:260: in get_containing_app_config
+    self.check_apps_ready()
+.venv\Lib\site-packages\django\apps\registry.py:137: in check_apps_ready
+    settings.INSTALLED_APPS
+.venv\Lib\site-packages\django\conf\__init__.py:102: in __getattr__
+    self._setup(name)
+.venv\Lib\site-packages\django\conf\__init__.py:82: in _setup
+    raise ImproperlyConfigured(
+E   django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.</error></testcase><testcase classname="" name="sensors.tests.test_maintenance" file="sensors/tests/test_maintenance.py" time="0.000"><error message="collection failure">sensors\tests\test_maintenance.py:5: in &lt;module&gt;
+    from sensors.models import Maintenance
+sensors\models.py:2: in &lt;module&gt;
+    from django.contrib.auth.models import User
+.venv\Lib\site-packages\django\contrib\auth\models.py:3: in &lt;module&gt;
+    from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+.venv\Lib\site-packages\django\contrib\auth\base_user.py:57: in &lt;module&gt;
+    class AbstractBaseUser(models.Model):
+.venv\Lib\site-packages\django\db\models\base.py:129: in __new__
+    app_config = apps.get_containing_app_config(module)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\apps\registry.py:260: in get_containing_app_config
+    self.check_apps_ready()
+.venv\Lib\site-packages\django\apps\registry.py:137: in check_apps_ready
+    settings.INSTALLED_APPS
+.venv\Lib\site-packages\django\conf\__init__.py:102: in __getattr__
+    self._setup(name)
+.venv\Lib\site-packages\django\conf\__init__.py:82: in _setup
+    raise ImproperlyConfigured(
+E   django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.</error></testcase><testcase classname="" name="sensors.tests.test_maps" file="sensors/tests/test_maps.py" time="0.000"><error message="collection failure">sensors\tests\test_maps.py:5: in &lt;module&gt;
+    from .factories import (
+sensors\tests\factories.py:3: in &lt;module&gt;
+    from django.contrib.auth.models import User
+.venv\Lib\site-packages\django\contrib\auth\models.py:3: in &lt;module&gt;
+    from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+.venv\Lib\site-packages\django\contrib\auth\base_user.py:57: in &lt;module&gt;
+    class AbstractBaseUser(models.Model):
+.venv\Lib\site-packages\django\db\models\base.py:129: in __new__
+    app_config = apps.get_containing_app_config(module)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\apps\registry.py:260: in get_containing_app_config
+    self.check_apps_ready()
+.venv\Lib\site-packages\django\apps\registry.py:137: in check_apps_ready
+    settings.INSTALLED_APPS
+.venv\Lib\site-packages\django\conf\__init__.py:102: in __getattr__
+    self._setup(name)
+.venv\Lib\site-packages\django\conf\__init__.py:82: in _setup
+    raise ImproperlyConfigured(
+E   django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.</error></testcase><testcase classname="" name="sensors.tests.test_password" file="sensors/tests/test_password.py" time="0.000"><error message="collection failure">sensors\tests\test_password.py:3: in &lt;module&gt;
+    from .factories import UserFactory
+sensors\tests\factories.py:3: in &lt;module&gt;
+    from django.contrib.auth.models import User
+.venv\Lib\site-packages\django\contrib\auth\models.py:3: in &lt;module&gt;
+    from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+.venv\Lib\site-packages\django\contrib\auth\base_user.py:57: in &lt;module&gt;
+    class AbstractBaseUser(models.Model):
+.venv\Lib\site-packages\django\db\models\base.py:129: in __new__
+    app_config = apps.get_containing_app_config(module)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\apps\registry.py:260: in get_containing_app_config
+    self.check_apps_ready()
+.venv\Lib\site-packages\django\apps\registry.py:137: in check_apps_ready
+    settings.INSTALLED_APPS
+.venv\Lib\site-packages\django\conf\__init__.py:102: in __getattr__
+    self._setup(name)
+.venv\Lib\site-packages\django\conf\__init__.py:82: in _setup
+    raise ImproperlyConfigured(
+E   django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.</error></testcase><testcase classname="" name="sensors.tests.test_profile" file="sensors/tests/test_profile.py" time="0.000"><error message="collection failure">sensors\tests\test_profile.py:3: in &lt;module&gt;
+    from sensors.models import UserProfile
+sensors\models.py:2: in &lt;module&gt;
+    from django.contrib.auth.models import User
+.venv\Lib\site-packages\django\contrib\auth\models.py:3: in &lt;module&gt;
+    from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+.venv\Lib\site-packages\django\contrib\auth\base_user.py:57: in &lt;module&gt;
+    class AbstractBaseUser(models.Model):
+.venv\Lib\site-packages\django\db\models\base.py:129: in __new__
+    app_config = apps.get_containing_app_config(module)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\apps\registry.py:260: in get_containing_app_config
+    self.check_apps_ready()
+.venv\Lib\site-packages\django\apps\registry.py:137: in check_apps_ready
+    settings.INSTALLED_APPS
+.venv\Lib\site-packages\django\conf\__init__.py:102: in __getattr__
+    self._setup(name)
+.venv\Lib\site-packages\django\conf\__init__.py:82: in _setup
+    raise ImproperlyConfigured(
+E   django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing settings.</error></testcase></testsuite></testsuites>

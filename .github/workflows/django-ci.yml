@@ -10,6 +10,8 @@ permissions:
   contents: read
   security-events: write
   actions: read
+  issues: write
+  pull-requests: write
 
 jobs:
 
@@ -39,16 +41,26 @@ jobs:
 # -------------------------------
   security:
     runs-on: ubuntu-latest
+    outputs:
+      high_count: ${{ steps.bandit_stats.outputs.high }}
     steps:
       - uses: actions/checkout@v5
-      - name: Install tools
-        run: pip install bandit pip-audit
-      - name: Run Bandit
-        # Added '|| true' so the workflow continues even with security findings
-        # Remove '|| true' once you have fixed the 31 High issues
-        run: bandit -r . --exclude ./venv,./.venv,./sensors/tests || true
-      - name: Dependency Audit
-        run: pip-audit || true
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit Scan
+        id: run_bandit
+        # We save the report to JSON so we can parse the numbers
+        run: bandit -r . -f json -o bandit_report.json || true
+
+      - name: Parse Bandit Stats
+        id: bandit_stats
+        run: |
+          # This pulls the 'HIGH' count from the JSON results
+          HIGH_FINDINGS=$(jq '.metrics._total.HIGH' bandit_report.json)
+          echo "high=$HIGH_FINDINGS" >> $GITHUB_OUTPUT
+          echo "Detected $HIGH_FINDINGS high-severity issues."
 # -------------------------------
 # TEST + COVERAGE
 # -------------------------------
@@ -100,6 +112,14 @@ jobs:
         with:
           name: coverage-html
           path: htmlcov/
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: SNFASA/AI-Fire-Monitoring-System
+
 
 # -------------------------------
 # STATIC ANALYSIS
@@ -232,3 +252,40 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CODIUMAI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# -------------------------------
+# AUTOMATIC ISSUE CREATION
+# -------------------------------
+  create-issue-on-failure:
+    runs-on: ubuntu-latest
+    # This job only runs if any of the specified jobs fail
+    if: failure()
+    needs: [lint, security, tests, static-analysis, docs, db-diagram, architecture, load-test]
+    
+    steps:
+      - name: Create GitHub Issue
+        uses: imjohnbo/issue-bot@v3
+        with:
+          assignees: SNFASA
+          labels: bug, automated-issue
+          title: "CI/CD Pipeline Failed: ${{ github.run_id }}"
+          body: |
+            ## ❌ Build Failure Detected
+            
+            The latest CI/CD run for the **AI Fire Monitoring System** has failed.
+            
+            **Workflow details:**
+            - **Commit:** ${{ github.sha }}
+            - **Branch:** ${{ github.ref_name }}
+            - **Triggered by:** ${{ github.actor }}
+            - **Logs:** [View full workflow log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            ### 📝 Checklist for Fixes:
+            - [ ] Check **Lint** for formatting errors (Run `black .` locally).
+            - [ ] Check **Security** for the **${{ needs.security.outputs.high_count }}** High findings.
+            - [ ] Check **Tests** for logic breakages in `sensors/tests`.
+            - [ ] Check **Docs** if the Sphinx build crashed.
+            
+            _This issue was generated automatically by the Django Ultimate CI pipeline._
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

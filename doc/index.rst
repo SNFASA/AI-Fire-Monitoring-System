@@ -6,16 +6,19 @@
 ai-fire-monitoring-system documentation
 =======================================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
-.. automodule:: ml_engine.predictor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+ML Engine
+---------
+.. automodule:: ml_engine.predictor
+   :members:
+
+Sensors Logic
+-------------
+.. automodule:: sensors.models
+   :members:
+
+.. automodule:: sensors.views
+   :members:

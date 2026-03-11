@@ -1,9 +1,3 @@
-# Configuration file for the Sphinx documentation builder.
-#
-# For the full list of built-in configuration values, see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
-
-
 import os
 import sys
 import django
@@ -17,30 +11,24 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'core.settings'
 # 3. Initialize Django so Sphinx can import models
 django.setup()
 
-# 4. Add the 'autodoc' extension to the extensions list
-extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon', # Supports Google/NumPy style docstrings
-    'sphinx.ext.viewcode', # Adds links to your source code
-]
-
 # -- Project information -----------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 project = "ai-fire-monitoring-system"
 copyright = "2026, SYED NABIL AFIFI BIN SYED AZIMAN"
 author = "SYED NABIL AFIFI BIN SYED AZIMAN"
 
 # -- General configuration ---------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-
-extensions = []
+# Put ALL extensions in one list here
+extensions = [
+    'sphinx.ext.autodoc',   # Reads your code
+    'sphinx.ext.napoleon',  # Supports clean docstrings
+    'sphinx.ext.viewcode',  # Shows source code in docs
+    'sphinx.ext.githubpages',
+]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-
 # -- Options for HTML output -------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
-html_theme = "alabaster"
+# Consider changing "alabaster" to "sphinx_rtd_theme" for a more professional look
+html_theme = "alabaster" 
 html_static_path = ["_static"]
