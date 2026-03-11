@@ -1,24 +1,37 @@
-.. ai-fire-monitoring-system documentation master file, created by
-   sphinx-quickstart on Wed Mar 11 21:09:05 2026.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+AI Fire Monitoring System
+=========================
 
-ai-fire-monitoring-system documentation
-=======================================
+.. image:: ../doc/db_schema.png
+   :width: 600
+   :alt: System ERD
+   :align: center
+
+Welcome to the official documentation for the **AI Fire Monitoring System**. 
+This project integrates IOT sensors with Machine Learning to predict and monitor fire hazards in real-time.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: 🚀 Project Overview
+   
+   introduction
+   architecture
 
-ML Engine
----------
-.. automodule:: ml_engine.predictor
-   :members:
+.. toctree::
+   :maxdepth: 2
+   :caption: 🧠 AI & ML Engine
+   
+   ml_engine/predictor
+   ml_engine/train_model
 
-Sensors Logic
--------------
-.. automodule:: sensors.models
-   :members:
+.. toctree::
+   :maxdepth: 2
+   :caption: 🛰️ Sensor System
+   
+   sensors/models
+   sensors/views
 
-.. automodule:: sensors.views
-   :members:
+Indices and tables
+==================
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

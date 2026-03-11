@@ -14,7 +14,29 @@ permissions:
   issues: write 
 
 jobs:
-
+# -------------------------------
+# BUILD PROVENANCE (Security)
+# -------------------------------
+  attest-build-provenance:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write      # Required for OIDC token
+      attestations: write  # Required to write the attestation
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: "AI-Fire-Monitoring-System"
+          # Since you aren't building a Docker image or a .whl file yet, 
+          # we typically point to the source code or a specific diagram.
+          subject-path: "manage.py"
 # -------------------------------
 # LINT + QUALITY CHECK
 # -------------------------------
@@ -139,15 +161,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+
       - name: Install dependencies
         run: |
+          # We need your app's dependencies so Sphinx can 'import' the code to read docstrings
           pip install -r requirements.txt
-          pip install sphinx sphinx-rtd-theme
+          pip install sphinx sphinx-rtd-theme sphinx-copybutton
+
       - name: Build docs
-        run: sphinx-build -b html doc doc/_build
+        run: |
+          # 1. Create the build directory if it doesn't exist
+          mkdir -p doc/_build
+          # 2. Run sphinx-build with the -W flag (treat warnings as errors) 
+          # and -v (verbose) to see EXACTLY why it might be skipping files
+          sphinx-build -v -b html doc doc/_build
+
+      - name: Upload Sphinx Docs
+        if: always() # Upload even if it partially failed so you can see the error logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-documentation
+          path: doc/_build/
 # -------------------------------
 # LOAD TEST
 # -------------------------------
@@ -244,7 +282,7 @@ jobs:
     runs-on: ubuntu-latest
     # This job only runs if any of the specified jobs fail
     if: failure()
-    needs: [lint, security, tests, static-analysis, docs, db-diagram, architecture, load-test]
+    needs: [lint, security, tests, static-analysis, docs, db-diagram, architecture, load-test, attest-build-provenance, ai-tests]
     
     steps:
       - name: Create GitHub Issue
@@ -269,7 +307,8 @@ jobs:
             - [ ] Check **Security** for the **${{ needs.security.outputs.high_count }}** High findings.
             - [ ] Check **Tests** for logic breakages in `sensors/tests`.
             - [ ] Check **Docs** if the Sphinx build crashed.
-            
+            - [ ] Check **Build Provenance** for any issues with the attestation.
+            - [ ] Check **AI Tests** for any issues with the generated tests.
             _This issue was generated automatically by the Django Ultimate CI pipeline._
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
