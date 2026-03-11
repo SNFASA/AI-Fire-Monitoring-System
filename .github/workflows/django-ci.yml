@@ -11,6 +11,7 @@ permissions:
   contents: read
   security-events: write
   actions: read
+  issues: write 
 
 jobs:
 
@@ -135,21 +136,17 @@ jobs:
 # -------------------------------
   docs:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v5
-
-      - name: Install Sphinx
-        run: pip install sphinx
-
-      - name: Build docs
-        run: |
-          sphinx-build -b html doc doc/_build
-      - name: Upload Sphinx Docs
-        uses: actions/upload-artifact@v4
+      - uses: actions/setup-python@v6
         with:
-          name: html-documentation
-          path: doc/_build/
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install sphinx sphinx-rtd-theme
+      - name: Build docs
+        run: sphinx-build -b html doc doc/_build
 # -------------------------------
 # LOAD TEST
 # -------------------------------
