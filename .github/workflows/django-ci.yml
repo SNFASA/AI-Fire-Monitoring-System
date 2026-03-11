@@ -1,3 +1,4 @@
+
 name: Django Ultimate CI
 
 on:
@@ -7,12 +8,13 @@ on:
     branches: ["main"]
 
 permissions:
-  contents: write
+  contents: read
   security-events: write
   actions: read
   issues: write 
 
 jobs:
+
 # -------------------------------
 # LINT + QUALITY CHECK
 # -------------------------------
@@ -27,10 +29,11 @@ jobs:
         run: pip install flake8 black isort autoflake
       
       - name: Run Black Check
-        # Exclude migrations because they are auto-generated
-        run: black --check . --exclude migrations || true
+        run: black --check .
         
       - name: Run Flake8
+        # It will now automatically use your .flake8 config file
+        # We add '|| true' temporarily if you want to see the build pass while you fix the rest
         run: flake8 . || true
 
 # -------------------------------
@@ -42,18 +45,22 @@ jobs:
       high_count: ${{ steps.bandit_stats.outputs.high }}
     steps:
       - uses: actions/checkout@v5
+      
       - name: Install Bandit
         run: pip install bandit
+        
       - name: Run Bandit Scan
         id: run_bandit
-        run: |
-          bandit -r . -f json -o bandit_report.json --exclude ./venv,./.venv,./sensors/tests || true
+        # We save the report to JSON so we can parse the numbers
+        run: bandit -r . -f json -o bandit_report.json || true
+        
       - name: Parse Bandit Stats
         id: bandit_stats
         run: |
+          # This pulls the 'HIGH' count from the JSON results
           HIGH_FINDINGS=$(jq '.metrics._total.HIGH' bandit_report.json)
           echo "high=$HIGH_FINDINGS" >> $GITHUB_OUTPUT
-
+          echo "Detected $HIGH_FINDINGS high-severity issues."
 # -------------------------------
 # TEST + COVERAGE
 # -------------------------------
@@ -108,6 +115,85 @@ jobs:
           path: htmlcov/
 
 # -------------------------------
+# STATIC ANALYSIS
+# -------------------------------
+  static-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install tools
+        run: pip install pylint radon
+
+      - name: Run pylint
+        run: pylint core sensors ml_engine || true
+
+      - name: Complexity check
+        run: radon cc . -a
+
+# -------------------------------
+# DOCUMENTATION BUILD
+# -------------------------------
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install sphinx sphinx-rtd-theme
+      - name: Build docs
+        run: sphinx-build -b html doc doc/_build
+# -------------------------------
+# LOAD TEST
+# -------------------------------
+  load-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Locust
+        run: pip install locust zope.event
+      - name: Run Load Test
+        run: |
+          locust -f simulator/load_test.py --headless -u 50 -r 10 -t 30s || true
+
+# -------------------------------
+# DATABASE SCHEMA DIAGRAM
+# -------------------------------
+  db-diagram:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz graphviz-dev
+          pip install -r requirements.txt
+          pip install django-extensions pygraphviz
+
+      - name: Generate ERD
+        run: |
+          # We use --stale to ignore minor configuration issues if necessary
+          python manage.py graph_models -a -o doc/db_schema.png
+
+      - name: Upload ERD Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-schema
+          path: doc/db_schema.png
+
+# -------------------------------
 # ARCHITECTURE DIAGRAM
 # -------------------------------
   architecture:
@@ -117,29 +203,49 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Install system dependencies
+      - name: Install diagrams
         run: |
-          sudo apt-get update
-          sudo apt-get install -y graphviz
-      - name: Install python tools
-        run: pip install daphne diagrams
+          pip install daphne diagrams
+          sudo apt install -y graphviz
       - name: Generate architecture
-        run: python scripts/architecture.py
+        run: |
+          python scripts/architecture.py
       - name: Upload Architecture
         uses: actions/upload-artifact@v4
         with:
           name: architecture-diagram
           path: ./*.png
-
+# -------------------------------
+# AI TEST GENERATION
+# -------------------------------
+  ai-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Gemini AI Analysis
+        uses: Codium-ai/pr-agent@main
+        env:
+          # Required for GitHub API access
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Tell PR-Agent to use Gemini instead of OpenAI
+          config.model: "gemini/gemini-1.5-flash"
+          
+          # Provide your Gemini API Key
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 # -------------------------------
 # AUTOMATIC ISSUE CREATION
 # -------------------------------
   create-issue-on-failure:
     runs-on: ubuntu-latest
+    # This job only runs if any of the specified jobs fail
     if: failure()
-    needs: [lint, security, tests, architecture]
-    permissions:
-      issues: write
+    needs: [lint, security, tests, static-analysis, docs, db-diagram, architecture, load-test]
+    
     steps:
       - name: Create GitHub Issue
         uses: imjohnbo/issue-bot@v3
@@ -150,15 +256,20 @@ jobs:
           body: |
             ## ❌ Build Failure Detected
             
-            **Current High-Severity Findings:** ${{ needs.security.outputs.high_count || 'Unknown' }}
+            The latest CI/CD run for the **AI Fire Monitoring System** has failed.
             
             **Workflow details:**
             - **Commit:** ${{ github.sha }}
+            - **Branch:** ${{ github.ref_name }}
+            - **Triggered by:** ${{ github.actor }}
             - **Logs:** [View full workflow log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
-            ### 📝 Fix Checklist:
-            - [ ] Run `black .` to fix formatting.
-            - [ ] Review the **Security Scan** job for the ${{ needs.security.outputs.high_count }} vulnerabilities.
-            - [ ] Check **architecture** job if `graphviz` crashed.
+            ### 📝 Checklist for Fixes:
+            - [ ] Check **Lint** for formatting errors (Run `black .` locally).
+            - [ ] Check **Security** for the **${{ needs.security.outputs.high_count }}** High findings.
+            - [ ] Check **Tests** for logic breakages in `sensors/tests`.
+            - [ ] Check **Docs** if the Sphinx build crashed.
+            
+            _This issue was generated automatically by the Django Ultimate CI pipeline._
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
