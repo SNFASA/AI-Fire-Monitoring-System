@@ -262,13 +262,27 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Specify your version (18, 20, 22, etc.)
+          cache: 'npm'       # This automatically caches your ~/.npm folder
+
+      - name: Install dependencies
+        run: npm ci          # 'npm ci' is faster and cleaner for CI/CD than 'npm install'
 
       - name: Run Tests
         id: test_step
-        continue-on-error: true
+        # continue-on-error ensures the workflow doesn't mark the whole job as "red" 
+        # until the AI has a chance to analyze it.
+        continue-on-error: true 
         run: |
-          # Capture full log
+          set +e  # Disable "exit on error"
+          
+          echo "Running tests..."
           TEST_LOG=$(npm test 2>&1)
           EXIT_CODE=$?
           
@@ -280,32 +294,13 @@ jobs:
           # Set a status variable for the AI to check
           if [ $EXIT_CODE -ne 0 ]; then
             echo "status=failed" >> $GITHUB_OUTPUT
+            echo "Test failed with exit code $EXIT_CODE"
           else
             echo "status=passed" >> $GITHUB_OUTPUT
+            echo "Test passed!"
           fi
-
-      # IF FAILED: Create a GitHub Issue with Gemini's Analysis
-      - name: Gemini Failure Analysis (Issue)
-        if: steps.test_step.outputs.status == 'failed'
-        uses: Codium-ai/pr-agent@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
-          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        with:
-          args: "/ask Create a GitHub Issue titled '🔴 Test Failure: Automated Debugging' with this log analysis: ${{ steps.test_step.outputs.results }}"
-
-      # IF SUCCESS: Update the Pull Request with a "Green" Summary
-      - name: Gemini Success Summary (PR Comment)
-        if: steps.test_step.outputs.status == 'passed'
-        uses: Codium-ai/pr-agent@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
-          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        with:
-          args: "/describe --pr_description.extra_instructions='Tests passed! Add a 🟢 label to the PR and summarize why the code is safe to merge.'"
-
+          
+          set -e  # Re-enable "exit on error"
           
 # -------------------------------
 # AUTOMATIC ISSUE CREATION
