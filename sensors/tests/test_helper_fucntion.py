@@ -7,6 +7,7 @@ from sensors.models import Sensor, SensorDataLog, UserProfile
 from sensors.views import get_sensor_status, get_live_logs, test_log
 from django.contrib.auth.models import User
 
+
 class GetSensorStatusTestCase(TestCase):
     """Tests for get_sensor_status helper function"""
 
@@ -26,14 +27,13 @@ class GetSensorStatusTestCase(TestCase):
             status=status,
             timestamp=timestamp,
             methane=methane,
-            
             # Simulator Baselines:
             lpg=300.0,
             co=80.0,
             air_quality=90.0,
             flame_val=4095.0,
             dht22_temp=28.0,  # <-- Change this to 'temperature=28.0' or 'temp=28.0' if needed!
-            humidity=60.0
+            humidity=60.0,
         )
 
     # ==========================================
@@ -47,7 +47,8 @@ class GetSensorStatusTestCase(TestCase):
     def test_offline_stale_data(self):
         """Sensor with data older than 5 minutes should return Offline"""
         old_time = timezone.now() - timedelta(minutes=6)
-        self.create_dummy_log(status="Safe", timestamp=old_time)
+        log = self.create_dummy_log(status="Safe", timestamp=old_time)
+        SensorDataLog.objects.filter(id=log.id).update(timestamp=old_time)
         status = get_sensor_status(self.sensor)
         self.assertEqual(status, "Offline")
 
