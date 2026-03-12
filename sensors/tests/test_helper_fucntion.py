@@ -7,6 +7,7 @@ from sensors.models import Sensor, SensorDataLog, UserProfile
 from sensors.views import get_sensor_status, get_live_logs, test_log
 from django.contrib.auth.models import User
 
+
 class GetSensorStatusTestCase(TestCase):
     """Tests for get_sensor_status helper function"""
 
@@ -26,14 +27,13 @@ class GetSensorStatusTestCase(TestCase):
             status=status,
             timestamp=timestamp,
             methane=methane,
-            
             # Simulator Baselines:
             lpg=300.0,
             co=80.0,
             air_quality=90.0,
             flame_val=4095.0,
             dht22_temp=28.0,  # <-- Change this to 'temperature=28.0' or 'temp=28.0' if needed!
-            humidity=60.0
+            humidity=60.0,
         )
 
     # ==========================================
