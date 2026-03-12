@@ -298,7 +298,19 @@ jobs:
           fi
           set -e
 
-      # IF TESTS FAIL: Gemini creates a GitHub Issue
+      - name: Gemini Advanced Django Tests
+        if: steps.test_step.outputs.status == 'failed'
+        uses: Codium-ai/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONFIG.MODEL: "gemini/gemini-1.5-flash"
+          PR_AGENT.CONFIG.AI_PROVIDER: "google"
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          # This tells the AI to specifically generate Django-style tests
+          args: "/test --pr_test.extra_instructions='Generate high-quality Django TestCase classes. Focus on database transaction integrity and view-level security.'"
+      
+          # IF TESTS FAIL: Gemini creates a GitHub Issue
       - name: Gemini Failure Analysis
         if: steps.test_step.outputs.status == 'failed'
         uses: Codium-ai/pr-agent@main
