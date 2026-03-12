@@ -296,7 +296,7 @@ def mobilize_team(request, report_id):
 
 
 # ==========================================
-# 3. MAP DATA (CRASH FIX)
+# 3. MAP DATA
 # ==========================================
 @login_required
 def firefighter_map_data(request):

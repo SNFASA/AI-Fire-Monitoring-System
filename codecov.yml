@@ -1,0 +1,16 @@
+coverage:
+  status:
+    project:
+      default:
+        # basic target is 80% coverage, allowed to drop by 1% in new PRs
+        target: 80%
+        threshold: 1%
+    patch:
+      default:
+        # requires new code in PRs to have at least 80% coverage
+        target: 80%
+
+# Ignore specific folders like tests or node_modules
+ignore:
+  - "tests/**/*"
+  - "node_modules/**/*"
