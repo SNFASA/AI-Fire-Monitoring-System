@@ -47,7 +47,8 @@ class GetSensorStatusTestCase(TestCase):
     def test_offline_stale_data(self):
         """Sensor with data older than 5 minutes should return Offline"""
         old_time = timezone.now() - timedelta(minutes=6)
-        self.create_dummy_log(status="Safe", timestamp=old_time)
+        log = self.create_dummy_log(status="Safe", timestamp=old_time)
+        SensorDataLog.objects.filter(id=log.id).update(timestamp=old_time)
         status = get_sensor_status(self.sensor)
         self.assertEqual(status, "Offline")
 
