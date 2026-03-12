@@ -274,9 +274,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use HTTPS instead of SSH to avoid publickey errors
+          npm install https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/SNFASA/AI-Fire-Monitoring-System.git
 
       - name: Run Tests
         id: test_step
