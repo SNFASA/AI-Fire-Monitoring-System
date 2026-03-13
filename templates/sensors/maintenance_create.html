@@ -4,100 +4,122 @@
 {% block title %}Create Maintenance{% endblock %}
 
 {% block content %}
-    <div class="container mt-4">
-            <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <a href="{% url 'sensors:maintenance' %}" class="btn btn-outline-danger">← Back to Maintenance Records</a>
-        </div>
+<style>
+
+</style>
+
+<div class="container mt-4 mb-4">
+    
+    <div class="mb-4">
+        <a href="{% url 'sensors:maintenance' %}" class="text-decoration-none text-danger fw-bold mb-2 d-inline-block">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back
+        </a>
     </div>
-    <div class="card shadow">
-        <div class="card-header bg-danger text-white">
-            <h4>Request Maintenance</h4>
-        </div>
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <strong>Please correct the errors below:</strong>
-                        <ul>
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li>{{ field.label }}: {{ error }}</li>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-                <div class = "row">
-                    <div class= "col-md-6 mb-3">
-                        <label class="form-label">Select Sensor</label><span class="text-danger">*</span>
-                        {{ form.sensor }}
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Date of Issue</label><span class="text-danger">*</span>
-                            {{ form.scheduled_date }}
-                    </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Type of Maintenance</label><span class="text-danger">*</span>
-                        {{ form.maintenance_type }}
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Nearest Fire Station</label><span class="text-danger">*</span>
-                        {{ form.nearest_fire_station }}
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Issue Details</label><span class="text-danger">*</span>
-                    {{ form.details }}
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Upload Evidence (Photos)</label><span class="text-danger">*</span>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card app-card  p-2 p-md-4">
+                <div class="card-body">
                     
-                    <input type="file" 
-                        name="images" 
-                        id="imageInput" 
-                        class="form-control" 
-                        multiple 
-                        accept="image/*"
-                        onchange="previewImages()">
-                        
-                    <div class="form-text text-muted">Supported formats: JPG, PNG. You can select multiple files.</div>
+                    <div class="mb-4 text-center text-md-start">
+                        <h3 class="fw-bolder  mb-1">Request Maintenance</h3>
+                        <p class="text-muted small">Fill out the details below to report an equipment issue.</p>
+                    </div>
 
-                    <div id="previewContainer" class="d-flex flex-wrap gap-2 mt-3"></div>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger rounded-4 border-0 shadow-sm mb-4">
+                                <strong class="d-block mb-2"><i class="fa-solid fa-circle-exclamation me-2"></i>Please correct the errors:</strong>
+                                <ul class="mb-0 small ps-3">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% for error in form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold  small mb-1">Select Sensor <span class="text-danger">*</span></label>
+                                {{ form.sensor }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold  small mb-1">Date of Issue <span class="text-danger">*</span></label>
+                                {{ form.scheduled_date }}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold  small mb-1">Type of Maintenance <span class="text-danger">*</span></label>
+                                {{ form.maintenance_type }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold  small mb-1">Nearest Fire Station <span class="text-danger">*</span></label>
+                                {{ form.nearest_fire_station }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold  small mb-1">Issue Details <span class="text-danger">*</span></label>
+                                {{ form.details }}
+                            </div>
+                            
+                            <div class="col-12 mt-4">
+                                <label class="form-label fw-bold  mb-2">Upload Evidence (Photos) <span class="text-danger">*</span></label>
+                                
+                                <div class="upload-dropzone position-relative d-flex flex-column align-items-center justify-content-center p-4">
+                                    <div class=" rounded-circle shadow-sm d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                                        <i class="fa-solid fa-camera fs-4 text-danger"></i>
+                                    </div>
+                                    <span class="fw-bold ">Tap to upload photos</span>
+                                    <small class="text-muted mt-1">Supported formats: JPG, PNG</small>
+                                    
+                                    <input type="file" name="images" id="imageInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" multiple accept="image/*" onchange="previewImages()" style="cursor: pointer;">
+                                </div>
+
+                                <div id="previewContainer" class="d-flex flex-wrap gap-2 mt-3"></div>
+                            </div>
+                        </div>
+
+                        <div class=" rounded-4 p-3 mt-4 mb-4 d-flex align-items-start gap-3 border">
+                            <i class="fa-solid fa-circle-info text-primary mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold  mb-1" style="font-size: 0.9rem;">Quick Instructions</h6>
+                                <ul class="mb-0 small text-muted ps-3" style="line-height: 1.6;">
+                                    <li>Fields marked with <span class="text-danger fw-bold">*</span> are required.</li>
+                                    <li>Select the responding fire station accurately.</li>
+                                    <li>You can select and upload multiple photos at once.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="sticky-bottom-bar">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a href="{% url 'sensors:maintenance' %}" class="btn btn-light border   w-100 rounded-pill py-3 fw-bold shadow-sm">
+                                        Cancel
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <button type="submit" class="btn btn-danger w-100 rounded-pill py-3 fw-bold shadow-sm">
+                                        Submit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
                 </div>
-                        <div class="alert alert-info mb-4" role="alert">
-                            <h6 class="alert-heading text-muted">Instructions</h6>
-                            <ul class="mb-0 small">
-                                <li class= "text-muted">All fields marked with <span class="text-danger">*</span> are required</li>
-                                <li class= "text-muted">Select the responding fire station accurately</li>
-                                <li class= "text-muted">You can upload multiple photos of the scene</li>
-                            </ul>
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="submit" class="btn  btn-danger  w-100 btn-lg">
-                                    Create Request
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <a href="{% url 'sensors:maintenance' %}" class="btn btn-outline-warning  w-100 btn-lg">
-                                    Cancel
-                                </a>
-                            </div>
-                        </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
 <script>
     function previewImages() {
         var previewContainer = document.getElementById("previewContainer");
@@ -113,13 +135,21 @@
                 var reader = new FileReader();
 
                 reader.onload = function(e) {
+                    var imgWrapper = document.createElement("div");
+                    imgWrapper.style.width = "75px";
+                    imgWrapper.style.height = "75px";
+                    imgWrapper.style.borderRadius = "12px";
+                    imgWrapper.style.overflow = "hidden";
+                    imgWrapper.classList.add("shadow-sm", "border");
+
                     var img = document.createElement("img");
                     img.src = e.target.result;
-                    img.classList.add("img-thumbnail");
-                    img.style.width = "100px";
-                    img.style.height = "100px";
+                    img.style.width = "100%";
+                    img.style.height = "100%";
                     img.style.objectFit = "cover";
-                    previewContainer.appendChild(img);
+
+                    imgWrapper.appendChild(img);
+                    previewContainer.appendChild(imgWrapper);
                 };
 
                 reader.readAsDataURL(file);

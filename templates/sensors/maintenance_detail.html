@@ -4,214 +4,200 @@
 {% block title %}Maintenance #{{ maintenance.id }} Details{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
+
+<div class="container mt-4 mb-5 pb-4">
     
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
     {% endif %}
 
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <h2 class="display-6 fw-bold text-danger mb-2">Maintenance Details</h2>
-        </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
-            <a href="{% url 'sensors:maintenance' %}" class="btn btn-danger text-white btn-lg">
-                <i class="fas fa-list"></i> Maintenance List
+    <div class="mb-4">
+            <a href="{% url 'sensors:maintenance' %}" class="text-decoration-none text-danger fw-bold mb-2 d-inline-block">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
             </a>
-        </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-            <div class="card border-danger shadow-lg">
-                
-                <div class="card-header bg-danger text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0">{{ maintenance.sensor.name }} - Details</h3>
-                            <small>ID: #{{ maintenance.id }}</small>
-                        </div>
-                        <span class="badge bg-light text-danger fs-6">
-                            {{ maintenance.get_status_display }}
-                        </span>
-                    </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                <div>
+                    <h3 class="fw-bolder  mb-1">{{ maintenance.sensor.name }}</h3>
+                    <p class="text-muted small mb-0">Record ID: #{{ maintenance.id }}</p>
                 </div>
+                <span class="badge rounded-pill px-3 py-2 fw-bold fs-6 shadow-sm
+                    {% if maintenance.status|lower == 'pending' %}bg-warning 
+                    {% elif maintenance.status|lower == 'in progress' or maintenance.status|lower == 'inprogress' %}bg-info 
+                    {% elif maintenance.status|lower == 'completed' %}bg-success 
+                    {% else %}bg-secondary text-white{% endif %}">
+                    {{ maintenance.get_status_display }}
+                </span>
+            </div>
 
-                <div class="card-body">
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block fw-bold">User</small>
-                            <span class="badge bg-secondary">
-                                {{ maintenance.sensor.owner.user.get_full_name|default:maintenance.sensor.owner.user.username }}
-                            </span>
+            <div class="card app-card  mb-4">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center  fw-bold">
+                            <div class="list-icon"><i class="fa-solid fa-user"></i></div> User
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block fw-bold">Location</small>
-                            <span class="fs-5">
-                                {% if maintenance.sensor.owner.address %}
-                                    {{ maintenance.sensor.owner.address.street }}, {{ maintenance.sensor.owner.address.city }}
-                                {% else %}
-                                    Not specified
-                                {% endif %}
-                            </span>
+                        <span class="text-secondary text-end">{{ maintenance.sensor.owner.user.get_full_name|default:maintenance.sensor.owner.user.username }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center  fw-bold">
+                            <div class="list-icon"><i class="fa-solid fa-location-dot"></i></div> Location
                         </div>
-                    </div>
+                        <span class="text-secondary text-end text-truncate" style="max-width: 50%;">
+                            {% if maintenance.sensor.owner.address %}
+                                {{ maintenance.sensor.owner.address.street }}, {{ maintenance.sensor.owner.address.city }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center fw-bold">
+                            <div class="list-icon"><i class="fa-solid fa-wrench"></i></div> Type
+                        </div>
+                        <span class="text-secondary text-end">{{ maintenance.get_maintenance_type_display }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center  fw-bold">
+                            <div class="list-icon"><i class="fa-solid fa-rotate"></i></div> Frequency
+                        </div>
+                        <span class="text-secondary text-end">{{ maintenance.get_frequency_display }}</span>
+                    </li>
+                </ul>
+            </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block fw-bold">Maintenance Type</small>
-                            <span class="fs-5">{{ maintenance.get_maintenance_type_display }}</span>
+            <div class="card app-card bg-white mb-4">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center k fw-bold">
+                            <div class="list-icon text-danger"><i class="fa-solid fa-fire-extinguisher"></i></div> Fire Station
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block fw-bold">Frequency</small>
-                            <span class="badge bg-secondary">{{ maintenance.get_frequency_display }}</span>
+                        <span class="text-secondary text-end">{{ maintenance.nearest_fire_station.name|default:"Not specified" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center  fw-bold">
+                            <div class="list-icon text-primary"><i class="fa-solid fa-user-gear"></i></div> Technician
                         </div>
-                    </div>
+                        <span class="text-secondary text-end">
+                            {% if maintenance.in_charge %}
+                                {{ maintenance.in_charge.get_full_name|default:maintenance.in_charge.username }}
+                            {% else %}
+                                <span class="badge border">Unassigned</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center ">
+                        <span class="text-muted small fw-bold">Reported: <span class="text-muted">{{ maintenance.timestamp|date:"M d, Y" }}</span></span>
+                        <span class="text-muted small fw-bold">Scheduled: <span class="text-muted">{{ maintenance.scheduled_date|date:"M d, Y"|default:"-" }}</span></span>
+                    </li>
+                </ul>
+            </div>
 
-                    <div class="mb-4">
-                        <small class="text-muted d-block fw-bold mb-2">Description / Issue</small>
-                        <div class="p-3 rounded border">
-                            <p class="mb-0">{{ maintenance.details }}</p>
-                        </div>
-                    </div>
-
-                    <hr class="text-muted">
-
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block fw-bold">Assigned Technician</small>
-                            <div class="p-2">
-                                {% if maintenance.in_charge %}
-                                    <span class="fw-bold">
-                                        {{ maintenance.in_charge.get_full_name|default:maintenance.in_charge.username }}
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">{{ maintenance.in_charge.email }}</small>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">Unassigned</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block fw-bold">Nearest Fire Station</small>
-                            <div class="p-2">
-                                {{ maintenance.nearest_fire_station.name|default:"<span class='text-muted'>Not specified</span>"|safe }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <small class="text-muted d-block fw-bold">Reported On</small>
-                            {{ maintenance.timestamp|date:"M d, Y" }}
-                        </div>
-                        <div class="col-md-4">
-                            <small class="text-muted d-block fw-bold">Scheduled Date</small>
-                            {{ maintenance.scheduled_date|date:"M d, Y"|default:"-" }}
-                        </div>
-                        <div class="col-md-4">
-                            <small class="text-muted d-block fw-bold">Actual Completion</small>
-                            {{ maintenance.actual_date|date:"M d, Y"|default:"-" }}
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <small class="d-block fw-bold mb-2">Technician Notes</small>
-                        <div class="p-3 rounded border border-warning ">
-                            <p class="mb-0 text-muted">
-                                {{ maintenance.technician_notes|default:"No technician notes added yet." }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <small class="d-block fw-bold">Evidence Photos</small>
-                        </div>
-                        
-                        {% if maintenance.images.all %}
-                            <div class="row g-3">
-                                {% for img in maintenance.images.all %}
-                                <div class="col-md-4 col-sm-6">
-                                    <div class="card h-100 border-0 shadow-sm">
-                                        <div class="position-relative">
-                                            <img src="{{ img.image.url }}" 
-                                                 class="card-img-top rounded" 
-                                                 style="height: 200px; object-fit: cover; cursor: pointer; border: 1px solid #eee;" 
-                                                 alt="Maintenance Evidence"
-                                                 onclick="openModal('{{ img.image.url }}')">
-                                            
-                                            <div class="position-absolute top-50 start-50 translate-middle pointer-events-none" style="pointer-events: none;">
-                                                <i class="fas fa-search-plus text-white opacity-50 fa-2x"></i>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer bg-white p-2 text-center">
-                                            <small class="text-muted">{{ img.uploaded_at|date:"M d, Y H:i" }}</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="alert alert-secondary text-center">
-                                <i class="fas fa-camera-slash mb-2"></i><br>
-                                No photos uploaded yet.
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="card bg-light border-0 mt-4">
-                        <div class="card-body">
-                            <h6 class="card-title fw-bold"><i class="fas fa-upload"></i> Upload Additional Evidence</h6>
-                            <form method="POST" enctype="multipart/form-data" class="mt-2">
-                                {% csrf_token %}
-                                <div class="input-group">
-                                    <input type="file" class="form-control" name="picture" accept="image/*" required>
-                                    <button class="btn btn-danger" type="submit">Upload</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    </div>
-
-                <div class="card-footer bg-white border-top border-danger text-center py-3">
-                    <a href="{% url 'sensors:maintenance' %}" class="btn btn-secondary">
-                        Back to List
-                    </a>
+            <div class="mb-4 px-2">
+                <h6 class="fw-bolder text-muted text-uppercase small mb-2 ms-1">Issue Description</h6>
+                <div class="card app-card  p-3">
+                    <p class="mb-0 " style="line-height: 1.6;">{{ maintenance.details }}</p>
                 </div>
             </div>
+
+            <div class="mb-4 px-2">
+                <h6 class="fw-bolder text-muted text-uppercase small mb-2 ms-1">Technician Notes</h6>
+                <div class="card app-card {% if maintenance.technician_notes %} border-start border-4 border-warning{% else %}{% endif %} p-3">
+                    <p class="mb-0 {% if maintenance.technician_notes %}{% else %} fst-italic{% endif %}" style="line-height: 1.6;">
+                        {{ maintenance.technician_notes|default:"No technician notes added yet." }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-4 px-2">
+                <h6 class="fw-bolder text-muted text-uppercase small mb-2 ms-1">Evidence Photos</h6>
+                {% if maintenance.images.all %}
+                    <div class="swipe-row gap-2">
+                        {% for img in maintenance.images.all %}
+                            <div class="swipe-item shadow-sm" style="width: 120px; height: 120px; cursor: pointer;" onclick="openModal('{{ img.image.url }}')">
+                                <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover" alt="Evidence">
+                                <div class="position-absolute bottom-0 w-100 p-1 text-center" >
+                                    <small  style="font-size: 0.65rem;">{{ img.uploaded_at|date:"M d" }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card app-card  p-4 text-center">
+                        <i class="fa-solid fa-image text-muted opacity-50 fs-2 mb-2"></i>
+                        <p class="text-muted small mb-0">No photos uploaded.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4 px-2">
+                <h6 class="fw-bolder text-muted text-uppercase small mb-2 ms-1">Upload Additional Photos</h6>
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    <div class="upload-dropzone position-relative d-flex flex-column align-items-center justify-content-center p-4">
+                        <div class=" rounded-circle shadow-sm d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                            <i class="fa-solid fa-camera fs-4 text-danger"></i>
+                        </div>
+                        <span class="fw-bold ">Tap to upload photos</span>
+                        <small class="text-muted mt-1">Supported formats: JPG, PNG</small>
+                        
+                        <input type="file" name="picture" id="pictureInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" required onchange="showUploadBtn()" style="cursor: pointer;">
+                    </div>
+                    
+                    <div id="submitBtnContainer" class="mt-3 d-none text-end">
+                        <span id="fileNameDisplay" class="text-muted small me-3"></span>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="fa-solid fa-cloud-arrow-up me-2"></i> Confirm Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-transparent border-0 shadow-none">
-            <div class="modal-header border-0">
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close btn-close-white ms-auto shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-0 text-center">
-                <img id="modalImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh;">
+            <div class="modal-body p-0 text-center mt-2">
+                <img id="modalImage" src="" class="img-fluid rounded-4 shadow-lg w-100" style="max-height: 80vh; object-fit: contain;">
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // Image Preview Modal Logic
     function openModal(imageUrl) {
-        var modalImg = document.getElementById('modalImage');
-        modalImg.src = imageUrl;
+        document.getElementById('modalImage').src = imageUrl;
         var myModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
         myModal.show();
     }
-</script>
 
+    // Show upload button and filename when a file is selected in the Dropzone
+    function showUploadBtn() {
+        var input = document.getElementById('pictureInput');
+        var container = document.getElementById('submitBtnContainer');
+        var nameDisplay = document.getElementById('fileNameDisplay');
+        
+        if(input.files && input.files.length > 0) {
+            container.classList.remove('d-none');
+            nameDisplay.innerHTML = '<i class="fa-solid fa-file-image text-danger me-1"></i> ' + input.files[0].name;
+        } else {
+            container.classList.add('d-none');
+        }
+    }
+</script>
 {% endblock %}
