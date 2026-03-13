@@ -4,7 +4,8 @@ from datetime import timedelta
 from django.http import JsonResponse
 from unittest.mock import patch
 from sensors.models import Sensor, SensorDataLog, UserProfile
-from sensors.views import get_sensor_status, get_live_logs, test_log
+from sensors.utils import get_sensor_status, get_live_logs
+from sensors.views.api import test_log
 from django.contrib.auth.models import User
 
 
@@ -87,7 +88,7 @@ class GetLiveLogsTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-    @patch("sensors.views.get_logs")
+    @patch("sensors.utils.get_logs")
     def test_get_live_logs_returns_json(self, mock_get_logs):
         """get_live_logs should return JsonResponse with logs"""
         mock_get_logs.return_value = ["log1", "log2"]
@@ -97,7 +98,7 @@ class GetLiveLogsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"logs", response.content)
 
-    @patch("sensors.views.get_logs")
+    @patch("sensors.utils.get_logs")
     def test_get_live_logs_empty_logs(self, mock_get_logs):
         """get_live_logs should handle empty logs"""
         mock_get_logs.return_value = []
@@ -113,7 +114,7 @@ class TestLogTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-    @patch("sensors.views.add_log")
+    @patch("sensors.views.api.add_log")
     def test_log_adds_entry(self, mock_add_log):
         """test_log should call add_log with test message"""
         request = self.factory.get("/test-log/")
@@ -122,7 +123,7 @@ class TestLogTestCase(TestCase):
         mock_add_log.assert_called_once_with("\n[TEST] This is a test log entry.\n")
         self.assertEqual(response.status_code, 200)
 
-    @patch("sensors.views.add_log")
+    @patch("sensors.views.api.add_log")
     def test_log_returns_json_response(self, mock_add_log):
         """test_log should return json with status"""
         request = self.factory.get("/test-log/")

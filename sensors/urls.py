@@ -1,23 +1,55 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views
+
+from sensors.views import api
+from .views import dashboard, auth, maintenances, reports, maps, sensors, duties, api
+from . import utils
 from django.contrib.auth.views import LoginView
 
 app_name = "sensors"
 urlpatterns = [
+    # utils
+    path("get-live-logs/", utils.get_live_logs, name="get_live_logs"),
+    path("test-log/", api.test_log, name="test_log"),
+    path("api/send-data/", api.receive_sensor_data, name="receive_data"),
     # Home / Dashboard
-    path("", views.dashboard, name="home"),
-    path("dashboard/", views.dashboard, name="dashboard"),
-    path("get-live-logs/", views.get_live_logs, name="get_live_logs"),
-    path("test-log/", views.test_log, name="test_log"),
-    # Authentication
+    path("", dashboard.dashboard_view, name="home"),
+    path("dashboard/", dashboard.dashboard_view, name="dashboard"),
+    path(
+        "sensors/delete/<int:sensor_id>/", dashboard.delete_sensor, name="delete_sensor"
+    ),
+    # 1. Existing Terminal Log URL (For Firefighters)
+    path("get-live-logs/", utils.get_live_logs, name="get_live_logs"),
+    # 2. NEW: API for Public Dashboard Table (Humidity/Temp)
+    path(
+        "api/dashboard-data/",
+        dashboard.get_dashboard_sensor_data,
+        name="dashboard_data",
+    ),
+    # 3. NEW: API for AJAX Delete Button
+    path(
+        "api/delete-sensor/<int:sensor_id>/",
+        dashboard.delete_sensor_ajax,
+        name="delete_sensor_ajax",
+    ),
+    path(
+        "api/dashboard-data/",
+        dashboard.get_dashboard_sensor_data,
+        name="dashboard_data",
+    ),
+    path(
+        "api/delete-sensor/<int:sensor_id>/",
+        dashboard.delete_sensor_ajax,
+        name="delete_sensor_ajax",
+    ),
+    # Authentication & Profile
     path(
         "login/",
         LoginView.as_view(template_name="sensors/auth/login.html"),
         name="login",
     ),
-    path("logout/", views.logout_view, name="logout"),
-    path("register/", views.register, name="register"),
+    path("logout/", auth.logout_view, name="logout"),
+    path("register/", auth.register, name="register"),
     path(
         "reset_password/",
         auth_views.PasswordResetView.as_view(
@@ -47,74 +79,64 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     # User Profile
-    path("profile/", views.profile, name="profile"),
-    path("duty/", views.duty, name="duty"),
-    path("change-password/", views.change_password, name="change_password"),
+    path("profile/", auth.profile, name="profile"),
+    path("change-password/", auth.change_password, name="change_password"),
     # Maintenance
-    path("maintenance/", views.maintenance, name="maintenance"),
-    path("maintenance/create/", views.create_maintenance, name="maintenance_create"),
+    path("maintenance/", maintenances.maintenance_view, name="maintenance"),
+    path(
+        "maintenance/create/",
+        maintenances.create_maintenance,
+        name="maintenance_create",
+    ),
     path(
         "maintenance/edit/<int:maintenance_id>/",
-        views.edit_maintenance,
+        maintenances.edit_maintenance,
         name="maintenance_edit",
     ),
     path(
         "maintenance/<int:maintenance_id>/",
-        views.maintenance_detail,
+        maintenances.maintenance_detail,
         name="maintenance_detail",
     ),
     path(
         "maintenance/delete/<int:maintenance_id>/",
-        views.delete_maintenance,
+        maintenances.delete_maintenance,
         name="delete_maintenance",
     ),
     # Reports
-    path("reports/", views.reports, name="reports"),
-    path("reports/<int:report_id>/", views.report_detail, name="report_detail"),
-    path("reports/create/", views.create_report, name="create_report"),
-    path("reports/edit/<int:report_id>/", views.edit_report, name="edit_report"),
-    path("reports/delete/<int:report_id>/", views.delete_report, name="delete_report"),
-    # API for ESP32 (The IoT Device sends data here)
-    path("api/send-data/", views.receive_sensor_data, name="receive_data"),
-    path("api/mobilize/<int:report_id>/", views.mobilize_team, name="mobilize_team"),
-    # Live Data API (The Website checks this every 2 seconds)
-    path("api/live-data/", views.get_live_data, name="live_data"),
-    # Page Views
-    path("maps/", views.maps, name="maps"),
-    path("upload-layout/", views.upload_layout, name="upload_layout"),
-    path("api/edit-layout/", views.edit_layout_ajax, name="edit_layout_ajax"),
+    path("reports/", reports.reports_view, name="reports"),
+    path("reports/<int:report_id>/", reports.report_detail, name="report_detail"),
+    path("reports/create/", reports.create_report, name="create_report"),
+    path("reports/edit/<int:report_id>/", reports.edit_report, name="edit_report"),
+    path(
+        "reports/delete/<int:report_id>/", reports.delete_report, name="delete_report"
+    ),
+    # MAPS
+    path("api/map-data/", maps.firefighter_map_data, name="map_data"),
+    path("maps/", maps.maps, name="maps"),
+    path("upload-layout/", maps.upload_layout, name="upload_layout"),
+    path("api/edit-layout/", maps.edit_layout_ajax, name="edit_layout_ajax"),
     path(
         "delete-layout/<int:layout_id>/",
-        views.delete_layout_ajax,
+        maps.delete_layout_ajax,
         name="delete_layout_ajax",
     ),
-    path("sensors/delete/<int:sensor_id>/", views.delete_sensor, name="delete_sensor"),
-    # API Endpoints (These feed the maps)
-    path("api/add-sensor/", views.add_sensor, name="add_sensor"),
-    path(
-        "api/update-sensor-pos/", views.update_sensor_position, name="update_sensor_pos"
-    ),
-    # --- THIS LINE FIXES THE FIREFIGHTER MAP DOTS ---
-    path("api/map-data/", views.firefighter_map_data, name="map_data"),
     path(
         "api/get-victim-layout/<int:user_id>/",
-        views.get_victim_layout,
+        maps.get_victim_layout,
         name="get_victim_layout",
     ),
-    # 1. Existing Terminal Log URL (For Firefighters)
-    path("get-live-logs/", views.get_live_logs, name="get_live_logs"),
-    # 2. NEW: API for Public Dashboard Table (Humidity/Temp)
-    path("api/dashboard-data/", views.get_dashboard_sensor_data, name="dashboard_data"),
-    # 3. NEW: API for AJAX Delete Button
+    # Sensors
+    # Live Data API (The Website checks this every 2 seconds)
+    path("api/live-data/", sensors.get_live_data, name="live_data"),
+    # API Endpoints (These feed the maps)
+    path("api/add-sensor/", sensors.add_sensor, name="add_sensor"),
     path(
-        "api/delete-sensor/<int:sensor_id>/",
-        views.delete_sensor_ajax,
-        name="delete_sensor_ajax",
+        "api/update-sensor-pos/",
+        sensors.update_sensor_position,
+        name="update_sensor_pos",
     ),
-    path("api/dashboard-data/", views.get_dashboard_sensor_data, name="dashboard_data"),
-    path(
-        "api/delete-sensor/<int:sensor_id>/",
-        views.delete_sensor_ajax,
-        name="delete_sensor_ajax",
-    ),
+    # Duties
+    path("duty/", duties.duty, name="duty"),
+    path("api/mobilize/<int:report_id>/", duties.mobilize_team, name="mobilize_team"),
 ]

@@ -47,11 +47,11 @@ class AlertSystemTest(TestCase):
             is_active=True,
         )
 
-    @patch("sensors.views.async_to_sync")
-    @patch("sensors.views.predictor.predict")
-    @patch("sensors.views.send_sms_broadcast")
-    @patch("sensors.views.get_channel_layer")
-    @patch("sensors.views.haversine")
+    @patch("sensors.views.api.async_to_sync")
+    @patch("sensors.views.api.predictor.predict")
+    @patch("sensors.views.api.send_sms_broadcast")
+    @patch("sensors.views.api.get_channel_layer")
+    @patch("sensors.views.api.haversine")
     def test_fire_detected_scenario(
         self, mock_hav, mock_channel, mock_sms, mock_predict, mock_async
     ):
@@ -88,7 +88,7 @@ class AlertSystemTest(TestCase):
             "Report should be created when a valid address exists",
         )
 
-    @patch("sensors.views.predictor.predict")
+    @patch("sensors.views.api.predictor.predict")
     def test_safe_scenario(self, mock_predict):
         mock_predict.return_value = "Safe"
         # Even safe scenarios should send full logs to avoid database integrity errors
@@ -109,8 +109,8 @@ class AlertSystemTest(TestCase):
         self.assertEqual(response.content.decode(), "0")
         self.assertEqual(Report.objects.count(), 0)
 
-    @patch("sensors.views.haversine")
-    @patch("sensors.views.predictor.predict")
+    @patch("sensors.views.api.haversine")
+    @patch("sensors.views.api.predictor.predict")
     def test_deduplication_logic(self, mock_predict, mock_hav):
         mock_predict.return_value = "Fire"
         mock_hav.return_value = 1.0
@@ -139,9 +139,9 @@ class AlertSystemTest(TestCase):
         # Count should remain 1 (updated existing report instead of creating a new one)
         self.assertEqual(Report.objects.count(), 1)
 
-    @patch("sensors.views.haversine")
-    @patch("sensors.views.predictor.predict")
-    @patch("sensors.views.async_to_sync")
+    @patch("sensors.views.api.haversine")
+    @patch("sensors.views.api.predictor.predict")
+    @patch("sensors.views.api.async_to_sync")
     def test_no_active_staff_fallback(self, mock_async, mock_predict, mock_hav):
         mock_predict.return_value = "Fire"
         mock_hav.return_value = 5.0

@@ -22,14 +22,14 @@ from django.views.generic import RedirectView
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 
-from sensors import views
+from sensors.views.dashboard import dashboard_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("", include("sensors.urls", namespace="sensors")),
     path("login/", auth_views.LoginView.as_view(), name="login"),
-    path("", views.dashboard, name="home"),
+    path("", dashboard_view, name="home"),
     path("favicon.ico", RedirectView.as_view(url="/static/images/favicon.png")),
 ]
 
