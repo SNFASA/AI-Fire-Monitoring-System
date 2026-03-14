@@ -17,41 +17,52 @@ from ..models import (
 # 2. MOBILIZE TEAM (CONFIRMATION)
 # ==========================================
 @login_required
-@login_required
-@require_POST  # Only allows POST requests; returns 405 for GET, PUT, etc.
+@require_POST
 def mobilize_team(request, report_id):
     """
-    Called when the 'Mobilize Team' button is clicked.
-    Assigns the currently on-duty staff to the report.
+    Authorizes and mobilizes the on-duty team for a specific report.
+    Only firefighters assigned to the report's station can trigger this.
     """
     try:
+        # 1. Fetch report and user profile
         report = Report.objects.get(id=report_id)
+        user_profile = request.user.userprofile
+
+        # 2. Strict Authorization Check
+        # Rule: User must be a firefighter AND belong to the SAME station as the report
+        if user_profile.role != "firefighter" or user_profile.station != report.station:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Unauthorized. You can only mobilize teams for your own station.",
+                },
+                status=403,
+            )
+
         now = timezone.now()
 
-        # Find currently ON-DUTY staff at this station
+        # 3. Find currently ON-DUTY staff at this station
         active_duties = DutyAssignment.objects.filter(
             firefighter__station=report.station,
             start_time__lte=now,
             end_time__gte=now,
             is_active=True,
-        ).select_related(
-            "firefighter"
-        )  # Optimization: avoids N+1 in the loop
+        ).select_related("firefighter")
 
         if not active_duties.exists():
             return JsonResponse(
                 {
                     "success": False,
-                    "message": "No firefighters are currently on duty at this station!",
+                    "message": "Mobilization failed: No firefighters are currently on duty at this station!",
                 },
                 status=400,
             )
 
-        # Add them to the team history
+        # 4. State Update
+        # Using a transaction here would be even better if your DB supports it
         for duty in active_duties:
             report.mobilized_team.add(duty.firefighter)
 
-        # Update report status
         report.status = "Confirmed"
         report.in_charge = request.user
         report.save()
@@ -59,14 +70,21 @@ def mobilize_team(request, report_id):
         return JsonResponse(
             {
                 "success": True,
-                "message": f"Mobilized {active_duties.count()} firefighters.",
+                "message": f"Success: {active_duties.count()} firefighters from {report.station.name} mobilized.",
             }
         )
 
     except Report.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Report not found"}, status=404)
+        return JsonResponse(
+            {"success": False, "error": "Report not found."}, status=404
+        )
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+        # Log the error for the dev team
+        print(f"Mobilize Error: {e}")
+        return JsonResponse(
+            {"success": False, "error": "An internal server error occurred."},
+            status=500,
+        )
 
 
 @login_required(login_url="login")

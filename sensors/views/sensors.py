@@ -1,4 +1,4 @@
-import json
+import json, logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
@@ -8,28 +8,45 @@ from django.views.decorators.http import require_POST
 from ..models import (
     Sensor,
     Houselayout,
+    UserProfile,
 )
 
 from ..utils import get_sensor_status
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
 def get_live_data(request):
     try:
+        # 1. Fetch sensors specifically for this user's profile
         sensors = Sensor.objects.filter(owner=request.user.userprofile).order_by("id")
-    except:
-        return JsonResponse({"sensors": []})
-    data = [
-        {
-            "id": s.id,
-            "name": s.name,
-            "status": get_sensor_status(s),
-            "x": s.x_position,
-            "y": s.y_position,
-        }
-        for s in sensors
-    ]
-    return JsonResponse({"sensors": data})
+
+        # 2. Build the data list
+        data = [
+            {
+                "id": s.id,
+                "name": s.name,
+                "status": get_sensor_status(s),  # Ensure this function is robust!
+                "x": s.x_position,
+                "y": s.y_position,
+            }
+            for s in sensors
+        ]
+        return JsonResponse({"sensors": data})
+
+    except UserProfile.DoesNotExist:
+        # This is a handled case: user is logged in but profile isn't ready
+        return JsonResponse(
+            {"sensors": [], "message": "Profile not found."}, status=200
+        )
+
+    except Exception as e:
+        # 3. Log the ACTUAL error to your terminal/logs so you can fix it
+        logger.error(f"Unexpected error in get_live_data: {e}", exc_info=True)
+        return JsonResponse(
+            {"sensors": [], "error": "Internal server error"}, status=500
+        )
 
 
 @login_required
@@ -85,7 +102,6 @@ def add_sensor(request):
         )
 
 
-@csrf_exempt
 @login_required
 def update_sensor_position(request):
     """

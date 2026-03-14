@@ -1,7 +1,5 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-
-from sensors.views import api
 from .views import dashboard, auth, maintenances, reports, maps, sensors, duties, api
 from . import utils
 from django.contrib.auth.views import LoginView
@@ -34,11 +32,6 @@ urlpatterns = [
         "api/delete-sensor/<int:sensor_id>/",
         dashboard.delete_sensor_ajax,
         name="delete_sensor_ajax",
-    ),
-    path(
-        "api/dashboard-data/",
-        dashboard.get_dashboard_sensor_data,
-        name="dashboard_data",
     ),
     # Authentication & Profile
     path(

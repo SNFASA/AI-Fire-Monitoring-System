@@ -85,7 +85,7 @@ def receive_sensor_data(request):
                     if user_address.latitude is None or user_address.longitude is None:
                         if sensor.owner.phone_number:
                             # Construct a link to your new view
-                            update_url = f"https://yourdomain.com/update-location/{sensor.owner.id}/"
+                            update_url = f"https://127.0.0.1:8000/update-location/{sensor.owner.id}/"
 
                             missing_coord_msg = (
                                 f"🚨 EMERGENCY: Fire detected at your property!\n\n"
@@ -217,8 +217,11 @@ def receive_sensor_data(request):
 
 
 def update_location_from_link(request, owner_id):
-    # Fetch the owner; if they don't exist, 404
-    owner = get_object_or_404(Sensor, id=owner_id)
+    """
+    Updates the Address coordinates linked to a UserProfile (Owner).
+    """
+    # 1. Fetch the UserProfile (Owner) using the ID from the URL
+    owner_profile = get_object_or_404(UserProfile, id=owner_id)
 
     if request.method == "POST":
         try:
@@ -227,20 +230,34 @@ def update_location_from_link(request, owner_id):
             lng = data.get("lng")
 
             if lat is not None and lng is not None:
-                # Update the related Address model
-                address = owner.address
+                # 2. Check if the owner has an address record assigned
+                address = owner_profile.address
+                if not address:
+                    return JsonResponse(
+                        {
+                            "status": "error",
+                            "message": "No address profile found for this user.",
+                        },
+                        status=404,
+                    )
+
+                # 3. Update and save
                 address.latitude = lat
                 address.longitude = lng
                 address.save()
+
                 return JsonResponse(
-                    {"status": "success", "message": "Location updated successfully!"}
+                    {"status": "success", "message": "Emergency location updated!"}
                 )
 
             return JsonResponse(
-                {"status": "error", "message": "Invalid coordinates."}, status=400
+                {"status": "error", "message": "Invalid coordinates received."},
+                status=400,
             )
         except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            return JsonResponse(
+                {"status": "error", "message": "Server error occurred."}, status=500
+            )
 
-    # For GET requests, show the button page
-    return render(request, "update_location.html", {"owner": owner})
+    # For GET requests, pass the profile to the template
+    return render(request, "sensors/update_location.html", {"owner": owner_profile})

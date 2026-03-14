@@ -256,7 +256,7 @@
                         node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
                         let status = s.status ? s.status.toLowerCase() : 'safe';
                         if(status === 'fire') node.classList.add('bg-fire');
-                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');
+                        else if(status === 'Gas Leak' || status === 'warning') node.classList.add('bg-warn');
                         else if(status === 'offline') node.classList.add('bg-offline');
                         else node.classList.add('bg-safe');
                     }
@@ -363,7 +363,6 @@
 </div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
     // --- 1. CONFIGURATION & CONSTANTS ---
     const STYLES = { 
@@ -373,8 +372,13 @@
     };
 
     // Cleanly handle coordinates from Django
+    // If station_lat is None from Django, it will result in an empty string here
     const rawLat = "{{ station_lat|default:'' }}";
     const rawLng = "{{ station_lng|default:'' }}";
+
+    if (!rawLat || !rawLng) {
+        console.warn("Station coordinates missing. UI Lockout engaged.");
+    }
     const INITIAL_VIEW = [103.0848, 1.8548]; // Fallback center
     
     // Determine map center
@@ -398,10 +402,16 @@
     let isSetupMode = false;
 
     function startStationSetup() {
+        const overlay = document.getElementById('setup-overlay');
+        overlay.style.background = 'rgba(0,0,0,0.3)';
+        overlay.style.pointerEvents = 'none'; // Make background click-through
+
+        // Re-enable clicks for the actual UI box/buttons
+        const step2 = document.getElementById('step-2');
+        step2.style.display = 'block';
+        step2.style.pointerEvents = 'auto'; 
+        
         document.getElementById('step-1').style.display = 'none';
-        document.getElementById('step-2').style.display = 'block';
-        document.getElementById('setup-overlay').style.background = 'rgba(0,0,0,0.3)';
-        document.getElementById('setup-overlay').style.pointerEvents = 'none'; // CRITICAL: Allows clicking the map
         isSetupMode = true;
     }
 
@@ -504,7 +514,7 @@
                     let icon = '';
                     let st = (house.status || "").toLowerCase();
                     if(st === 'fire') { cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; fireCount++; }
-                    else if(st === 'warning' || st === 'gasleak') { cls = 'marker-warning'; icon = '<i class="fas fa-exclamation-triangle"></i>'; warnCount++; }
+                    else if(st === 'warning' || st === 'Gas Leak') { cls = 'marker-warning'; icon = '<i class="fas fa-exclamation-triangle"></i>'; warnCount++; }
                     else if(st === 'offline') { cls = 'marker-offline'; }
                     
                     if(!markers[house.id]) {
@@ -537,6 +547,14 @@
             map.setStyle(STYLES[styleName]);
         }
     };
+    fetch("{% url 'sensors:update_station_coords' %}", {
+        method: "POST",
+        headers: { 
+            'Content-Type': 'application/json', 
+            'X-CSRFToken': getCookie('csrftoken') // More reliable!
+        },
+        body: JSON.stringify({ lat: coords.lat, lng: coords.lng })
+    })
 </script>
 
 {% endif %}

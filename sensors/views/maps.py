@@ -79,6 +79,7 @@ def maps(request):
 
     context = {"role": user_profile.role, "user_profile": user_profile}
 
+    # --- PUBLIC ROLE ---
     if user_profile.role == "public":
         user_layouts = Houselayout.objects.filter(user=request.user).order_by("id")
         selected_layout_id = request.GET.get("layout_id")
@@ -87,29 +88,45 @@ def maps(request):
             if selected_layout_id
             else user_layouts.first()
         )
-
-        context["layouts"] = user_layouts
-        context["current_layout"] = current_layout
-        context["sensors"] = (
-            Sensor.objects.filter(owner=user_profile, layout=current_layout)
-            if current_layout
-            else []
+        context.update(
+            {
+                "layouts": user_layouts,
+                "current_layout": current_layout,
+                "sensors": (
+                    Sensor.objects.filter(owner=user_profile, layout=current_layout)
+                    if current_layout
+                    else []
+                ),
+            }
         )
 
+    # --- FIREFIGHTER ROLE ---
     elif user_profile.role == "firefighter":
         all_stations = FireStation.objects.all()
         station = user_profile.station
 
+        # 1. Logic Guard: Determine if GPS is missing
+        # We check: Station exists -> Address exists -> Lat/Lng are not None
+        has_gps = (
+            station is not None
+            and station.address is not None
+            and station.address.latitude is not None
+            and station.address.longitude is not None
+        )
+
         context["all_stations"] = all_stations
-        context["station_name"] = station.name if station else "HQ"
-        context["station_lat"] = (
-            float(station.address.latitude) if station and station.address else 1.8548
-        )
-        context["station_lng"] = (
-            float(station.address.longitude)
-            if station and station.address
-            else 103.0848
-        )
+        context["station_name"] = station.name if station else "Unknown Station"
+        context["missing_station_gps"] = not has_gps
+
+        if has_gps:
+            context["station_lat"] = float(station.address.latitude)
+            context["station_lng"] = float(station.address.longitude)
+        else:
+            # Pass None so the template/JS doesn't try to render a fake location
+            context["station_lat"] = None
+            context["station_lng"] = None
+
+        # 2. Radius calculation with safety check
         context["station_radius"] = (
             math.sqrt(station.cover_area_sqm / math.pi) / 1000
             if station and station.cover_area_sqm
@@ -210,17 +227,48 @@ def update_station_coordinates(request):
         lat = data.get("lat")
         lng = data.get("lng")
 
+        # Basic coordinate validation
+        if lat is None or lng is None:
+            return JsonResponse(
+                {"success": False, "error": "Coordinates are missing."}, status=400
+            )
+
         user_profile = request.user.userprofile
+
+        # 1. Authorization & Station Check
         if user_profile.role == "firefighter" and user_profile.station:
-            address = user_profile.station.address
+            station = user_profile.station
+
+            # 2. Address Presence Check
+            if not station.address:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "This station has no address record initialized. Please contact admin.",
+                    },
+                    status=404,
+                )
+
+            # 3. Update logic
+            address = station.address
             address.latitude = lat
             address.longitude = lng
             address.save()
+
             return JsonResponse({"success": True})
 
         return JsonResponse(
             {"success": False, "error": "Unauthorized or no station assigned."},
             status=403,
         )
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"success": False, "error": "Invalid JSON format."}, status=400
+        )
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+        # Log the actual error for debugging
+        print(f"Error in update_station_coordinates: {e}")
+        return JsonResponse(
+            {"success": False, "error": "An internal server error occurred."},
+            status=500,
+        )

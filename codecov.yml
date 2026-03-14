@@ -1,18 +1,15 @@
-# Include the specific folders you want
-source = 
-    sensors
-    core
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
 
-# Exclude management commands and test files from being measured
-omit =
-    sensors/management/*
-    manage.py
-
-[report]
-# Show which lines are missing
-show_missing = True
-# Check for branch coverage (handles 'if' statements)
-precision = 2
-
-[html]
-directory = htmlcov
+ignore:
+  - "sensors/management/**/*"
+  - "node_modules/**/*"
+  - "*/migrations/*"
+  - "manage.py"

@@ -31,7 +31,7 @@ class Command(BaseCommand):
                     if st == "fire":
                         new_house_status = "Fire"
                         break  # Fire is priority
-                    elif st in ["warning", "gas leak", "gasleak"]:
+                    elif st in ["warning", "Gas Leak", "gasleak"]:
                         new_house_status = "Warning"  # Map everything to 'Warning'
 
                 # Update Profile if changed
