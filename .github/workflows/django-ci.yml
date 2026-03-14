@@ -1,4 +1,3 @@
-
 name: Django Ultimate CI
 
 on:
@@ -36,6 +35,7 @@ jobs:
 #          # Since you aren't building a Docker image or a .whl file yet, 
 #          # we typically point to the source code or a specific diagram.
 #          subject-path: "manage.py"
+
 # -------------------------------
 # LINT + QUALITY CHECK
 # -------------------------------
@@ -48,7 +48,7 @@ jobs:
           python-version: "3.12"
       - name: Install tools
         run: pip install flake8 black isort autoflake
-      
+        
       - name: Run Black Check
         run: black --check .
         
@@ -66,7 +66,7 @@ jobs:
       high_count: ${{ steps.bandit_stats.outputs.high }}
     steps:
       - uses: actions/checkout@v6
-      
+        
       - name: Install Bandit
         run: pip install bandit
         
@@ -82,6 +82,7 @@ jobs:
           HIGH_FINDINGS=$(jq '.metrics._total.HIGH' bandit_report.json)
           echo "high=$HIGH_FINDINGS" >> $GITHUB_OUTPUT
           echo "Detected $HIGH_FINDINGS high-severity issues."
+
 # -------------------------------
 # TEST + COVERAGE
 # -------------------------------
@@ -160,7 +161,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      
+        
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -185,6 +186,7 @@ jobs:
         with:
           name: html-documentation
           path: doc/_build/
+
 # -------------------------------
 # LOAD TEST
 # -------------------------------
@@ -252,6 +254,7 @@ jobs:
         with:
           name: architecture-diagram
           path: ./*.png
+
 # -------------------------------
 # AI TEST GENERATION
 # -------------------------------
@@ -261,30 +264,52 @@ jobs:
       issues: write
       pull-requests: write
       contents: write
-      packages: read # Critical for downloading @SNAFASA package
+    # Added PostgreSQL service to mirror the main 'tests' job
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # Replaced Node.js setup with Python
+      - name: Setup Python
+        uses: actions/setup-python@v6
         with:
-          node-version: '20'
-          registry-url: 'https://npm.pkg.github.com' 
-          cache: 'npm'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          # Use HTTPS instead of SSH to avoid publickey errors
-          npm install https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/SNFASA/AI-Fire-Monitoring-System.git
+          pip install -r requirements.txt
 
       - name: Run Tests
         id: test_step
         continue-on-error: true 
+        # Added Django DB environment variables
+        env:
+          SECRET_KEY: test
+          DEBUG: False
+          DB_ENGINE: django.db.backends.postgresql
+          DB_NAME: test_db
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: localhost
+          DB_PORT: 5432
         run: |
           set +e
-          echo "Running tests..."
-          TEST_LOG=$(npm test 2>&1)
+          echo "Running Django tests for AI analysis..."
+          # Replaced 'npm test' with Django's test runner
+          TEST_LOG=$(python manage.py test sensors.tests 2>&1)
           EXIT_CODE=$?
           
           echo "results<<EOF" >> $GITHUB_OUTPUT
@@ -307,10 +332,8 @@ jobs:
           PR_AGENT.CONFIG.AI_PROVIDER: "google"
           GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
-          # This tells the AI to specifically generate Django-style tests
           args: "/test --pr_test.extra_instructions='Generate high-quality Django TestCase classes. Focus on database transaction integrity and view-level security.'"
       
-          # IF TESTS FAIL: Gemini creates a GitHub Issue
       - name: Gemini Failure Analysis
         if: steps.test_step.outputs.status == 'failed'
         uses: Codium-ai/pr-agent@main
@@ -321,7 +344,6 @@ jobs:
         with:
           args: "/ask Create a detailed GitHub Issue titled '🔴 Test Failure' analyzing these logs: ${{ steps.test_step.outputs.results }}"
 
-      # IF TESTS PASS: Gemini summarizes the PR
       - name: Gemini Success Summary
         if: steps.test_step.outputs.status == 'passed'
         uses: Codium-ai/pr-agent@main
@@ -337,7 +359,6 @@ jobs:
 # -------------------------------
   create-issue-on-failure:
     runs-on: ubuntu-latest
-    # This job only runs if any of the specified jobs fail
     if: failure()
     needs: [lint, security, tests, static-analysis, docs, db-diagram, architecture, load-test, ai-tests]
     
