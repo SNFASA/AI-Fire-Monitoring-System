@@ -28,8 +28,9 @@ SECRET_KEY = "django-insecure-change-this-key-for-production-usage"
 DEBUG = True
 
 ALLOWED_HOSTS = []
-# In settings.py
-LOGIN_REDIRECT_URL = "sensors:home"
+# Authentication settings
+LOGIN_REDIRECT_URL = "sensors:home"  # Add the namespace here
+LOGIN_URL = "sensors:login"  # Recommended to namespace this too
 LOGOUT_REDIRECT_URL = "sensors:login"
 
 # Application definition
@@ -146,11 +147,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Default auto field for models
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# Authentication settings
-LOGIN_REDIRECT_URL = "home"
-LOGIN_URL = "login"
-LOGOUT_REDIRECT_URL = "login"
 
 # For Development: Prints email to the terminal (CMD/PowerShell)
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

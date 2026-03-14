@@ -59,6 +59,8 @@ class LoginTest(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertIn("_auth_user_id", self.client.session)
+
+        # FIX: Change reverse("home") to reverse("sensors:home")
         self.assertRedirects(response, reverse("sensors:home"))
 
     def test_login_wrong_password(self):

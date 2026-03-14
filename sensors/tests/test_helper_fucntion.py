@@ -13,14 +13,17 @@ class GetSensorStatusTestCase(TestCase):
     """Tests for get_sensor_status helper function"""
 
     def setUp(self):
+        # 1. Create User (Signal automatically creates UserProfile here)
         self.user = User.objects.create_user(username="testuser", password="pass123")
-        self.profile = UserProfile.objects.create(user=self.user, role="public")
+
+        # 2. FIX: Fetch the auto-created profile instead of creating a new one
+        self.profile = self.user.userprofile
+        self.profile.role = "public"
+        self.profile.save()
+
+        # 3. Create Sensor
         self.sensor = Sensor.objects.create(owner=self.profile, name="Test Sensor")
 
-    # ==========================================
-    # COMPLETED HELPER METHOD
-    # Uses baseline values from your simulator!
-    # ==========================================
     def create_dummy_log(self, status, timestamp, methane=300.0):
         """Creates a SensorDataLog with default fake values to prevent database crashes"""
         return SensorDataLog.objects.create(
@@ -28,18 +31,16 @@ class GetSensorStatusTestCase(TestCase):
             status=status,
             timestamp=timestamp,
             methane=methane,
-            # Simulator Baselines:
             lpg=300.0,
             co=80.0,
             air_quality=90.0,
             flame_val=4095.0,
-            dht22_temp=28.0,  # <-- Change this to 'temperature=28.0' or 'temp=28.0' if needed!
+            dht22_temp=28.0,
             humidity=60.0,
         )
 
-    # ==========================================
-    # YOUR TESTS
-    # ==========================================
+    # --- Test Cases ---
+
     def test_offline_no_logs(self):
         """Sensor with no logs should return Offline"""
         status = get_sensor_status(self.sensor)
@@ -48,8 +49,10 @@ class GetSensorStatusTestCase(TestCase):
     def test_offline_stale_data(self):
         """Sensor with data older than 5 minutes should return Offline"""
         old_time = timezone.now() - timedelta(minutes=6)
+        # Use update() to force a specific timestamp (auto_now_add usually blocks manual setting)
         log = self.create_dummy_log(status="Safe", timestamp=old_time)
         SensorDataLog.objects.filter(id=log.id).update(timestamp=old_time)
+
         status = get_sensor_status(self.sensor)
         self.assertEqual(status, "Offline")
 
