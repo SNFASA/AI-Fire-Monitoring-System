@@ -310,6 +310,25 @@
 <div id="user-map-container" class="map-wrapper">   
 
     <div class="map-container-wrapper" id="fullscreen-target">
+        {% if missing_station_gps %}
+            <div id="setup-overlay" class="map-lockout-overlay">
+                <div id="step-1" class="setup-step">
+                    <i class="fas fa-map-marked-alt fa-4x mb-4 text-primary"></i>
+                    <h2>Station Location Required</h2>
+                    <p class="lead">Your station is not yet pinned on the map. This is required for AI dispatching.</p>
+                    <button class="btn btn-primary btn-lg btn-gps-setup" onclick="startStationSetup()">
+                        <i class="fas fa-location-arrow"></i> Start Setup
+                    </button>
+                </div>
+                <div id="step-2" class="setup-step" style="display:none;">
+                    <div class="alert alert-info">
+                        <i class="fas fa-mouse-pointer me-2"></i> 
+                        <strong>Click on the map</strong> exactly where <b>{{ user_profile.station.name }}</b> is located.
+                    </div>
+                    <button class="btn btn-outline-light btn-sm mt-2" onclick="cancelSetup()">Cancel</button>
+                </div>
+            </div>
+        {% endif %}
         <div id="map">
             <div class="map-overlay-top-left">
                 <div class="style-switcher">
@@ -344,33 +363,100 @@
 </div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
-    // --- MAP SETUP ---
-    const STATION_LOC = [Number.parseFloat("{{ station_lng|default:'103.0848' }}"), Number.parseFloat("{{ station_lat|default:'1.8548' }}")];
-    const STYLES = { 'streets': 'https://tiles.openfreemap.org/styles/liberty', 'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' };
-    const map = new maplibregl.Map({ container: 'map', style: STYLES.streets, center: STATION_LOC, zoom: 13, pitch: 60, antialias: true });
+    // --- 1. CONFIGURATION & CONSTANTS ---
+    const STYLES = { 
+        'streets': 'https://tiles.openfreemap.org/styles/liberty', 
+        'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 
+        'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
+    };
+
+    // Cleanly handle coordinates from Django
+    const rawLat = "{{ station_lat|default:'' }}";
+    const rawLng = "{{ station_lng|default:'' }}";
+    const INITIAL_VIEW = [103.0848, 1.8548]; // Fallback center
+    
+    // Determine map center
+    const centerCoords = (rawLat && rawLng) ? [parseFloat(rawLng), parseFloat(rawLat)] : INITIAL_VIEW;
+
+    // --- 2. MAP INITIALIZATION ---
+    const map = new maplibregl.Map({ 
+        container: 'map', 
+        style: STYLES.streets, 
+        center: centerCoords, 
+        zoom: (rawLat && rawLng) ? 14 : 12, 
+        pitch: 60, 
+        antialias: true 
+    });
 
     map.addControl(new maplibregl.FullscreenControl({ container: document.querySelector('.map-container-wrapper') }), 'top-right');
     map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
     map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'bottom-right');
-    
-    // --- NEW: RENDER ALL STATION MARKERS & ZONES ---
+
+    // --- 3. STATION SETUP LOGIC ---
+    let isSetupMode = false;
+
+    function startStationSetup() {
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-2').style.display = 'block';
+        document.getElementById('setup-overlay').style.background = 'rgba(0,0,0,0.3)';
+        document.getElementById('setup-overlay').style.pointerEvents = 'none'; // CRITICAL: Allows clicking the map
+        isSetupMode = true;
+    }
+
+    function cancelSetup() {
+        location.reload();
+    }
+
+    map.on('click', function(e) {
+        if (!isSetupMode) return;
+
+        const coords = e.lngLat;
+        const stationName = "{{ user_profile.station.name|escapejs|default:'Station' }}";
+
+        if (confirm(`Pin ${stationName} at this location?`)) {
+            fetch("{% url 'sensors:update_station_coords' %}", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ lat: coords.lat, lng: coords.lng })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Station location saved!");
+                    location.reload();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            });
+        }
+    });
+
+    map.on('mousemove', function(e) {
+        if (isSetupMode) {
+            map.getCanvas().style.cursor = 'crosshair';
+        }
+    });
+
+    // --- 4. STATION MARKERS & COVERAGE ZONES ---
     map.on('load', function() {
         {% for st in all_stations %}
         (function() {
-            const lng = Number.parseFloat("{{ st.address.longitude }}");
-            const lat = Number.parseFloat("{{ st.address.latitude }}");
-            const name = "{{ st.name }}";
-            const area = Number.parseFloat("{{ st.cover_area_sqm|default:0 }}");
+            const lng = parseFloat("{{ st.address.longitude }}");
+            const lat = parseFloat("{{ st.address.latitude }}");
+            if (isNaN(lng) || isNaN(lat)) return; // Skip if no coords
+
+            const name = "{{ st.name|escapejs }}";
+            const area = parseFloat("{{ st.cover_area_sqm|default:0 }}");
             const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0;
 
-            // Add Station Marker
             const el = document.createElement('div');
             el.innerHTML = '<i class="fas fa-building-shield"></i>';
-            el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px;';
+            el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px; cursor:pointer;';
+            
             new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).setPopup(new maplibregl.Popup({offset: 25}).setText(name)).addTo(map);
 
-            // Add Coverage Zone
             const sourceId = 'zone-{{ st.id }}';
             const circle = createGeoJSONCircle([lng, lat], radius);
             if(circle) {
@@ -381,7 +467,8 @@
         })();
         {% endfor %}
     });
-    
+
+    // --- 5. UTILITIES & DATA POLLING (Live Incidents) ---
     function createGeoJSONCircle(center, radiusInKm, points = 64) {
         if(!center || isNaN(center[0])) return null;
         const coords = { latitude: center[1], longitude: center[0] };
@@ -398,12 +485,11 @@
         return { "type": "geojson", "data": { "type": "FeatureCollection", "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] } };
     }
 
-    // --- LIVE MAP DATA & COUNTERS (UNTOUCHED) ---
     const markers = {};
     let isFetching = false;
 
     function fetchMapData() {
-        if (isFetching) return;
+        if (isFetching || isSetupMode) return; // Don't fetch if setting up
         isFetching = true;
 
         fetch("{% url 'sensors:map_data' %}")
@@ -413,129 +499,34 @@
             if(data.houses) { 
                 let fireCount = 0; 
                 let warnCount = 0;
-                
                 data.houses.forEach(house => {
                     let cls = 'marker-safe'; 
                     let icon = '';
                     let st = (house.status || "").toLowerCase();
-                    
-                    if(st === 'fire') { 
-                        cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; fireCount++; 
-                    } else if(st === 'warning' || st === 'gasleak' || st === 'gas leak') { 
-                        cls = 'marker-warning'; icon = '<i class="fas fa-exclamation-triangle"></i>'; warnCount++; 
-                    } else if(st === 'offline') { 
-                        cls = 'marker-offline'; 
-                    }
+                    if(st === 'fire') { cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; fireCount++; }
+                    else if(st === 'warning' || st === 'gasleak') { cls = 'marker-warning'; icon = '<i class="fas fa-exclamation-triangle"></i>'; warnCount++; }
+                    else if(st === 'offline') { cls = 'marker-offline'; }
                     
                     if(!markers[house.id]) {
                         const el = document.createElement('div');
                         el.className = cls; 
                         el.innerHTML = icon;
                         el.addEventListener('click', () => openLayoutModal(house.id));
-                        markers[house.id] = new maplibregl.Marker({ element: el })
-                            .setLngLat([house.lng, house.lat])
-                            .addTo(map);
+                        markers[house.id] = new maplibregl.Marker({ element: el }).setLngLat([house.lng, house.lat]).addTo(map);
                     } else {
                         const el = markers[house.id].getElement();
-                        if (el.className !== cls) el.className = cls;
-                        if (el.innerHTML !== icon) el.innerHTML = icon;
+                        el.className = cls;
+                        el.innerHTML = icon;
                     }
                 });
                 document.getElementById('fire-count').innerText = fireCount;
                 document.getElementById('warning-count').innerText = warnCount;
             }
-        })
-        .catch(err => { isFetching = false; });
+        }).catch(() => { isFetching = false; });
     }
 
     setInterval(fetchMapData, 2000);
     fetchMapData();
-
-    window.addEventListener('fireAlertReceived', function() {
-        fetchMapData();
-    });
-
-    // --- LAYOUT MODAL LOGIC (UNTOUCHED) ---
-    let modalRefreshInterval = null;
-    let currentModalUserId = null;
-    let lastActiveTabId = null; 
-
-    function openLayoutModal(userId) {
-        currentModalUserId = userId;
-        lastActiveTabId = null; 
-        const modal = new bootstrap.Modal(document.getElementById('layoutModal'));
-        modal.show();
-        fetchModalData(userId); 
-        
-        if(modalRefreshInterval) clearInterval(modalRefreshInterval);
-        modalRefreshInterval = setInterval(() => { fetchModalData(userId); }, 1000);
-    }
-
-    function fetchModalData(userId) {
-        fetch(`/api/get-victim-layout/${userId}/`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                const tabsContainer = document.getElementById('victimLayoutTabs');
-                const contentContainer = document.getElementById('victimLayoutContent');
-                const currentActive = document.querySelector('.nav-link.active');
-                if (currentActive) lastActiveTabId = currentActive.id;
-
-                tabsContainer.innerHTML = '';
-                contentContainer.innerHTML = '';
-
-                if (data.layouts.length === 0) {
-                    contentContainer.innerHTML = '<div class="text-white p-5 text-center">No layouts found for this user.</div>';
-                    return;
-                }
-
-                data.layouts.forEach((layout, index) => {
-                    const tabId = `tab-${layout.layout_id}`;
-                    let isActive = (lastActiveTabId === tabId || (!lastActiveTabId && index === 0)) ? 'active' : '';
-                    let isShow = (lastActiveTabId === tabId || (!lastActiveTabId && index === 0)) ? 'show active' : '';
-                    
-                    const tabButton = document.createElement('button');
-                    tabButton.className = `nav-link ${isActive} fw-bold`;
-                    tabButton.id = tabId;
-                    tabButton.setAttribute('data-bs-toggle', 'tab');
-                    tabButton.setAttribute('data-bs-target', `#content-${layout.layout_id}`);
-                    tabButton.type = 'button';
-                    tabButton.role = 'tab';
-                    tabButton.innerText = layout.layout_name;
-                    tabButton.addEventListener('click', function() { lastActiveTabId = this.id; });
-
-                    const li = document.createElement('li');
-                    li.className = 'nav-item';
-                    li.appendChild(tabButton);
-                    tabsContainer.appendChild(li);
-
-                    let sensorsHTML = layout.sensors.map((s, i) => {
-                        let cssClass = 'bg-safe';
-                        let st = (s.status || "").toLowerCase();
-                        if (st === 'fire') cssClass = 'bg-fire';
-                        else if (st === 'warning' || st === 'gasleak') cssClass = 'bg-warn';
-                        return `<div class="sensor-node ${cssClass}" style="left:${s.x}%; top:${s.y}%;">${i + 1}<div class="sensor-label">${s.name}</div></div>`;
-                    }).join('');
-
-                    contentContainer.insertAdjacentHTML('beforeend', `
-                        <div class="tab-pane fade ${isShow}" id="content-${layout.layout_id}" role="tabpanel" style="height:100%; width:100%;">
-                            <div class="blueprint-wrapper" style="height:100%; width:100%; background-color: #0d1b2a; position: relative; overflow: hidden; border:none;">
-                                <img src="${layout.image_url}" class="blueprint-image" style="display:block; position: absolute; width: 100%; height: 100%; object-fit: fill; z-index: 1; filter: invert(1) grayscale(1) brightness(1.2) contrast(1.2); opacity: 0.8; mix-blend-mode: screen;" alt="Layout Blueprint">
-                                ${sensorsHTML}
-                            </div>
-                        </div>`);
-                });
-            }
-        });
-    }
-
-    const layoutModalEl = document.getElementById('layoutModal');
-    layoutModalEl.addEventListener('hidden.bs.modal', event => {
-        if (modalRefreshInterval) {
-            clearInterval(modalRefreshInterval);
-            modalRefreshInterval = null;
-        }
-    });
 
     window.switchStyle = function(styleName, btn) {
         document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));

@@ -1,4 +1,6 @@
 import os
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -31,23 +33,27 @@ def reports_view(request):
 @login_required(login_url="login")
 def report_detail(request, report_id):
     report = get_object_or_404(Report, id=report_id)
-    is_firefighter = (
-        hasattr(request.user, "userprofile")
-        and request.user.userprofile.role == "firefighter"
-    )
+    user_profile = getattr(request.user, 'userprofile', None)
+    is_firefighter = user_profile is not None and user_profile.role == "firefighter"
+
     if request.method == "POST" and is_firefighter:
         report.fire_type = request.POST.get("fire_type")
         report.cause = request.POST.get("cause")
         report.description = request.POST.get("description")
         report.status = request.POST.get("status")
-        if request.POST.get("station"):
-            report.station = FireStation.objects.get(id=request.POST.get("station"))
+        station_id = request.POST.get("station")
+        if station_id:
+            report.station = get_object_or_404(FireStation, id=station_id)
+
         report.in_charge = request.user
         report.save()
+
         for img in request.FILES.getlist("images"):
             ReportImage.objects.create(report=report, image=img)
+
         messages.success(request, "Report updated!")
         return redirect("sensors:reports")
+
     return render(
         request,
         "sensors/report_detail.html",

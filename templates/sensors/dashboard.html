@@ -242,58 +242,60 @@
             const feedBox = document.getElementById('activity-feed-box');
             
             if (data.logs) {
-                // Split the raw log text into individual lines
                 const lines = data.logs.split('\n').filter(line => line.trim() !== '');
-                let htmlOutput = '';
+                
+                // Clear existing content to prepare for fresh logs
+                feedContent.innerHTML = ''; 
 
                 lines.forEach(line => {
-                    // Determine the status and styles based on keywords in the text
                     let cardClass = 'border-start border-4 border-secondary';
-                    let icon = '<i class="fas fa-info-circle text-secondary"></i>';
-                    let statusBadge = '';
+                    let iconHTML = '<i class="fas fa-info-circle text-secondary"></i>';
+                    let statusBadgeHTML = '';
 
                     if (line.includes('[FIRE]')) {
                         cardClass = 'border-start border-4 border-danger';
-                        icon = '<i class="fas fa-fire text-danger"></i>';
-                        statusBadge = '<span class="badge bg-danger rounded-pill">FIRE DETECTED</span>';
+                        iconHTML = '<i class="fas fa-fire text-danger"></i>';
+                        statusBadgeHTML = '<span class="badge bg-danger rounded-pill">FIRE DETECTED</span>';
                     } else if (line.includes('[WARNING]')) {
                         cardClass = 'border-start border-4 border-warning';
-                        icon = '<i class="fas fa-exclamation-triangle text-warning"></i>';
-                        statusBadge = '<span class="badge bg-warning  rounded-pill">WARNING</span>';
+                        iconHTML = '<i class="fas fa-exclamation-triangle text-warning"></i>';
+                        statusBadgeHTML = '<span class="badge bg-warning rounded-pill">WARNING</span>';
                     } else if (line.includes('[SAFE]')) {
                         cardClass = 'border-start border-4 border-success';
-                        icon = '<i class="fas fa-check-circle text-success"></i>';
-                        statusBadge = '<span class="badge bg-success bg-opacity-10 text-success rounded-pill border border-success">SAFE</span>';
+                        iconHTML = '<i class="fas fa-check-circle text-success"></i>';
+                        statusBadgeHTML = '<span class="badge bg-success bg-opacity-10 text-success rounded-pill border border-success">SAFE</span>';
                     }
 
-                    // Clean up the text for display (remove the raw tags)
-                    let cleanText = line.replace(/\[🔮 PREDICTOR LOG\]/g, '')
+                    const cleanText = line.replace(/\[🔮 PREDICTOR LOG\]/g, '')
                                         .replace(/\[SAFE\]/g, '')
                                         .replace(/\[WARNING\]/g, '')
                                         .replace(/\[FIRE\]/g, '')
                                         .trim();
 
-                    // Build the modern card HTML
-                    htmlOutput += `
-                        <div class="card shadow-sm border-0 mb-1 ${cardClass}">
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="d-flex align-items-center gap-2 fw-bold" style="font-size: 0.9rem;">
-                                        ${icon} AI Predictor
-                                    </div>
-                                    ${statusBadge}
+                    // 1. Create the wrapper element
+                    const card = document.createElement('div');
+                    card.className = `card shadow-sm border-0 mb-1 ${cardClass}`;
+
+                    // 2. Use a template for the structure, but a placeholder for the user data
+                    card.innerHTML = `
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2 fw-bold" style="font-size: 0.9rem;">
+                                    ${iconHTML} AI Predictor
                                 </div>
-                                <div class="text-muted small" style="font-size: 0.85rem;">
-                                    ${cleanText}
-                                </div>
+                                ${statusBadgeHTML}
                             </div>
+                            <div class="log-text-container text-muted small" style="font-size: 0.85rem;"></div>
                         </div>
                     `;
+
+                    // 3. SECURE STEP: Set the log text using textContent
+                    // This ensures any <script> or HTML tags are treated as literal text.
+                    card.querySelector('.log-text-container').textContent = cleanText;
+
+                    feedContent.appendChild(card);
                 });
 
-                feedContent.innerHTML = htmlOutput;
-                
-                // Smoothly scroll to the newest item at the bottom
                 feedBox.scrollTo({ top: feedBox.scrollHeight, behavior: 'smooth' });
             }
         })
@@ -388,37 +390,59 @@
     setInterval(updateSensorReadings, 1000);
 
     // B. Delete Sensor (AJAX Action using Global Popup)
-    function confirmDelete(sensorId, sensorName) {
-        showPopup(
-            'warning', 
-            'Delete Sensor?', 
-            `Are you sure you want to delete sensor: "<strong>${sensorName}</strong>"?<br>This action cannot be undone.`, 
-            function() {
-                fetch(`/api/delete-sensor/${sensorId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const row = document.getElementById(`sensor-row-${sensorId}`);
-                        if (row) {
-                            row.style.transition = "all 0.5s";
-                            row.style.opacity = "0";
-                            setTimeout(() => row.remove(), 500);
-                        }
-                        showPopup('success', 'Deleted', `Sensor "${sensorName}" has been removed.`);
-                    } else {
-                        showPopup('error', 'Error', data.message);
-                    }
-                })
-                .catch(err => showPopup('error', 'Connection Error', 'Failed to connect to the server.'));
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
-        );
+        }
     }
+    return cookieValue;
+}
+
+function confirmDelete(sensorId, sensorName) {
+    showPopup(
+        'warning', 
+        'Delete Sensor?', 
+        `Are you sure you want to delete sensor: "<strong>${sensorName}</strong>"?<br>This action cannot be undone.`, 
+        function() {
+            fetch(`/api/delete-sensor/${sensorId}/`, {
+                method: 'POST',
+                headers: {
+                    // Use the helper function if in an external .js file
+                    'X-CSRFToken': getCookie('csrftoken'), 
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                // Check if response is 404 or 500 before parsing JSON
+                if (!response.ok) return response.json().then(err => { throw err; });
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const row = document.getElementById(`sensor-row-${sensorId}`);
+                    if (row) {
+                        row.style.transition = "all 0.5s ease";
+                        row.style.opacity = "0";
+                        row.style.transform = "translateX(20px)"; // Visual cue for deletion
+                        setTimeout(() => row.remove(), 500);
+                    }
+                    showPopup('success', 'Deleted', `Sensor "${sensorName}" has been removed.`);
+                }
+            })
+            .catch(err => {
+                const errMsg = err.message || 'Failed to connect to the server.';
+                showPopup('error', 'Error', errMsg);
+            });
+        }
+    );
+}
     {% endif %}
 </script>
 {% endblock %}

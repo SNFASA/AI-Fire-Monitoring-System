@@ -1,4 +1,4 @@
-import math
+import math , json
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -70,8 +70,6 @@ def firefighter_map_data(request):
 # ==========================================
 # 4. MAPS view
 # ==========================================
-
-
 @login_required(login_url="login")
 def maps(request):
     try:
@@ -202,3 +200,24 @@ def edit_layout_ajax(request):
         layout.image = request.FILES["image"]
     layout.save()
     return JsonResponse({"success": True})
+
+
+@login_required
+@require_POST
+def update_station_coordinates(request):
+    try:
+        data = json.loads(request.body)
+        lat = data.get("lat")
+        lng = data.get("lng")
+        
+        user_profile = request.user.userprofile
+        if user_profile.role == "firefighter" and user_profile.station:
+            address = user_profile.station.address
+            address.latitude = lat
+            address.longitude = lng
+            address.save()
+            return JsonResponse({"success": True})
+            
+        return JsonResponse({"success": False, "error": "Unauthorized or no station assigned."}, status=403)
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)

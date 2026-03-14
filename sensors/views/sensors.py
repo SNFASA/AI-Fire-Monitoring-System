@@ -2,6 +2,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 # Local Imports
 from ..models import (
@@ -31,17 +32,47 @@ def get_live_data(request):
     return JsonResponse({"sensors": data})
 
 
-@csrf_exempt
 @login_required
+@require_POST # Replaces the 'if request.method == "POST"' check
 def add_sensor(request):
-    if request.method == "POST":
+    try:
         data = json.loads(request.body)
-        layout = Houselayout.objects.get(id=data.get("layout_id"), user=request.user)
+        
+        # 1. Validate Input Presence
+        name = data.get("name")
+        layout_id = data.get("layout_id")
+        
+        if not name or not str(name).strip():
+            return JsonResponse({"success": False, "error": "Sensor name is required."}, status=400)
+        
+        if not layout_id:
+            return JsonResponse({"success": False, "error": "Layout ID is missing."}, status=400)
+
+        # 2. Safe Database Lookup
+        # Ensures the layout exists AND belongs to the user
+        try:
+            layout = Houselayout.objects.get(id=layout_id, user=request.user)
+        except Houselayout.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Floor layout not found."}, status=404)
+
+        # 3. Create Sensor
         new_sensor = Sensor.objects.create(
-            owner=request.user.userprofile, name=data.get("name"), layout=layout
+            owner=request.user.userprofile, 
+            name=name.strip(), 
+            layout=layout
         )
-        return JsonResponse({"success": True, "sensor_id": new_sensor.id})
-    return JsonResponse({"success": False})
+        
+        return JsonResponse({
+            "success": True, 
+            "sensor_id": new_sensor.id,
+            "message": "Sensor registered successfully."
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON payload."}, status=400)
+    except Exception as e:
+        # Catch-all for unexpected issues (e.g., database connection)
+        return JsonResponse({"success": False, "error": "An unexpected error occurred."}, status=500)
 
 
 @csrf_exempt

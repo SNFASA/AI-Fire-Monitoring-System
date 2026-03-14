@@ -1,11 +1,12 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
+from django.db.models import Prefetch
+from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
 # Only import what the dashboard needs to show stats
-from ..models import Sensor, Maintenance, Report, FireStation, UserProfile
-from ..logger import get_logs, add_log
+from ..models import Sensor, Maintenance, Report, FireStation, UserProfile, SensorDataLog
 from .api import predictor
 
 # Initialize AI Engine
@@ -38,37 +39,57 @@ def dashboard_view(request):
 
 
 @login_required
+@login_required
 def get_dashboard_sensor_data(request):
-    user = request.user.userprofile
-    sensors = (
-        Sensor.objects.filter(owner=user)
-        if user.role == "public"
-        else Sensor.objects.all()
+    user_profile = request.user.userprofile # Now safe thanks to your signals!
+    
+    # Define a query for the latest reading
+    latest_readings = SensorDataLog.objects.order_by('sensor', '-timestamp').distinct('sensor')
+
+    # Fetch sensors and "pre-load" their last reading
+    sensors = Sensor.objects.filter(
+        owner=user_profile if user_profile.role == "public" else None
+    ).prefetch_related(
+        Prefetch('readings', queryset=latest_readings, to_attr='latest_log_list')
     )
+
     data = []
     for s in sensors:
-        log = s.readings.last()
-        data.append(
-            {
-                "id": s.id,
-                "temp": f"{log.dht22_temp:.1f}" if log else "N/A",
-                "hum": f"{log.humidity:.1f}" if log else "N/A",
-                "status": log.status if log else "N/A",
-            }
-        )
+        # Get the first item from our prefetched list (the last reading)
+        log = s.latest_log_list[0] if s.latest_log_list else None
+        data.append({
+            "id": s.id,
+            "temp": f"{log.dht22_temp:.1f}" if log else "N/A",
+            "hum": f"{log.humidity:.1f}" if log else "N/A",
+            "status": log.status if log else "N/A",
+        })
     return JsonResponse({"sensors": data})
 
 
 @login_required
-def delete_sensor(request, sensor_id):  # Fallback non-ajax delete
+def delete_sensor(request, sensor_id):
     if request.method == "POST":
-        Sensor.objects.get(id=sensor_id, owner__user=request.user).delete()
-        return redirect("sensors:dashboard")
+        try:
+            sensor = Sensor.objects.get(id=sensor_id, owner__user=request.user)
+            sensor.delete()
+            messages.success(request, "Sensor deleted successfully.")
+        except Sensor.DoesNotExist:
+            messages.error(request, "Error: Sensor not found or permission denied.")
+    
     return redirect("sensors:dashboard")
 
 
 @login_required
 @require_POST
 def delete_sensor_ajax(request, sensor_id):
-    Sensor.objects.get(id=sensor_id, owner__user=request.user).delete()
-    return JsonResponse({"success": True, "message": "Deleted"})
+    try:
+        # Ensure the sensor exists AND belongs to the logged-in user
+        sensor = Sensor.objects.get(id=sensor_id, owner__user=request.user)
+        sensor.delete()
+        return JsonResponse({"success": True, "message": "Sensor deleted successfully."})
+    
+    except Sensor.DoesNotExist:
+        return JsonResponse({
+            "success": False, 
+            "message": "Sensor not found or you do not have permission to delete it."
+        }, status=404)

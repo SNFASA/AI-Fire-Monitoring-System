@@ -1,11 +1,12 @@
 import json
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.utils import timezone
 from ..utils import send_sms_broadcast, haversine
-from ..models import Sensor, SensorDataLog, Report, FireStation, DutyAssignment
+from ..models import Sensor, SensorDataLog, Report, FireStation, DutyAssignment, UserProfile
 from ..logger import add_log
 from ml_engine.predictor import FirePredictor
 
@@ -44,15 +45,10 @@ def receive_sensor_data(request):
                 methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
             )
 
-            # Log to Console/Dashboard
             print(f"📡 [DATA] Sensor {sensor_id_raw} | Status: {ml_result}")
             add_log(f"[DATA] Sensor {sensor_id_raw}: {ml_result}")
 
-            sensor = (
-                Sensor.objects.filter(id=sensor_id_raw).first()
-                if sensor_id_raw
-                else None
-            )
+            sensor = Sensor.objects.filter(id=sensor_id_raw).first() if sensor_id_raw else None
 
             if sensor:
                 # 3. Save Log to Database
@@ -72,6 +68,22 @@ def receive_sensor_data(request):
                 if ml_result == "Fire" and sensor.owner.address:
                     user_address = sensor.owner.address
 
+                    # --- COORDINATE CHECK ---
+                    # Explicitly check for None to allow 0.0 coordinates
+                    # Inside receive_sensor_data where latitude is None:
+                    if user_address.latitude is None or user_address.longitude is None:
+                        if sensor.owner.phone_number:
+                            # Construct a link to your new view
+                            update_url = f"https://yourdomain.com/update-location/{sensor.owner.id}/"
+                            
+                            missing_coord_msg = (
+                                f"🚨 EMERGENCY: Fire detected at your property!\n\n"
+                                f"We don't have your GPS coordinates. Click here to share your location "
+                                f"so we can dispatch the fire station: {update_url}"
+                            )
+                            send_sms_broadcast([sensor.owner.phone_number], missing_coord_msg)
+                        return HttpResponse("1")
+
                     # Deduplication: Don't spam if report is already active
                     active_report = Report.objects.filter(
                         address=user_address,
@@ -87,19 +99,18 @@ def receive_sensor_data(request):
                         station_distances = []
 
                         # Calculate distances to all stations
-                        if user_address.latitude and user_address.longitude:
-                            for station in stations:
-                                if (
-                                    station.address.latitude
-                                    and station.address.longitude
-                                ):
-                                    dist = haversine(
-                                        user_address.latitude,
-                                        user_address.longitude,
-                                        station.address.latitude,
-                                        station.address.longitude,
-                                    )
-                                    station_distances.append((dist, station))
+                        for station in stations:
+                            # Explicit check for station coordinates too
+                            if (station.address.latitude is not None and 
+                                station.address.longitude is not None):
+                                
+                                dist = haversine(
+                                    user_address.latitude,
+                                    user_address.longitude,
+                                    station.address.latitude,
+                                    station.address.longitude,
+                                )
+                                station_distances.append((dist, station))
 
                         # Sort by Nearest
                         station_distances.sort(key=lambda x: x[0])
@@ -120,17 +131,13 @@ def receive_sensor_data(request):
                             if on_duty.exists():
                                 target_station = station
                                 target_staff = on_duty
-                                print(
-                                    f"✅ Active Station Found: {station.name} ({dist:.2f}km)"
-                                )
+                                print(f"✅ Active Station Found: {station.name} ({dist:.2f}km)")
                                 break
 
-                        # Fallback: If nobody is working anywhere, default to the nearest station
+                        # Fallback: Nearest station if no one is on duty
                         if not target_station and station_distances:
                             target_station = station_distances[0][1]
-                            print(
-                                f"⚠️ No active staff found. Defaulting to nearest: {target_station.name}"
-                            )
+                            print(f"⚠️ No active staff found. Defaulting to nearest: {target_station.name}")
 
                         if target_station:
                             # 5. Create Report
@@ -145,7 +152,7 @@ def receive_sensor_data(request):
                                 description=f"Automated Alert: Fire at {user_address.street}.",
                             )
 
-                            # 6. SEND ALERTS
+                            # 6. SEND ALERTS (WebSockets and WhatsApp)
                             channel_layer = get_channel_layer()
                             payload = {
                                 "type": "fire_alert",
@@ -158,33 +165,19 @@ def receive_sensor_data(request):
                                 "timestamp": str(new_report.timestamp),
                             }
 
-                            # A. WebSocket to Station Dashboard (The Popup)
-                            async_to_sync(channel_layer.group_send)(
-                                f"station_{target_station.id}", payload
-                            )
-                            # B. WebSocket to Global Admins
-                            async_to_sync(channel_layer.group_send)(
-                                "station_all", payload
-                            )
+                            async_to_sync(channel_layer.group_send)(f"station_{target_station.id}", payload)
+                            async_to_sync(channel_layer.group_send)("station_all", payload)
 
-                            # C. WhatsApp to On-Duty Firefighters
-                            phone_list = [
-                                d.firefighter.phone_number
-                                for d in target_staff
-                                if d.firefighter.phone_number
-                            ]
-
+                            # WhatsApp to Firefighters
+                            phone_list = [d.firefighter.phone_number for d in target_staff if d.firefighter.phone_number]
                             if phone_list:
                                 msg = f"FIRE ALERT! Loc: {user_address.street}. Station {target_station.name} mobilized."
                                 send_sms_broadcast(phone_list, msg)
 
+                            # WhatsApp to Owner
                             if sensor.owner.phone_number:
                                 owner_msg = f"URGENT: Fire detected at your property ({user_address.street}). Station {target_station.name} has been notified."
-                                # We pass it as a list because send_sms_broadcast expects a list
-                                send_sms_broadcast(
-                                    [sensor.owner.phone_number], owner_msg
-                                )
-                                print(f"Owner notified: {sensor.owner.phone_number}")
+                                send_sms_broadcast([sensor.owner.phone_number], owner_msg)
 
             return HttpResponse("1" if ml_result != "Safe" else "0")
 
@@ -192,3 +185,28 @@ def receive_sensor_data(request):
             print(f"❌ Error in receive_sensor_data: {e}")
             return HttpResponse("0")
     return HttpResponse("0", status=405)
+
+def update_location_from_link(request, owner_id):
+    # Fetch the owner; if they don't exist, 404
+    owner = get_object_or_404(Sensor, id=owner_id)
+    
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            lat = data.get("lat")
+            lng = data.get("lng")
+            
+            if lat is not None and lng is not None:
+                # Update the related Address model
+                address = owner.address
+                address.latitude = lat
+                address.longitude = lng
+                address.save()
+                return JsonResponse({"status": "success", "message": "Location updated successfully!"})
+                
+            return JsonResponse({"status": "error", "message": "Invalid coordinates."}, status=400)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    # For GET requests, show the button page
+    return render(request, "update_location.html", {"owner": owner})

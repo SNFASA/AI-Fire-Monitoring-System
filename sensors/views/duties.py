@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.http import require_POST
 
 # Local Imports
 from ..models import (
@@ -16,41 +17,49 @@ from ..models import (
 # 2. MOBILIZE TEAM (CONFIRMATION)
 # ==========================================
 @login_required
+@login_required
+@require_POST  # Only allows POST requests; returns 405 for GET, PUT, etc.
 def mobilize_team(request, report_id):
     """
     Called when the 'Mobilize Team' button is clicked.
     Assigns the currently on-duty staff to the report.
     """
-    if request.method == "POST":
-        try:
-            report = Report.objects.get(id=report_id)
-            now = timezone.now()
+    try:
+        report = Report.objects.get(id=report_id)
+        now = timezone.now()
 
-            # Find currently ON-DUTY staff at this station
-            active_duties = DutyAssignment.objects.filter(
-                firefighter__station=report.station,
-                start_time__lte=now,
-                end_time__gte=now,
-                is_active=True,
-            )
+        # Find currently ON-DUTY staff at this station
+        active_duties = DutyAssignment.objects.filter(
+            firefighter__station=report.station,
+            start_time__lte=now,
+            end_time__gte=now,
+            is_active=True,
+        ).select_related("firefighter") # Optimization: avoids N+1 in the loop
 
-            # Add them to the team history
-            for duty in active_duties:
-                report.mobilized_team.add(duty.firefighter)
+        if not active_duties.exists():
+            return JsonResponse({
+                "success": False,
+                "message": "No firefighters are currently on duty at this station!"
+            }, status=400)
 
-            report.status = "Confirmed"
-            report.in_charge = request.user
-            report.save()
+        # Add them to the team history
+        for duty in active_duties:
+            report.mobilized_team.add(duty.firefighter)
 
-            return JsonResponse(
-                {
-                    "success": True,
-                    "message": f"Mobilized {active_duties.count()} firefighters.",
-                }
-            )
+        # Update report status
+        report.status = "Confirmed"
+        report.in_charge = request.user
+        report.save()
 
-        except Report.DoesNotExist:
-            return JsonResponse({"error": "Report not found"}, status=404)
+        return JsonResponse({
+            "success": True,
+            "message": f"Mobilized {active_duties.count()} firefighters.",
+        })
+
+    except Report.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Report not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 @login_required(login_url="login")

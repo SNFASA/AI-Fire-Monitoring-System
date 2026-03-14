@@ -59,7 +59,7 @@ def create_maintenance(request):
         form = MaintenanceForm()
     return render(request, "sensors/maintenance_create.html", {"form": form})
 
-
+@login_required(login_url="login")
 def edit_maintenance(request, maintenance_id):
     task = get_object_or_404(Maintenance, id=maintenance_id)
 
