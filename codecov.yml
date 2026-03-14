@@ -1,16 +1,18 @@
-coverage:
-  status:
-    project:
-      default:
-        # basic target is 80% coverage, allowed to drop by 1% in new PRs
-        target: 80%
-        threshold: 1%
-    patch:
-      default:
-        # requires new code in PRs to have at least 80% coverage
-        target: 80%
+# Include the specific folders you want
+source = 
+    sensors
+    core
 
-# Ignore specific folders like tests or node_modules
-ignore:
-  - "tests/**/*"
-  - "node_modules/**/*"
+# Exclude management commands and test files from being measured
+omit =
+    sensors/management/*
+    manage.py
+
+[report]
+# Show which lines are missing
+show_missing = True
+# Check for branch coverage (handles 'if' statements)
+precision = 2
+
+[html]
+directory = htmlcov

@@ -121,8 +121,9 @@ jobs:
           DB_HOST: localhost
           DB_PORT: 5432
         run: |
-          coverage run manage.py test sensors.tests
+          coverage run --branch manage.py test sensors.tests
           coverage report -m
+          coverage xml
           coverage html
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
