@@ -33,7 +33,7 @@ def reports_view(request):
 @login_required(login_url="login")
 def report_detail(request, report_id):
     report = get_object_or_404(Report, id=report_id)
-    user_profile = getattr(request.user, 'userprofile', None)
+    user_profile = getattr(request.user, "userprofile", None)
     is_firefighter = user_profile is not None and user_profile.role == "firefighter"
 
     if request.method == "POST" and is_firefighter:

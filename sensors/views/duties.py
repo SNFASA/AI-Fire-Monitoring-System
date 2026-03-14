@@ -34,13 +34,18 @@ def mobilize_team(request, report_id):
             start_time__lte=now,
             end_time__gte=now,
             is_active=True,
-        ).select_related("firefighter") # Optimization: avoids N+1 in the loop
+        ).select_related(
+            "firefighter"
+        )  # Optimization: avoids N+1 in the loop
 
         if not active_duties.exists():
-            return JsonResponse({
-                "success": False,
-                "message": "No firefighters are currently on duty at this station!"
-            }, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "No firefighters are currently on duty at this station!",
+                },
+                status=400,
+            )
 
         # Add them to the team history
         for duty in active_duties:
@@ -51,10 +56,12 @@ def mobilize_team(request, report_id):
         report.in_charge = request.user
         report.save()
 
-        return JsonResponse({
-            "success": True,
-            "message": f"Mobilized {active_duties.count()} firefighters.",
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "message": f"Mobilized {active_duties.count()} firefighters.",
+            }
+        )
 
     except Report.DoesNotExist:
         return JsonResponse({"success": False, "error": "Report not found"}, status=404)

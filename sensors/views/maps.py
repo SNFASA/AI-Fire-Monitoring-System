@@ -1,4 +1,4 @@
-import math , json
+import math, json
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -209,7 +209,7 @@ def update_station_coordinates(request):
         data = json.loads(request.body)
         lat = data.get("lat")
         lng = data.get("lng")
-        
+
         user_profile = request.user.userprofile
         if user_profile.role == "firefighter" and user_profile.station:
             address = user_profile.station.address
@@ -217,7 +217,10 @@ def update_station_coordinates(request):
             address.longitude = lng
             address.save()
             return JsonResponse({"success": True})
-            
-        return JsonResponse({"success": False, "error": "Unauthorized or no station assigned."}, status=403)
+
+        return JsonResponse(
+            {"success": False, "error": "Unauthorized or no station assigned."},
+            status=403,
+        )
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)

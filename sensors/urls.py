@@ -12,7 +12,11 @@ urlpatterns = [
     path("get-live-logs/", utils.get_live_logs, name="get_live_logs"),
     path("test-log/", api.test_log, name="test_log"),
     path("api/send-data/", api.receive_sensor_data, name="receive_data"),
-    path('update-location/<int:owner_id>/',api.update_location_from_link, name='update_location_link'),
+    path(
+        "update-location/<int:owner_id>/",
+        api.update_location_from_link,
+        name="update_location_link",
+    ),
     # Home / Dashboard
     path("", dashboard.dashboard_view, name="home"),
     path("dashboard/", dashboard.dashboard_view, name="dashboard"),
@@ -108,7 +112,11 @@ urlpatterns = [
     # MAPS
     path("api/map-data/", maps.firefighter_map_data, name="map_data"),
     path("maps/", maps.maps, name="maps"),
-    path("api/update_station_coords/", maps.update_station_coordinates, name="update_station_coords"),
+    path(
+        "api/update_station_coords/",
+        maps.update_station_coordinates,
+        name="update_station_coords",
+    ),
     path("upload-layout/", maps.upload_layout, name="upload_layout"),
     path("api/edit-layout/", maps.edit_layout_ajax, name="edit_layout_ajax"),
     path(

@@ -33,46 +33,56 @@ def get_live_data(request):
 
 
 @login_required
-@require_POST # Replaces the 'if request.method == "POST"' check
+@require_POST  # Replaces the 'if request.method == "POST"' check
 def add_sensor(request):
     try:
         data = json.loads(request.body)
-        
+
         # 1. Validate Input Presence
         name = data.get("name")
         layout_id = data.get("layout_id")
-        
+
         if not name or not str(name).strip():
-            return JsonResponse({"success": False, "error": "Sensor name is required."}, status=400)
-        
+            return JsonResponse(
+                {"success": False, "error": "Sensor name is required."}, status=400
+            )
+
         if not layout_id:
-            return JsonResponse({"success": False, "error": "Layout ID is missing."}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "Layout ID is missing."}, status=400
+            )
 
         # 2. Safe Database Lookup
         # Ensures the layout exists AND belongs to the user
         try:
             layout = Houselayout.objects.get(id=layout_id, user=request.user)
         except Houselayout.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Floor layout not found."}, status=404)
+            return JsonResponse(
+                {"success": False, "error": "Floor layout not found."}, status=404
+            )
 
         # 3. Create Sensor
         new_sensor = Sensor.objects.create(
-            owner=request.user.userprofile, 
-            name=name.strip(), 
-            layout=layout
+            owner=request.user.userprofile, name=name.strip(), layout=layout
         )
-        
-        return JsonResponse({
-            "success": True, 
-            "sensor_id": new_sensor.id,
-            "message": "Sensor registered successfully."
-        })
+
+        return JsonResponse(
+            {
+                "success": True,
+                "sensor_id": new_sensor.id,
+                "message": "Sensor registered successfully.",
+            }
+        )
 
     except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON payload."}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "Invalid JSON payload."}, status=400
+        )
     except Exception as e:
         # Catch-all for unexpected issues (e.g., database connection)
-        return JsonResponse({"success": False, "error": "An unexpected error occurred."}, status=500)
+        return JsonResponse(
+            {"success": False, "error": "An unexpected error occurred."}, status=500
+        )
 
 
 @csrf_exempt
