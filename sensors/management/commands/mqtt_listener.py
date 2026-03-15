@@ -31,7 +31,7 @@ class Command(BaseCommand):
                     if st == "fire":
                         new_house_status = "Fire"
                         break  # Fire is priority
-                    elif st in ["warning", "Gas Leak", "gasleak"]:
+                    elif st in ["warning", "gas leak", "gasleak"]:
                         new_house_status = "Warning"  # Map everything to 'Warning'
 
                 # Update Profile if changed
@@ -103,7 +103,7 @@ class Command(BaseCommand):
                 color = self.style.SUCCESS
                 if prediction == "Fire":
                     color = self.style.ERROR
-                elif prediction in ["Warning", "Gas Leak"]:
+                elif prediction in ["Warning", "gas leak"]:
                     color = self.style.WARNING
                 # self.stdout.write(color(f"[{timezone.now().time()}] Sensor {sensor.id}: {prediction}"))
 

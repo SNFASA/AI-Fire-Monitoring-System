@@ -63,7 +63,7 @@ def get_sensor_status(sensor):
     # Return Status (Normalize 'GasLeak')
     status = last_log.status
     if status == "GasLeak":
-        return "Gas Leak"
+        return "gas leak"
     return status
 
 
@@ -326,8 +326,8 @@ def firefighter_map_data(request):
                 if s_status == "Fire":
                     house_status = "Fire"
                     break
-                elif s_status == "Gas Leak" and house_status != "Fire":
-                    house_status = "Gas Leak"
+                elif s_status == "gas leak" and house_status != "Fire":
+                    house_status = "gas leak"
                 elif s_status == "Offline":
                     has_offline = True
 
