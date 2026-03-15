@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ObjectDoesNotExist
 from .models import UserProfile, Address, Houselayout, Sensor, Maintenance, Report
 
 
@@ -116,13 +117,36 @@ class MaintenanceForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if "sensor" in self.fields:
-            self.fields["sensor"].queryset = Sensor.objects.filter(is_active=True)
+            if self.user is not None:
+                try:
+                    profile = self.user.userprofile
+                    self.fields["sensor"].queryset = Sensor.objects.filter(
+                        owner=profile, is_active=True
+                    )
+                except ObjectDoesNotExist:
+                    self.fields["sensor"].queryset = Sensor.objects.none()
+            else:
+                self.fields["sensor"].queryset = Sensor.objects.filter(is_active=True)
         if "nearest_fire_station" in self.fields:
             self.fields["nearest_fire_station"].empty_label = (
                 "Select Nearest Fire Station (Optional)"
             )
+
+    def clean_sensor(self):
+        sensor = self.cleaned_data.get("sensor")
+        if sensor is not None and self.user is not None:
+            try:
+                profile = self.user.userprofile
+            except ObjectDoesNotExist:
+                raise forms.ValidationError("User profile not found.")
+            if sensor.owner != profile:
+                raise forms.ValidationError(
+                    "You do not have permission to file maintenance for this sensor."
+                )
+        return sensor
 
 
 class ReportCreateForm(forms.ModelForm):

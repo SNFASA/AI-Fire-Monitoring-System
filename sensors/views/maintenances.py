@@ -49,14 +49,14 @@ def maintenance_detail(request, maintenance_id):
 @login_required(login_url="login")
 def create_maintenance(request):
     if request.method == "POST":
-        form = MaintenanceForm(request.POST, request.FILES)
+        form = MaintenanceForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             m = form.save()
             for img in request.FILES.getlist("images"):
                 MaintenanceImage.objects.create(maintenance=m, image=img)
             return redirect("sensors:maintenance")
     else:
-        form = MaintenanceForm()
+        form = MaintenanceForm(user=request.user)
     return render(request, "sensors/maintenance_create.html", {"form": form})
 
 
@@ -73,7 +73,7 @@ def edit_maintenance(request, maintenance_id):
 
     if request.method == "POST":
         if user_role == "public":
-            form = MaintenanceForm(request.POST, request.FILES, instance=task)
+            form = MaintenanceForm(request.POST, request.FILES, instance=task, user=request.user)
             if form.is_valid():
                 m = form.save()
                 # handle_images(request, m) # Ensure this helper exists or import it
@@ -91,7 +91,7 @@ def edit_maintenance(request, maintenance_id):
             # handle_images(request, task)
             return redirect("sensors:maintenance_detail", maintenance_id=task.id)
     else:
-        form = MaintenanceForm(instance=task)
+        form = MaintenanceForm(instance=task, user=request.user)
 
     return render(
         request,
