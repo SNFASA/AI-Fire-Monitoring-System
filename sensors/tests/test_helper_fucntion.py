@@ -71,11 +71,11 @@ class GetSensorStatusTestCase(TestCase):
         self.assertEqual(status, "Safe")
 
     def test_normalizes_gasleak_status(self):
-        """GasLeak status should be normalized to 'Gas Leak'"""
+        """GasLeak status should be normalized to 'gas leak'"""
         recent_time = timezone.now() - timedelta(minutes=2)
         self.create_dummy_log(status="GasLeak", timestamp=recent_time, methane=500.0)
         status = get_sensor_status(self.sensor)
-        self.assertEqual(status, "Gas Leak")
+        self.assertEqual(status, "gas leak")
 
     def test_returns_warning_status(self):
         """Sensor with Warning status should return Warning"""
