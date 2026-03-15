@@ -13,6 +13,15 @@ from ..models import (
 from ..forms import MaintenanceForm
 
 
+def _check_maintenance_access(request, maintenance):
+    """Raise PermissionDenied unless the user is a firefighter or the sensor owner."""
+    user_role = getattr(getattr(request.user, "userprofile", None), "role", "public")
+    is_firefighter = user_role == "firefighter"
+    is_sensor_owner = maintenance.sensor.owner.user == request.user
+    if not (is_firefighter or is_sensor_owner):
+        raise PermissionDenied
+
+
 # ==========================================
 # 6. MAINTENANCE
 # ==========================================
@@ -20,11 +29,11 @@ from ..forms import MaintenanceForm
 def maintenance_view(request):
     user_role = getattr(request.user.userprofile, "role", "public")
     if user_role == "public":
-        maintenances = Maintenance.objects.all().order_by("-scheduled_date")
-    else:
         maintenances = Maintenance.objects.filter(
-            Q(status="Pending") | Q(in_charge=request.user)
+            sensor__owner=request.user.userprofile
         ).order_by("-scheduled_date")
+    else:
+        maintenances = Maintenance.objects.all().order_by("-scheduled_date")
     return render(
         request,
         "sensors/maintenance.html",
@@ -35,28 +44,36 @@ def maintenance_view(request):
 @login_required(login_url="login")
 def maintenance_detail(request, maintenance_id):
     maintenance = get_object_or_404(Maintenance, id=maintenance_id)
-    if request.method == "POST" and "picture" in request.FILES:
-        MaintenanceImage.objects.create(
-            maintenance=maintenance, image=request.FILES["picture"]
-        )
-        messages.success(request, "Evidence uploaded!")
-        return redirect("sensors:maintenance_detail", maintenance_id=maintenance.id)
+    _check_maintenance_access(request, maintenance)
     return render(
         request, "sensors/maintenance_detail.html", {"maintenance": maintenance}
     )
 
 
 @login_required(login_url="login")
+@require_POST
+def upload_maintenance_evidence(request, maintenance_id):
+    maintenance = get_object_or_404(Maintenance, id=maintenance_id)
+    _check_maintenance_access(request, maintenance)
+    if "picture" in request.FILES:
+        MaintenanceImage.objects.create(
+            maintenance=maintenance, image=request.FILES["picture"]
+        )
+        messages.success(request, "Evidence uploaded!")
+    return redirect("sensors:maintenance_detail", maintenance_id=maintenance.id)
+
+
+@login_required(login_url="login")
 def create_maintenance(request):
     if request.method == "POST":
-        form = MaintenanceForm(request.POST, request.FILES)
+        form = MaintenanceForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             m = form.save()
             for img in request.FILES.getlist("images"):
                 MaintenanceImage.objects.create(maintenance=m, image=img)
             return redirect("sensors:maintenance")
     else:
-        form = MaintenanceForm()
+        form = MaintenanceForm(user=request.user)
     return render(request, "sensors/maintenance_create.html", {"form": form})
 
 
@@ -73,7 +90,7 @@ def edit_maintenance(request, maintenance_id):
 
     if request.method == "POST":
         if user_role == "public":
-            form = MaintenanceForm(request.POST, request.FILES, instance=task)
+            form = MaintenanceForm(request.POST, request.FILES, instance=task, user=request.user)
             if form.is_valid():
                 m = form.save()
                 # handle_images(request, m) # Ensure this helper exists or import it
@@ -91,7 +108,7 @@ def edit_maintenance(request, maintenance_id):
             # handle_images(request, task)
             return redirect("sensors:maintenance_detail", maintenance_id=task.id)
     else:
-        form = MaintenanceForm(instance=task)
+        form = MaintenanceForm(instance=task, user=request.user)
 
     return render(
         request,
