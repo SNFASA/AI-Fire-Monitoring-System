@@ -79,7 +79,7 @@ def receive_sensor_data(request):
                 )
 
                 # 4. FIRE/GAS ALERT LOGIC
-                if ml_result in ["Fire", "Gas Leak"] and sensor.owner.address:
+                if ml_result in ["Fire", "gas leak"] and sensor.owner.address:
                     user_address = sensor.owner.address
 
                     # --- COORDINATE CHECK (SECURE) ---

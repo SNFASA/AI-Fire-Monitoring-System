@@ -1,13 +1,11 @@
 import math
-import json
-from anyio import current_time
 from django.conf import settings
 from django.utils import timezone
 from twilio.rest import Client
 from .models import FireStation
 from django.http import JsonResponse
 from datetime import timedelta
-from .logger import get_logs, add_log
+from .logger import get_logs
 
 
 def get_live_logs(request):
@@ -107,5 +105,5 @@ def get_sensor_status(sensor):
     # Return Status (Normalize 'GasLeak')
     status = last_log.status
     if status == "GasLeak":
-        return "Gas Leak"
+        return "gas leak"
     return status

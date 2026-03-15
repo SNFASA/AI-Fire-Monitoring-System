@@ -256,7 +256,7 @@
                         node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
                         let status = s.status ? s.status.toLowerCase() : 'safe';
                         if(status === 'fire') node.classList.add('bg-fire');
-                        else if(status === 'Gas Leak' || status === 'warning') node.classList.add('bg-warn');
+                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');
                         else if(status === 'offline') node.classList.add('bg-offline');
                         else node.classList.add('bg-safe');
                     }
@@ -502,16 +502,16 @@
                     // Logic for counts: Check for both 'warning' AND 'gas leak'
                     if (st === 'fire') {
                         fireCount++;
-                    } else if (st === 'warning' || st === 'Gas Leak') {
+                    } else if (st === 'warning' || st === 'gas leak') {
                         warnCount++;
                     }
 
                     // Logic for marker appearance
                     let cls = st === 'fire' ? 'marker-fire' : 
-                              (st === 'warning' || st === 'Gas Leak' ? 'marker-warning' : 'marker-safe');
+                              (st === 'warning' || st === 'gas leak' ? 'marker-warning' : 'marker-safe');
                     
                     let icon = st === 'fire' ? '<i class="fas fa-fire"></i>' : 
-                               (st === 'warning' || st === 'Gas Leak' ? '<i class="fas fa-exclamation-triangle"></i>' : '');
+                               (st === 'warning' || st === 'gas leak' ? '<i class="fas fa-exclamation-triangle"></i>' : '');
                     
                     if(!markers[house.id]) {
                         const el = document.createElement('div');
@@ -546,29 +546,37 @@
 
     map.on('click', (e) => {
         if (!window.isSetupMode) return;
-        if (confirm("Pin station at this location?")) {
-        fetch("{% url 'sensors:update_station_coords' %}", {
-            method: "POST",
-            headers: { 
-                'Content-Type': 'application/json', 
-                // Use the cookie helper for consistent CSRF validation
-                'X-CSRFToken': getCookie('csrftoken') 
-            },
-            body: JSON.stringify({ 
-                lat: coords.lat, 
-                lng: coords.lng 
+
+        // Fix: 'coords' was undefined. Use 'e.lngLat' from the click event.
+        const clickedLat = e.lngLat.lat;
+        const clickedLng = e.lngLat.lng;
+        const stationName = "{{ user_profile.station.name|escapejs|default:'Station' }}";
+
+        if (confirm(`Pin ${stationName} at this location?`)) {
+            fetch("{% url 'sensors:update_station_coords' %}", {
+                method: "POST",
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': getCookie('csrftoken') 
+                },
+                body: JSON.stringify({ 
+                    lat: clickedLat, 
+                    lng: clickedLng 
+                })
             })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("Station location saved!");
-                location.reload();
-            } else {
-                alert("Error: " + data.error);
-            }
-        })
-        .catch(error => console.error('Error updating station:', error));
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Station location saved!");
+                    location.reload();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            })
+            .catch(err => {
+                console.error("Coordinate update failed:", err);
+                alert("Connection error. Please try again.");
+            });
         }
     });
 
