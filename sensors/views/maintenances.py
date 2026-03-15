@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.views.decorators.http import require_POST
+from django.core.exceptions import PermissionDenied
 
 # Local Imports
 from ..models import (
@@ -90,7 +91,9 @@ def edit_maintenance(request, maintenance_id):
 
     if request.method == "POST":
         if user_role == "public":
-            form = MaintenanceForm(request.POST, request.FILES, instance=task, user=request.user)
+            form = MaintenanceForm(
+                request.POST, request.FILES, instance=task, user=request.user
+            )
             if form.is_valid():
                 m = form.save()
                 # handle_images(request, m) # Ensure this helper exists or import it
