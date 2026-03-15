@@ -224,9 +224,22 @@ def delete_layout_ajax(request, layout_id):
 @login_required
 @require_POST
 def edit_layout_ajax(request):
-    layout = Houselayout.objects.get(
-        id=request.POST.get("layout_id"), user=request.user
-    )
+    layout_id = request.POST.get("layout_id")
+    if not layout_id:
+        return JsonResponse(
+            {"success": False, "error": "Layout ID is required."}, status=400
+        )
+    try:
+        layout = Houselayout.objects.get(id=layout_id, user=request.user)
+    except ObjectDoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "Layout not found."}, status=404
+        )
+    except (ValueError, TypeError):
+        return JsonResponse(
+            {"success": False, "error": "Invalid Layout ID."}, status=400
+        )
+
     if request.POST.get("name"):
         layout.name = request.POST.get("name")
     if "image" in request.FILES:

@@ -1,3 +1,4 @@
+import json
 import math
 from django.conf import settings
 from django.utils import timezone
@@ -57,7 +58,7 @@ def send_sms_broadcast(phone_numbers, message_text):
         current_time = timezone.now().strftime("%I:%M %p")
 
         # Send the raw dictionary
-        content_vars = {"1": clean_location, "2": current_time}
+        content_vars = json.dumps({"1": clean_location, "2": current_time})
 
         for number in phone_numbers:
             if not number:

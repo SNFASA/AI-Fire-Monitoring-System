@@ -28,13 +28,20 @@ def _check_maintenance_access(request, maintenance):
 # ==========================================
 @login_required(login_url="login")
 def maintenance_view(request):
-    user_role = getattr(request.user.userprofile, "role", "public")
+    user_role = getattr(request.user.UserProfile, "role", "public")
     if user_role == "public":
-        maintenances = Maintenance.objects.filter(
-            sensor__owner=request.user.userprofile
-        ).order_by("-scheduled_date")
+        maintenances = (
+            Maintenance.objects.filter(sensor__owner__user=request.user.UserProfile)
+            .prefect_related("images", "sensor")
+            .order_by("-scheduled_date")
+        )
     else:
-        maintenances = Maintenance.objects.all().order_by("-scheduled_date")
+        maintenances = (
+            Maintenance.objects.all()
+            .prefetch_related("images", "sensor")
+            .order_by("-scheduled_date")
+        )
+
     return render(
         request,
         "sensors/maintenance.html",
@@ -44,7 +51,10 @@ def maintenance_view(request):
 
 @login_required(login_url="login")
 def maintenance_detail(request, maintenance_id):
-    maintenance = get_object_or_404(Maintenance, id=maintenance_id)
+    maintenance = get_object_or_404(
+        Maintenance.objects.prefetch_related("images", "sensor"),
+        id=maintenance_id,
+    )
     _check_maintenance_access(request, maintenance)
     return render(
         request, "sensors/maintenance_detail.html", {"maintenance": maintenance}
@@ -81,6 +91,7 @@ def create_maintenance(request):
 @login_required(login_url="login")
 def edit_maintenance(request, maintenance_id):
     task = get_object_or_404(Maintenance, id=maintenance_id)
+    _check_maintenance_access(request, task)
 
     # 2. ROBUST: Explicitly fetch profile to ensure we get the correct role
     try:
@@ -88,6 +99,12 @@ def edit_maintenance(request, maintenance_id):
         user_role = profile.role
     except UserProfile.DoesNotExist:
         user_role = "public"
+
+    if (
+        user_role == "public"
+        and getattr(task.sensor.owner, "user", None) != request.user
+    ):
+        raise PermissionDenied("You do not have permission to edit this maintenance.")
 
     if request.method == "POST":
         if user_role == "public":
@@ -131,6 +148,9 @@ def handle_images(request, maintenance_instance):
 
 
 @login_required(login_url="login")
+@require_POST
 def delete_maintenance(request, maintenance_id):
-    get_object_or_404(Maintenance, id=maintenance_id).delete()
+    maintenance = get_object_or_404(Maintenance, id=maintenance_id)
+    _check_maintenance_access(request, maintenance)
+    maintenance.delete()
     return redirect("sensors:maintenance")

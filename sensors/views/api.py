@@ -22,6 +22,26 @@ from ml_engine.predictor import FirePredictor
 predictor = FirePredictor()
 
 
+def normalize_ml_result(result):
+    if result is None:
+        return "Safe"
+
+    normalized = str(result).strip().lower()
+    if normalized == "fire":
+        return "Fire"
+
+    if normalized in {"gas leak", "gasleak"}:
+        return "Gas Leak"
+
+    if normalized == "warning":
+        return "Warning"
+
+    if normalized == "safe":
+        return "Safe"
+
+    return str(result)
+
+
 def test_log(request):
     add_log("\n[TEST] This is a test log entry.\n")
     return JsonResponse({"status": "Log added"})
@@ -50,9 +70,11 @@ def receive_sensor_data(request):
             sensor_id_raw = data.get("sensor_id")
 
             # 2. AI Prediction
-            ml_result = predictor.predict(
+            raw_ml_result = predictor.predict(
                 methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
             )
+
+            ml_result = normalize_ml_result(raw_ml_result)
 
             print(f"📡 [DATA] Sensor {sensor_id_raw} | Status: {ml_result}")
             add_log(f"[DATA] Sensor {sensor_id_raw}: {ml_result}")
@@ -79,7 +101,10 @@ def receive_sensor_data(request):
                 )
 
                 # 4. FIRE/GAS ALERT LOGIC
-                if ml_result in ["Fire", "gas leak"] and sensor.owner.address:
+                if (
+                    ml_result in ["Fire", "Gas Leak", "Warning"]
+                    and sensor.owner.address
+                ):
                     user_address = sensor.owner.address
 
                     # --- COORDINATE CHECK (SECURE) ---
@@ -252,7 +277,19 @@ def update_location_from_link(request, signed_id):
             data = json.loads(request.body)
             lat, lng = data.get("lat"), data.get("lng")
 
-            if lat and lng and owner_profile.address:
+            try:
+                lat = float(lat)
+                lng = float(lng)
+            except (TypeError, ValueError):
+                lat = lng = None
+
+            if (
+                lat is not None
+                and lng is not None
+                and -90 <= lat <= 90
+                and -180 <= lng <= 180
+                and owner_profile.address
+            ):
                 address = owner_profile.address
                 address.latitude, address.longitude = lat, lng
                 address.save()

@@ -18,8 +18,14 @@ logger = logging.getLogger(__name__)
 @login_required
 def get_live_data(request):
     try:
+        user_profile = request.user.userprofile
+        if user_profile is None:
+            return JsonResponse(
+                {"sensors": [], "message": "User profile not found."}, status=200
+            )
+        # This line can raise UserProfile.DoesNotExist
         # 1. Fetch sensors specifically for this user's profile
-        sensors = Sensor.objects.filter(owner=request.user.userprofile).order_by("id")
+        sensors = Sensor.objects.filter(owner=user_profile).order_by("id")
 
         # 2. Build the data list
         data = [
@@ -33,12 +39,6 @@ def get_live_data(request):
             for s in sensors
         ]
         return JsonResponse({"sensors": data})
-
-    except UserProfile.DoesNotExist:
-        # This is a handled case: user is logged in but profile isn't ready
-        return JsonResponse(
-            {"sensors": [], "message": "Profile not found."}, status=200
-        )
 
     except Exception as e:
         # 3. Log the ACTUAL error to your terminal/logs so you can fix it
@@ -70,6 +70,12 @@ def add_sensor(request):
 
         # 2. Safe Database Lookup
         # Ensures the layout exists AND belongs to the user
+        user_profile = getattr(request.user, "userprofile", None)
+        if user_profile is None:
+            return JsonResponse(
+                {"success": False, "error": "User profile not found."}, status=404
+            )
+
         try:
             layout = Houselayout.objects.get(id=layout_id, user=request.user)
         except Houselayout.DoesNotExist:
@@ -79,7 +85,9 @@ def add_sensor(request):
 
         # 3. Create Sensor
         new_sensor = Sensor.objects.create(
-            owner=request.user.userprofile, name=name.strip(), layout=layout
+            name=name.strip(),
+            owner=user_profile,
+            houselayout=layout,
         )
 
         return JsonResponse(

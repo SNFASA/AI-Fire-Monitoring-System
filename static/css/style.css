@@ -945,7 +945,7 @@ main {
     .app-card { border-radius: 16px; border: none; transition: transform 0.2s ease, box-shadow 0.2s ease; }
     .app-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
     .stat-icon { position: absolute; right: -10px; bottom: -15px; font-size: 5rem; opacity: 0.5; transform: rotate(-15deg); }
-    .action-card {border-radius: 16px; border: 1px solid rgba(0,0,0,0.0.8); }
+    .action-card {border-radius: 16px; border: 1px solid rgba(0,0,0,0.08); }
     .app-card:active { transform: scale(0.98); } /* Touch feedback */
     .action-card:hover { border-color: rgba(0,0,0,0.1); transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
     [data-theme="dark"] .action-card {
