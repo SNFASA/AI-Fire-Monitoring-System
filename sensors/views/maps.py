@@ -206,14 +206,19 @@ def delete_layout_ajax(request, layout_id):
         # We filter by user=request.user for security (Ownership check)
         layout = Houselayout.objects.get(id=layout_id, user=request.user)
         layout.delete()
-        return JsonResponse({"success": True, "message": "Layout deleted successfully."})
-    
+        return JsonResponse(
+            {"success": True, "message": "Layout deleted successfully."}
+        )
+
     except ObjectDoesNotExist:
         # Return a 404 status with a JSON message
-        return JsonResponse({
-            "success": False, 
-            "message": "Layout not found or you do not have permission to delete it."
-        }, status=404)
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Layout not found or you do not have permission to delete it.",
+            },
+            status=404,
+        )
 
 
 @login_required

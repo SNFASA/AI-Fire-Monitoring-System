@@ -58,9 +58,11 @@ def receive_sensor_data(request):
             add_log(f"[DATA] Sensor {sensor_id_raw}: {ml_result}")
 
             # Optimization: select_related to get owner and address in one hit
-            sensor = Sensor.objects.select_related('owner', 'owner__address', 'owner__user').filter(
-                id=sensor_id_raw
-            ).first()
+            sensor = (
+                Sensor.objects.select_related("owner", "owner__address", "owner__user")
+                .filter(id=sensor_id_raw)
+                .first()
+            )
 
             if sensor:
                 # 3. Save Log to Database
@@ -86,9 +88,11 @@ def receive_sensor_data(request):
                             # Generate secure, time-limited token
                             signer = TimestampSigner()
                             signed_id = signer.sign(str(sensor.owner.id))
-                            
+
                             # Build dynamic absolute URL
-                            relative_url = reverse('sensors:update_location_from_link', args=[signed_id])
+                            relative_url = reverse(
+                                "sensors:update_location_from_link", args=[signed_id]
+                            )
                             update_url = request.build_absolute_uri(relative_url)
 
                             missing_coord_msg = (
@@ -96,10 +100,12 @@ def receive_sensor_data(request):
                                 f"We don't have your GPS coordinates. Click here to share your location "
                                 f"instantly so BOMBA can be dispatched: {update_url}"
                             )
-                            
-                            send_sms_broadcast([sensor.owner.phone_number], missing_coord_msg)
-                        
-                        return HttpResponse("1") # Alert triggered but waiting for GPS
+
+                            send_sms_broadcast(
+                                [sensor.owner.phone_number], missing_coord_msg
+                            )
+
+                        return HttpResponse("1")  # Alert triggered but waiting for GPS
 
                     # 5. Deduplication: Don't spam if report is already active
                     active_report = Report.objects.filter(
@@ -108,19 +114,24 @@ def receive_sensor_data(request):
                     ).first()
 
                     if active_report:
-                        active_report.save() # Updates 'updated_at' timestamp
+                        active_report.save()  # Updates 'updated_at' timestamp
                         print(f"ℹ️ Alert updated for Report #{active_report.id}")
                     else:
                         # --- FIND NEAREST STATION WITH ACTIVE STAFF ---
                         # Fetch stations and their addresses
-                        stations = FireStation.objects.select_related('address').all()
+                        stations = FireStation.objects.select_related("address").all()
                         station_distances = []
 
                         for station in stations:
-                            if station.address.latitude is not None and station.address.longitude is not None:
+                            if (
+                                station.address.latitude is not None
+                                and station.address.longitude is not None
+                            ):
                                 dist = haversine(
-                                    user_address.latitude, user_address.longitude,
-                                    station.address.latitude, station.address.longitude
+                                    user_address.latitude,
+                                    user_address.longitude,
+                                    station.address.latitude,
+                                    station.address.longitude,
                                 )
                                 station_distances.append((dist, station))
 
@@ -143,13 +154,17 @@ def receive_sensor_data(request):
                             if on_duty.exists():
                                 target_station = station
                                 target_staff = on_duty
-                                print(f"✅ Active Station Found: {station.name} ({dist:.2f}km)")
+                                print(
+                                    f"✅ Active Station Found: {station.name} ({dist:.2f}km)"
+                                )
                                 break
 
                         # Fallback: Nearest station if no one is on duty record
                         if not target_station and station_distances:
                             target_station = station_distances[0][1]
-                            print(f"⚠️ Defaulting to nearest station: {target_station.name}")
+                            print(
+                                f"⚠️ Defaulting to nearest station: {target_station.name}"
+                            )
 
                         if target_station:
                             # 6. Create Official Report
@@ -174,16 +189,26 @@ def receive_sensor_data(request):
                                 "owner_phone": sensor.owner.phone_number,
                                 "lat": float(user_address.latitude),
                                 "lng": float(user_address.longitude),
-                                "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                "timestamp": timezone.now().strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                ),
                             }
 
                             # Notify specific station group and global group
-                            async_to_sync(channel_layer.group_send)(f"station_{target_station.id}", payload)
-                            async_to_sync(channel_layer.group_send)("station_all", payload)
+                            async_to_sync(channel_layer.group_send)(
+                                f"station_{target_station.id}", payload
+                            )
+                            async_to_sync(channel_layer.group_send)(
+                                "station_all", payload
+                            )
 
                             # 8. WHATSAPP NOTIFICATIONS
                             # Alert Firefighters
-                            staff_phones = [d.firefighter.phone_number for d in target_staff if d.firefighter.phone_number]
+                            staff_phones = [
+                                d.firefighter.phone_number
+                                for d in target_staff
+                                if d.firefighter.phone_number
+                            ]
                             if staff_phones:
                                 firefighter_msg = f"🔥 FIRE ALERT! Loc: {user_address.street}. Station {target_station.name} mobilized."
                                 send_sms_broadcast(staff_phones, firefighter_msg)
@@ -191,7 +216,9 @@ def receive_sensor_data(request):
                             # Alert Property Owner
                             if sensor.owner.phone_number:
                                 owner_msg = f"URGENT: {ml_result} detected at your property ({user_address.street}). {target_station.name} has been notified."
-                                send_sms_broadcast([sensor.owner.phone_number], owner_msg)
+                                send_sms_broadcast(
+                                    [sensor.owner.phone_number], owner_msg
+                                )
 
             return HttpResponse("1" if ml_result != "Safe" else "0")
 
@@ -210,9 +237,13 @@ def update_location_from_link(request, signed_id):
     try:
         # 1. Unsign the ID. This fails if the token was tampered with.
         # Max_age ensures the emergency link expires after 30 minutes.
-        owner_id = signer.unsign(signed_id, max_age=1800) 
+        owner_id = signer.unsign(signed_id, max_age=1800)
     except (SignatureExpired, BadSignature):
-        return render(request, "sensors/error.html", {"message": "This emergency link has expired or is invalid."})
+        return render(
+            request,
+            "sensors/error.html",
+            {"message": "This emergency link has expired or is invalid."},
+        )
 
     owner_profile = get_object_or_404(UserProfile, id=owner_id)
 
@@ -225,10 +256,20 @@ def update_location_from_link(request, signed_id):
                 address = owner_profile.address
                 address.latitude, address.longitude = lat, lng
                 address.save()
-                return JsonResponse({"status": "success", "message": "Emergency location updated!"})
-            
-            return JsonResponse({"status": "error", "message": "Invalid data."}, status=400)
-        except Exception:
-            return JsonResponse({"status": "error", "message": "Server error."}, status=500)
+                return JsonResponse(
+                    {"status": "success", "message": "Emergency location updated!"}
+                )
 
-    return render(request, "sensors/update_location.html", {"owner": owner_profile, "token": signed_id})
+            return JsonResponse(
+                {"status": "error", "message": "Invalid data."}, status=400
+            )
+        except Exception:
+            return JsonResponse(
+                {"status": "error", "message": "Server error."}, status=500
+            )
+
+    return render(
+        request,
+        "sensors/update_location.html",
+        {"owner": owner_profile, "token": signed_id},
+    )

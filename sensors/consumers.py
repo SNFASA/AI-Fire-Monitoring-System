@@ -2,11 +2,12 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
+
 class FireAlertConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         user = self.scope["user"]
         self.station_id = self.scope["url_route"]["kwargs"]["station_id"]
-        
+
         # Call the database helper and wait for the result
         is_allowed = await self.check_station_access(user, self.station_id)
 
@@ -16,7 +17,9 @@ class FireAlertConsumer(AsyncWebsocketConsumer):
             await self.accept()
             print(f"✅ WebSocket Connected: Station {self.station_id}")
         else:
-            print(f"❌ WebSocket Denied: User not authorized for Station {self.station_id}")
+            print(
+                f"❌ WebSocket Denied: User not authorized for Station {self.station_id}"
+            )
             await self.close()
 
     # This wrapper allows async consumers to talk to the sync database safely
@@ -32,7 +35,7 @@ class FireAlertConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Only discard if the group_name was successfully created
-        if hasattr(self, 'group_name'):
+        if hasattr(self, "group_name"):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     # Receive message from group (Triggered by Views)
