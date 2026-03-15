@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.core.exceptions import ObjectDoesNotExist
 
 # Local Imports
 from ..models import (
@@ -201,8 +202,18 @@ def get_victim_layout(request, user_id):
 @login_required
 @require_POST
 def delete_layout_ajax(request, layout_id):
-    Houselayout.objects.get(id=layout_id, user=request.user).delete()
-    return JsonResponse({"success": True, "message": "Deleted"})
+    try:
+        # We filter by user=request.user for security (Ownership check)
+        layout = Houselayout.objects.get(id=layout_id, user=request.user)
+        layout.delete()
+        return JsonResponse({"success": True, "message": "Layout deleted successfully."})
+    
+    except ObjectDoesNotExist:
+        # Return a 404 status with a JSON message
+        return JsonResponse({
+            "success": False, 
+            "message": "Layout not found or you do not have permission to delete it."
+        }, status=404)
 
 
 @login_required

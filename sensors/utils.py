@@ -1,5 +1,6 @@
 import math
 import json
+from anyio import current_time
 from django.conf import settings
 from django.utils import timezone
 from twilio.rest import Client
@@ -57,7 +58,8 @@ def send_sms_broadcast(phone_numbers, message_text):
 
         current_time = timezone.now().strftime("%I:%M %p")
 
-        content_vars = json.dumps({"1": clean_location, "2": current_time})
+        # Send the raw dictionary
+        content_vars = {"1": clean_location, "2": current_time}
 
         for number in phone_numbers:
             if not number:
@@ -68,6 +70,8 @@ def send_sms_broadcast(phone_numbers, message_text):
                 formatted_num = clean_num
             elif clean_num.startswith("+"):
                 formatted_num = f"whatsapp:{clean_num}"
+            elif clean_num.startswith("60") and len(clean_num) > 9:
+                formatted_num = f"whatsapp:+{clean_num}"
             elif clean_num.startswith("0"):
                 formatted_num = f"whatsapp:+60{clean_num[1:]}"
             else:

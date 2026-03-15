@@ -1,7 +1,9 @@
 import json
 from django.shortcuts import render, get_object_or_404
+from django.core.signing import TimestampSigner, SignatureExpired, BadSignature
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.utils import timezone
@@ -55,11 +57,10 @@ def receive_sensor_data(request):
             print(f"📡 [DATA] Sensor {sensor_id_raw} | Status: {ml_result}")
             add_log(f"[DATA] Sensor {sensor_id_raw}: {ml_result}")
 
-            sensor = (
-                Sensor.objects.filter(id=sensor_id_raw).first()
-                if sensor_id_raw
-                else None
-            )
+            # Optimization: select_related to get owner and address in one hit
+            sensor = Sensor.objects.select_related('owner', 'owner__address', 'owner__user').filter(
+                id=sensor_id_raw
+            ).first()
 
             if sensor:
                 # 3. Save Log to Database
@@ -75,55 +76,51 @@ def receive_sensor_data(request):
                     status=ml_result,
                 )
 
-                # 4. FIRE ALERT LOGIC
-                if ml_result == "Fire" and sensor.owner.address:
+                # 4. FIRE/GAS ALERT LOGIC
+                if ml_result in ["Fire", "Gas Leak"] and sensor.owner.address:
                     user_address = sensor.owner.address
 
-                    # --- COORDINATE CHECK ---
-                    # Explicitly check for None to allow 0.0 coordinates
-                    # Inside receive_sensor_data where latitude is None:
+                    # --- COORDINATE CHECK (SECURE) ---
                     if user_address.latitude is None or user_address.longitude is None:
                         if sensor.owner.phone_number:
-                            # Construct a link to your new view
-                            update_url = f"https://127.0.0.1:8000/update-location/{sensor.owner.id}/"
+                            # Generate secure, time-limited token
+                            signer = TimestampSigner()
+                            signed_id = signer.sign(str(sensor.owner.id))
+                            
+                            # Build dynamic absolute URL
+                            relative_url = reverse('sensors:update_location_from_link', args=[signed_id])
+                            update_url = request.build_absolute_uri(relative_url)
 
                             missing_coord_msg = (
-                                f"🚨 EMERGENCY: Fire detected at your property!\n\n"
+                                f"🚨 EMERGENCY: {ml_result.upper()} detected at your property!\n\n"
                                 f"We don't have your GPS coordinates. Click here to share your location "
-                                f"so we can dispatch the fire station: {update_url}"
+                                f"instantly so BOMBA can be dispatched: {update_url}"
                             )
-                            send_sms_broadcast(
-                                [sensor.owner.phone_number], missing_coord_msg
-                            )
-                        return HttpResponse("1")
+                            
+                            send_sms_broadcast([sensor.owner.phone_number], missing_coord_msg)
+                        
+                        return HttpResponse("1") # Alert triggered but waiting for GPS
 
-                    # Deduplication: Don't spam if report is already active
+                    # 5. Deduplication: Don't spam if report is already active
                     active_report = Report.objects.filter(
                         address=user_address,
                         status__in=["System Detected", "Confirmed"],
                     ).first()
 
                     if active_report:
-                        active_report.save()  # Update timestamp
+                        active_report.save() # Updates 'updated_at' timestamp
                         print(f"ℹ️ Alert updated for Report #{active_report.id}")
                     else:
                         # --- FIND NEAREST STATION WITH ACTIVE STAFF ---
-                        stations = FireStation.objects.all()
+                        # Fetch stations and their addresses
+                        stations = FireStation.objects.select_related('address').all()
                         station_distances = []
 
-                        # Calculate distances to all stations
                         for station in stations:
-                            # Explicit check for station coordinates too
-                            if (
-                                station.address.latitude is not None
-                                and station.address.longitude is not None
-                            ):
-
+                            if station.address.latitude is not None and station.address.longitude is not None:
                                 dist = haversine(
-                                    user_address.latitude,
-                                    user_address.longitude,
-                                    station.address.latitude,
-                                    station.address.longitude,
+                                    user_address.latitude, user_address.longitude,
+                                    station.address.latitude, station.address.longitude
                                 )
                                 station_distances.append((dist, station))
 
@@ -134,7 +131,7 @@ def receive_sensor_data(request):
                         target_staff = []
                         now = timezone.now()
 
-                        # Loop to find the first station that has people ON DUTY
+                        # Loop to find the first station with people ON DUTY
                         for dist, station in station_distances:
                             on_duty = DutyAssignment.objects.filter(
                                 firefighter__station=station,
@@ -146,20 +143,16 @@ def receive_sensor_data(request):
                             if on_duty.exists():
                                 target_station = station
                                 target_staff = on_duty
-                                print(
-                                    f"✅ Active Station Found: {station.name} ({dist:.2f}km)"
-                                )
+                                print(f"✅ Active Station Found: {station.name} ({dist:.2f}km)")
                                 break
 
-                        # Fallback: Nearest station if no one is on duty
+                        # Fallback: Nearest station if no one is on duty record
                         if not target_station and station_distances:
                             target_station = station_distances[0][1]
-                            print(
-                                f"⚠️ No active staff found. Defaulting to nearest: {target_station.name}"
-                            )
+                            print(f"⚠️ Defaulting to nearest station: {target_station.name}")
 
                         if target_station:
-                            # 5. Create Report
+                            # 6. Create Official Report
                             new_report = Report.objects.create(
                                 status="System Detected",
                                 address=user_address,
@@ -168,10 +161,10 @@ def receive_sensor_data(request):
                                 trigger_gas_level=max(methane, lpg, co),
                                 trigger_temperature=dht22_temp,
                                 station=target_station,
-                                description=f"Automated Alert: Fire at {user_address.street}.",
+                                description=f"Automated AI Alert: {ml_result} at {user_address.street}.",
                             )
 
-                            # 6. SEND ALERTS (WebSockets and WhatsApp)
+                            # 7. SEND REAL-TIME ALERTS (WebSockets)
                             channel_layer = get_channel_layer()
                             payload = {
                                 "type": "fire_alert",
@@ -179,85 +172,63 @@ def receive_sensor_data(request):
                                 "address": f"{user_address.street}, {user_address.city}",
                                 "owner_name": sensor.owner.user.username,
                                 "owner_phone": sensor.owner.phone_number,
-                                "lat": user_address.latitude,
-                                "lng": user_address.longitude,
-                                "timestamp": str(new_report.timestamp),
+                                "lat": float(user_address.latitude),
+                                "lng": float(user_address.longitude),
+                                "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
                             }
 
-                            async_to_sync(channel_layer.group_send)(
-                                f"station_{target_station.id}", payload
-                            )
-                            async_to_sync(channel_layer.group_send)(
-                                "station_all", payload
-                            )
+                            # Notify specific station group and global group
+                            async_to_sync(channel_layer.group_send)(f"station_{target_station.id}", payload)
+                            async_to_sync(channel_layer.group_send)("station_all", payload)
 
-                            # WhatsApp to Firefighters
-                            phone_list = [
-                                d.firefighter.phone_number
-                                for d in target_staff
-                                if d.firefighter.phone_number
-                            ]
-                            if phone_list:
-                                msg = f"FIRE ALERT! Loc: {user_address.street}. Station {target_station.name} mobilized."
-                                send_sms_broadcast(phone_list, msg)
+                            # 8. WHATSAPP NOTIFICATIONS
+                            # Alert Firefighters
+                            staff_phones = [d.firefighter.phone_number for d in target_staff if d.firefighter.phone_number]
+                            if staff_phones:
+                                firefighter_msg = f"🔥 FIRE ALERT! Loc: {user_address.street}. Station {target_station.name} mobilized."
+                                send_sms_broadcast(staff_phones, firefighter_msg)
 
-                            # WhatsApp to Owner
+                            # Alert Property Owner
                             if sensor.owner.phone_number:
-                                owner_msg = f"URGENT: Fire detected at your property ({user_address.street}). Station {target_station.name} has been notified."
-                                send_sms_broadcast(
-                                    [sensor.owner.phone_number], owner_msg
-                                )
+                                owner_msg = f"URGENT: {ml_result} detected at your property ({user_address.street}). {target_station.name} has been notified."
+                                send_sms_broadcast([sensor.owner.phone_number], owner_msg)
 
             return HttpResponse("1" if ml_result != "Safe" else "0")
 
         except Exception as e:
             print(f"❌ Error in receive_sensor_data: {e}")
             return HttpResponse("0")
+
     return HttpResponse("0", status=405)
 
 
-def update_location_from_link(request, owner_id):
+def update_location_from_link(request, signed_id):
     """
-    Updates the Address coordinates linked to a UserProfile (Owner).
+    Updates location using a signed token to prevent ID spoofing.
     """
-    # 1. Fetch the UserProfile (Owner) using the ID from the URL
+    signer = TimestampSigner()
+    try:
+        # 1. Unsign the ID. This fails if the token was tampered with.
+        # Max_age ensures the emergency link expires after 30 minutes.
+        owner_id = signer.unsign(signed_id, max_age=1800) 
+    except (SignatureExpired, BadSignature):
+        return render(request, "sensors/error.html", {"message": "This emergency link has expired or is invalid."})
+
     owner_profile = get_object_or_404(UserProfile, id=owner_id)
 
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            lat = data.get("lat")
-            lng = data.get("lng")
+            lat, lng = data.get("lat"), data.get("lng")
 
-            if lat is not None and lng is not None:
-                # 2. Check if the owner has an address record assigned
+            if lat and lng and owner_profile.address:
                 address = owner_profile.address
-                if not address:
-                    return JsonResponse(
-                        {
-                            "status": "error",
-                            "message": "No address profile found for this user.",
-                        },
-                        status=404,
-                    )
-
-                # 3. Update and save
-                address.latitude = lat
-                address.longitude = lng
+                address.latitude, address.longitude = lat, lng
                 address.save()
+                return JsonResponse({"status": "success", "message": "Emergency location updated!"})
+            
+            return JsonResponse({"status": "error", "message": "Invalid data."}, status=400)
+        except Exception:
+            return JsonResponse({"status": "error", "message": "Server error."}, status=500)
 
-                return JsonResponse(
-                    {"status": "success", "message": "Emergency location updated!"}
-                )
-
-            return JsonResponse(
-                {"status": "error", "message": "Invalid coordinates received."},
-                status=400,
-            )
-        except Exception as e:
-            return JsonResponse(
-                {"status": "error", "message": "Server error occurred."}, status=500
-            )
-
-    # For GET requests, pass the profile to the template
-    return render(request, "sensors/update_location.html", {"owner": owner_profile})
+    return render(request, "sensors/update_location.html", {"owner": owner_profile, "token": signed_id})

@@ -1020,9 +1020,6 @@ main {
         transition: background-color 0.2s ease;
         cursor: pointer;
     }
-    [data-theme="dark"].upload-dropzone{
-        background-color: var(--dark-card);
-    }
     .upload-dropzone:active {
         background-color: #ffebee;
     }
