@@ -1,9 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.views.decorators.http import require_POST
 
 # Local Imports
 from ..models import (
@@ -31,11 +29,11 @@ def _check_maintenance_access(request, maintenance):
 def maintenance_view(request):
     user_role = getattr(request.user.userprofile, "role", "public")
     if user_role == "public":
-        maintenances = Maintenance.objects.all().order_by("-scheduled_date")
-    else:
         maintenances = Maintenance.objects.filter(
-            Q(status="Pending") | Q(in_charge=request.user)
+            sensor__owner=request.user.userprofile
         ).order_by("-scheduled_date")
+    else:
+        maintenances = Maintenance.objects.all().order_by("-scheduled_date")
     return render(
         request,
         "sensors/maintenance.html",
