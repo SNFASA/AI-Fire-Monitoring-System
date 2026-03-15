@@ -140,7 +140,7 @@
 
             <div class="mb-4 px-2">
                 <h6 class="fw-bolder text-muted text-uppercase small mb-2 ms-1">Upload Additional Photos</h6>
-                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <form method="POST" action="{% url 'sensors:upload_maintenance_evidence' maintenance.id %}" enctype="multipart/form-data" id="uploadForm">
                     {% csrf_token %}
                     <div class="upload-dropzone position-relative d-flex flex-column align-items-center justify-content-center p-4">
                         <div class=" rounded-circle shadow-sm d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">

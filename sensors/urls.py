@@ -90,6 +90,11 @@ urlpatterns = [
         name="maintenance_detail",
     ),
     path(
+        "maintenance/<int:maintenance_id>/upload/",
+        maintenances.upload_maintenance_evidence,
+        name="upload_maintenance_evidence",
+    ),
+    path(
         "maintenance/delete/<int:maintenance_id>/",
         maintenances.delete_maintenance,
         name="delete_maintenance",

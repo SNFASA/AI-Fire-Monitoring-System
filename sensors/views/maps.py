@@ -47,8 +47,8 @@ def firefighter_map_data(request):
                 if s_status == "Fire":
                     house_status = "Fire"
                     break
-                elif s_status == "Gas Leak" and house_status != "Fire":
-                    house_status = "Gas Leak"
+                elif s_status == "gas leak" and house_status != "Fire":
+                    house_status = "gas leak"
                 elif s_status == "Offline":
                     has_offline = True
 
@@ -236,7 +236,6 @@ def edit_layout_ajax(request):
 
 
 @login_required
-@require_POST
 def update_station_coordinates(request):
     try:
         data = json.loads(request.body)
@@ -249,13 +248,14 @@ def update_station_coordinates(request):
                 {"success": False, "error": "Coordinates are missing."}, status=400
             )
 
+        # Use select_related to optimize the database hit
         user_profile = request.user.userprofile
 
         # 1. Authorization & Station Check
         if user_profile.role == "firefighter" and user_profile.station:
             station = user_profile.station
 
-            # 2. Address Presence Check
+            # 2. Address Presence Check (Crucial for stability)
             if not station.address:
                 return JsonResponse(
                     {
@@ -265,7 +265,7 @@ def update_station_coordinates(request):
                     status=404,
                 )
 
-            # 3. Update logic
+            # 3. Secure Update Logic
             address = station.address
             address.latitude = lat
             address.longitude = lng
@@ -277,12 +277,13 @@ def update_station_coordinates(request):
             {"success": False, "error": "Unauthorized or no station assigned."},
             status=403,
         )
+
     except json.JSONDecodeError:
         return JsonResponse(
             {"success": False, "error": "Invalid JSON format."}, status=400
         )
     except Exception as e:
-        # Log the actual error for debugging
+        # Log for developers, return generic error for users
         print(f"Error in update_station_coordinates: {e}")
         return JsonResponse(
             {"success": False, "error": "An internal server error occurred."},

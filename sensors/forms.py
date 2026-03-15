@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ObjectDoesNotExist
 from .models import UserProfile, Address, Houselayout, Sensor, Maintenance, Report
 
 
@@ -116,13 +117,59 @@ class MaintenanceForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if "sensor" in self.fields:
-            self.fields["sensor"].queryset = Sensor.objects.filter(is_active=True)
+            if self.user is not None:
+                try:
+                    profile = self.user.userprofile
+                    self.fields["sensor"].queryset = Sensor.objects.filter(
+                        owner=profile, is_active=True
+                    )
+                except ObjectDoesNotExist:
+                    self.fields["sensor"].queryset = Sensor.objects.none()
+            else:
+                self.fields["sensor"].queryset = Sensor.objects.filter(is_active=True)
         if "nearest_fire_station" in self.fields:
             self.fields["nearest_fire_station"].empty_label = (
                 "Select Nearest Fire Station (Optional)"
             )
+
+    def clean_sensor(self):
+        sensor = self.cleaned_data.get("sensor")
+        if sensor is not None and self.user is not None:
+            try:
+                profile = self.user.userprofile
+            except ObjectDoesNotExist:
+                raise forms.ValidationError("User profile not found.")
+            if sensor.owner != profile:
+                raise forms.ValidationError(
+                    "You do not have permission to file maintenance for this sensor."
+                )
+        return sensor
+
+
+class ReportCreateForm(forms.ModelForm):
+    class Meta:
+        model = Report
+        fields = ["fire_type", "cause", "description", "station", "address"]
+        widgets = {
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "fire_type": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g., Building Fire, Vehicle Fire"}
+            ),
+            "cause": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g., Electrical, Arson"}
+            ),
+            "station": forms.Select(attrs={"class": "form-select"}),
+            "address": forms.Select(attrs={"class": "form-select"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["station"].empty_label = "-- Select Fire Station --"
+        self.fields["address"].empty_label = "-- Select Address (Optional) --"
+        self.fields["address"].required = False
 
 
 class ReportUpdateForm(forms.ModelForm):
