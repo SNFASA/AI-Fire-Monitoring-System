@@ -132,10 +132,16 @@ class ReportCreateForm(forms.ModelForm):
         widgets = {
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "fire_type": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "e.g., Building Fire, Vehicle Fire"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "e.g., Building Fire, Vehicle Fire",
+                }
             ),
             "cause": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "e.g., Electrical, Arson"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "e.g., Electrical, Arson",
+                }
             ),
             "station": forms.Select(attrs={"class": "form-select"}),
             "address": forms.Select(attrs={"class": "form-select"}),
