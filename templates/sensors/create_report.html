@@ -25,42 +25,44 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="fire_type" class="fw-bold">Fire Type <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="fire_type" name="fire_type" 
-                               required placeholder="e.g., Building Fire, Vehicle Fire">
+                        <label for="{{ form.fire_type.id_for_label }}" class="fw-bold">Fire Type <span class="text-danger">*</span></label>
+                        {{ form.fire_type }}
+                        {% if form.fire_type.errors %}
+                            <div class="text-danger small mt-1">{{ form.fire_type.errors }}</div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="cause" class="fw-bold">Cause of Fire <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="cause" name="cause" 
-                               required placeholder="e.g., Electrical, Arson">
+                        <label for="{{ form.cause.id_for_label }}" class="fw-bold">Cause of Fire <span class="text-danger">*</span></label>
+                        {{ form.cause }}
+                        {% if form.cause.errors %}
+                            <div class="text-danger small mt-1">{{ form.cause.errors }}</div>
+                        {% endif %}
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="station" class="fw-bold">Responding Station <span class="text-danger">*</span></label>
-                        <select class="form-control" id="station" name="station" required>
-                            <option value="">-- Select Fire Station --</option>
-                            {% for station in stations %}
-                                <option value="{{ station.id }}">{{ station.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="{{ form.station.id_for_label }}" class="fw-bold">Responding Station <span class="text-danger">*</span></label>
+                        {{ form.station }}
+                        {% if form.station.errors %}
+                            <div class="text-danger small mt-1">{{ form.station.errors }}</div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="address" class="fw-bold">Incident Location <span class="text-muted">(Optional)</span></label>
-                        <select class="form-control" id="address" name="address">
-                            <option value="">-- Select Address --</option>
-                            {% for address in addresses %}
-                                <option value="{{ address.id }}">{{ address.street }}, {{ address.city }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="{{ form.address.id_for_label }}" class="fw-bold">Incident Location <span class="text-muted">(Optional)</span></label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                            <div class="text-danger small mt-1">{{ form.address.errors }}</div>
+                        {% endif %}
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="description" class="fw-bold">Description <span class="text-muted">(Optional)</span></label>
-                    <textarea class="form-control" id="description" name="description" rows="3" 
-                              placeholder="Provide details about the incident..."></textarea>
+                    <label for="{{ form.description.id_for_label }}" class="fw-bold">Description <span class="text-muted">(Optional)</span></label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <hr>

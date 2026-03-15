@@ -9,10 +9,9 @@ from django.views.decorators.http import require_POST
 from ..models import (
     Report,
     FireStation,
-    Address,
     ReportImage,
 )
-from ..forms import ReportUpdateForm
+from ..forms import ReportUpdateForm, ReportCreateForm
 
 # ==========================================
 # 7. REPORTS
@@ -63,41 +62,37 @@ def report_detail(request, report_id):
     )
 
 
-@login_required(login_url="login")
-def create_report(request):
-    if request.method == "POST":
-        try:
-            station = FireStation.objects.get(id=request.POST.get("station"))
-            address = (
-                Address.objects.get(id=request.POST.get("address"))
-                if request.POST.get("address")
-                else None
-            )
-            report = Report.objects.create(
-                status="Confirmed",
-                fire_type=request.POST.get("fire_type"),
-                cause=request.POST.get("cause"),
-                description=request.POST.get("description"),
-                station=station,
-                address=address,
-                in_charge=request.user,
-            )
-            for img in request.FILES.getlist("images"):
-                ReportImage.objects.create(report=report, image=img)
-            return redirect("sensors:report_detail", report_id=report.id)
-        except Exception as e:
-            messages.error(request, str(e))
-    return render(
-        request,
-        "sensors/create_report.html",
-        {"stations": FireStation.objects.all(), "addresses": Address.objects.all()},
-    )
-
-
 def check_firefighter_role(user):
     """Ensures only firefighters can edit/delete"""
     if not hasattr(user, "userprofile") or user.userprofile.role != "firefighter":
         raise PermissionDenied("You do not have permission to perform this action.")
+
+
+@login_required(login_url="login")
+def create_report(request):
+    # Restrict to firefighters only
+    check_firefighter_role(request.user)
+
+    if request.method == "POST":
+        form = ReportCreateForm(request.POST, request.FILES)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.in_charge = request.user
+            # Status defaults to STATUS_SYSTEM_DETECTED via model default
+            report.save()
+            for img in request.FILES.getlist("images"):
+                ReportImage.objects.create(report=report, image=img)
+            return redirect("sensors:report_detail", report_id=report.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = ReportCreateForm()
+
+    return render(
+        request,
+        "sensors/create_report.html",
+        {"form": form},
+    )
 
 
 @login_required(login_url="login")
