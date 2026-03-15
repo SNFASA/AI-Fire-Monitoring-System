@@ -11,7 +11,7 @@ class MaintenanceViewTests(TestCase):
     def setUp(self):
         self.client = Client()
 
-        # 1. Public User
+        # 1. Public User (sensor owner)
         self.public_profile = UserProfileFactory(role="public")
         self.public_user = self.public_profile.user
 
@@ -22,10 +22,14 @@ class MaintenanceViewTests(TestCase):
         self.firefighter_profile.save()
         self.firefighter = self.firefighter_profile.user
 
-        # 3. Create Sensor
+        # 3. Unrelated public user (not the sensor owner)
+        self.other_profile = UserProfileFactory(role="public")
+        self.other_user = self.other_profile.user
+
+        # 4. Create Sensor owned by public_user
         self.sensor = SensorFactory(owner=self.public_profile)
 
-        # 4. Create Maintenance Request
+        # 5. Create Maintenance Request
         self.maintenance = MaintenanceFactory(
             sensor=self.sensor, status="Pending", details="Initial details"
         )
@@ -108,3 +112,68 @@ class MaintenanceViewTests(TestCase):
 
         response = self.client.post(url, follow=True)
         self.assertEqual(Maintenance.objects.count(), 0)
+
+    # --- Authorization tests for maintenance_detail ---
+
+    def test_sensor_owner_can_view_detail(self):
+        self.client.force_login(self.public_user)
+        url = reverse("sensors:maintenance_detail", args=[self.maintenance.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_firefighter_can_view_detail(self):
+        self.client.force_login(self.firefighter)
+        url = reverse("sensors:maintenance_detail", args=[self.maintenance.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_unrelated_user_cannot_view_detail(self):
+        self.client.force_login(self.other_user)
+        url = reverse("sensors:maintenance_detail", args=[self.maintenance.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    # --- Authorization tests for upload_maintenance_evidence ---
+
+    def test_sensor_owner_can_upload_evidence(self):
+        self.client.force_login(self.public_user)
+        url = reverse("sensors:upload_maintenance_evidence", args=[self.maintenance.id])
+        image = SimpleUploadedFile(
+            name="evidence.jpg",
+            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x05\x04\x04\x00",
+            content_type="image/jpeg",
+        )
+        response = self.client.post(url, {"picture": image}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.maintenance.refresh_from_db()
+        self.assertEqual(self.maintenance.images.count(), 1)
+
+    def test_firefighter_can_upload_evidence(self):
+        self.client.force_login(self.firefighter)
+        url = reverse("sensors:upload_maintenance_evidence", args=[self.maintenance.id])
+        image = SimpleUploadedFile(
+            name="evidence.jpg",
+            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x05\x04\x04\x00",
+            content_type="image/jpeg",
+        )
+        response = self.client.post(url, {"picture": image}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.maintenance.refresh_from_db()
+        self.assertEqual(self.maintenance.images.count(), 1)
+
+    def test_unrelated_user_cannot_upload_evidence(self):
+        self.client.force_login(self.other_user)
+        url = reverse("sensors:upload_maintenance_evidence", args=[self.maintenance.id])
+        image = SimpleUploadedFile(
+            name="evidence.jpg",
+            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x05\x04\x04\x00",
+            content_type="image/jpeg",
+        )
+        response = self.client.post(url, {"picture": image})
+        self.assertEqual(response.status_code, 403)
+
+    def test_upload_evidence_get_not_allowed(self):
+        self.client.force_login(self.public_user)
+        url = reverse("sensors:upload_maintenance_evidence", args=[self.maintenance.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 405)
