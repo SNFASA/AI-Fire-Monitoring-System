@@ -1,127 +1,181 @@
 {% extends "sensors/layout/master.html" %}
-{% block title %}Edit Maintenance{% endblock %}
+{% load static %}
+
+{% block title %}Edit Maintenance #{{ maintenance.id }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5">
-    <div class="row">
-        <div class="col-lg-8 offset-lg-2">
+<div class="container mt-4 mb-5 pb-5">
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="mb-4">
+        <a href="{% url 'sensors:maintenance' %}" class="text-decoration-none text-danger fw-bold mb-2 d-inline-block">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Maintenance
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
             
-            <div class="row mb-4">
-                <div class="col-lg-8">
-                    <a href="{% url 'sensors:maintenance' %}" class="btn btn-outline-danger text-white">← Back to Maintenance Records</a>
+            <div class="d-flex align-items-center mb-4 px-2">
+                <div class=" rounded-circle shadow-sm d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                    {% if user_role == 'public' %}
+                        <i class="fa-solid fa-pen text-danger fs-4"></i>
+                    {% else %}
+                        <i class="fa-solid fa-wrench text-warning fs-4"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="fw-bolder mb-0">
+                        {% if user_role == 'public' %}Edit Request{% else %}Update Status{% endif %}
+                    </h3>
+                    <p class="text-muted small mb-0">Maintenance ID: #{{ maintenance.id }}</p>
                 </div>
             </div>
 
-            <div class="card shadow">
-                <div class="card-header {% if user_role == 'public' %}bg-danger{% else %}bg-warning text-dark{% endif %} text-white">
-                    <h4 class="mb-0">
-                        {% if user_role == 'public' %}
-                            <i class="fas fa-edit"></i> Edit Request #{{ maintenance.id }}
-                        {% else %}
-                            <i class="fas fa-tools"></i> Update Maintenance Status
-                        {% endif %}
-                    </h4>
-                </div>
+            <div class="card app-card p-4">
+                <form method="POST" enctype="multipart/form-data" id="editForm">
+                    {% csrf_token %}
 
-                <div class="card-body">
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
+                    {% if user_role == 'public' %}
+                        <div class="mb-4">
+                            {{ form.as_p }}
+                        </div>
+                    {% else %}
+                        <div class="alert bg-info-subtle text-info-emphasis border-0 rounded-4 shadow-sm mb-4">
+                            <i class="fa-solid fa-circle-info me-2"></i> You are viewing this as a Technician. Original request details are locked.
+                        </div>
 
-                        {% if user_role == 'public' %}
-                            <div class="mb-4">
-                                {{ form.as_p }}
+                        <div class="row g-3 mb-2">
+                            <div class="col-6">
+                                <small class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Target Sensor</small>
+                                <div class="fw-bold fs-6">{{ maintenance.sensor.name }}</div>
                             </div>
-
-                        {% else %}
-                            <div class="alert alert-info border-info">
-                                <i class="fas fa-info-circle"></i> You are viewing this as a Technician. Original request details are locked.
+                            <div class="col-6">
+                                <small class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Requested Date</small>
+                                <div class="fw-bold fs-6">{{ maintenance.scheduled_date|date:"M d, Y"|default:"Not specified" }}</div>
                             </div>
-
-                            <div class="card bg-light border-0 mb-4">
-                                <div class="card-body">
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label class="fw-bold text-muted small">Target Sensor</label>
-                                            <div class="fs-5">{{ maintenance.sensor.name }}</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="fw-bold text-muted small">Requested Date</label>
-                                            <div class="fs-5">{{ maintenance.scheduled_date }}</div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="fw-bold text-muted small">Issue Details</label>
-                                        <p class="mb-0">{{ maintenance.details }}</p>
-                                    </div>
-                                </div>
+                            <div class="col-12 mt-3">
+                                <small class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Issue Details</small>
+                                <p class="mb-0 " style="line-height: 1.5;">{{ maintenance.details }}</p>
                             </div>
+                        </div>
 
-                            <hr>
+                        <hr class="my-4 dashed-divider">
 
-                            <h5 class="text-primary mb-3">Technician Actions</h5>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Update Status</label>
-                                    <select name="status" class="form-select border-primary">
-                                        <option value="pending" {% if maintenance.status == 'pending' %}selected{% endif %}>Pending</option>
-                                        <option value="in_progress" {% if maintenance.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                                        <option value="completed" {% if maintenance.status == 'completed' %}selected{% endif %}>Completed</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Actual Completion Date</label>
-                                    <input type="date" name="actual_date" class="form-control border-primary" 
-                                           value="{{ maintenance.actual_date|date:'Y-m-d' }}">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Technician Notes</label>
-                                <textarea name="technician_notes" class="form-control border-primary" rows="3" placeholder="Enter resolution details...">{{ maintenance.technician_notes }}</textarea>
-                            </div>
-                        {% endif %}
-
-                        <hr class="my-4">
-
-                        <h5 class="mb-3">Evidence / Photos</h5>
+                        <h5 class="fw-bolder mb-3">Technician Actions</h5>
                         
-                        {% if maintenance.images.all %}
-                            <div class="row g-3 mb-3">
-                                {% for img in maintenance.images.all %}
-                                    <div class="col-6 col-md-3 text-center">
-                                        <div class="card h-100 border-secondary">
-                                            <a href="{{ img.image.url }}" target="_blank">
-                                                <img src="{{ img.image.url }}" class="card-img-top" style="height: 100px; object-fit: cover;"  alt="Evidence">
-                                            </a>
-                                        </div>
-                                    </div>
-                                {% endfor %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Update Status</label>
+                                <select name="status" class="form-select border-0  rounded-3 shadow-none p-2 fw-bold">
+                                    <option value="pending" {% if maintenance.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="in_progress" {% if maintenance.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="completed" {% if maintenance.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="completed_with_damages" {% if maintenance.status == 'completed_with_damages' %}selected{% endif %}>Completed with damages</option>
+                                </select>
                             </div>
-                        {% endif %}
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Actual Completion Date</label>
+                                <input type="date" name="actual_date" class="form-control border-0  rounded-3 shadow-none p-2 fw-bold" 
+                                       value="{{ maintenance.actual_date|date:'Y-m-d' }}">
+                            </div>
+                        </div>
 
                         <div class="mb-4">
-                            <label class="form-label">Upload New Photos</label>
-                            <input type="file" name="images" class="form-control" multiple accept="image/*">
+                            <label class="form-label small fw-bold text-muted">Technician Notes</label>
+                            <textarea name="technician_notes" class="form-control border-0  rounded-3 shadow-none p-3" rows="3" placeholder="Enter resolution details...">{{ maintenance.technician_notes }}</textarea>
                         </div>
+                    {% endif %}
 
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="submit" class="btn btn-success w-100 btn-lg">
-                                    <i class="fas fa-save"></i> Save Changes
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <a href="{% url 'sensors:maintenance' %}" class="btn btn-outline-secondary w-100 btn-lg">
-                                    Cancel
-                                </a>
-                            </div>
+                    <hr class="my-4 dashed-divider">
+
+                    <h6 class="fw-bolder text-muted text-uppercase small mb-2">Evidence Photos</h6>
+                    {% if maintenance.images.all %}
+                        <div class="swipe-row gap-2 mb-4 pb-2">
+                            {% for img in maintenance.images.all %}
+                                <div class="swipe-item shadow-sm position-relative" style="width: 100px; height: 100px; cursor: pointer; border-radius: 12px; overflow: hidden;" onclick="openModal('{{ img.image.url }}')">
+                                    <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover" alt="Evidence">
+                                    <div class="position-absolute bottom-0 start-0 w-100 p-1 text-center" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                                        <small class=" fw-bold" style="font-size: 0.6rem;">{{ img.uploaded_at|date:"M d" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
+                    {% else %}
+                        <div class="p-3 mb-4  rounded-3 text-center border border-dashed">
+                            <small class="text-muted">No evidence photos currently attached.</small>
+                        </div>
+                    {% endif %}
 
-                    </form>
-                </div>
+                    <h6 class="fw-bolder text-muted text-uppercase small mb-2">Upload Additional Photos</h6>
+                    <div class="upload-dropzone position-relative d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded-4  mb-2">
+                        <div class="rounded-circle shadow-sm bg-white d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                            <i class="fa-solid fa-cloud-arrow-up fs-4 text-danger"></i>
+                        </div>
+                        <span class="fw-bold ">Tap to attach new photos</span>
+                        <small class="text-muted mt-1">Select multiple if needed</small>
+                        <input type="file" name="images" id="pictureInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" multiple onchange="showUploadCount()" style="cursor: pointer;">
+                    </div>
+                    <div id="fileCountDisplay" class="text-center mt-2 fw-bold text-success d-none mb-4"></div>
+
+                    <div class="row g-2 mt-4 pt-3 border-top">
+                        <div class="col-12 col-md-6 order-md-2">
+                            <button type="submit" class="btn btn-danger rounded-pill w-100 py-2 fw-bold shadow-sm">
+                                <i class="fa-solid fa-save me-2"></i> Save Changes
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-6 order-md-1">
+                            <a href="{% url 'sensors:maintenance' %}" class="btn border rounded-pill w-100 py-2 fw-bold  shadow-sm">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close btn-close-white ms-auto shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 text-center mt-2">
+                <img id="modalImage" src="" class="img-fluid rounded-4 shadow-lg w-100" style="max-height: 80vh; object-fit: contain; background: rgba(0,0,0,0.5);">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function openModal(imageUrl) {
+        document.getElementById('modalImage').src = imageUrl;
+        var myModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        myModal.show();
+    }
+
+    function showUploadCount() {
+        var input = document.getElementById('pictureInput');
+        var display = document.getElementById('fileCountDisplay');
+        
+        if(input.files && input.files.length > 0) {
+            display.classList.remove('d-none');
+            display.innerHTML = '<i class="fa-solid fa-check text-success me-1"></i> ' + input.files.length + ' file(s) ready to upload';
+        } else {
+            display.classList.add('d-none');
+        }
+    }
+</script>
 {% endblock %}

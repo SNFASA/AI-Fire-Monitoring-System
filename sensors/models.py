@@ -323,7 +323,18 @@ class Report(models.Model):
     description = models.TextField(blank=True, default="")
     fire_type = models.CharField(max_length=100, blank=True, default="")
     cause = models.CharField(max_length=100, blank=True, default="")
-
+    is_approved = models.BooleanField(
+        default=False, 
+        help_text="Checked officially by KB or PBK"
+    )
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_reports",
+        help_text="The Commander who approved this report"
+    )
     def __str__(self):
         return f"Report #{self.id} - {self.status}"
 

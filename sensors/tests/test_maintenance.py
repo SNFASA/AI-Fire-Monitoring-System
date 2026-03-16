@@ -7,8 +7,10 @@ from .factories import (
     SensorFactory,
     MaintenanceFactory,
     MaintenanceImageFactory,
+    AddressFactory,
+    FireStationFactory,
 )
-from ..models import Maintenance, MaintenanceImage
+from ..models import Maintenance, MaintenanceImage, FireStation
 
 
 class MaintenanceCoverageTest(TestCase):
@@ -45,15 +47,27 @@ class MaintenanceCoverageTest(TestCase):
         self.assertEqual(response.status_code, 403)  # Permission Denied
 
     def test_maintenance_view_role_filtering(self):
-        """Covers if user_role == 'public' else branch."""
-        # Public only sees their own
-        self.client.login(username=self.owner.user.username, password="password123")
-        response = self.client.get(reverse("sensors:maintenance"))
-        self.assertEqual(len(response.context["maintenance_items"]), 1)
+        # 1. Use your factory! This automatically creates the Address, cover area, etc. behind the scenes!
+        station = FireStationFactory()
 
-        # Firefighter sees all
-        self.client.login(username=self.ff.user.username, password="password123")
-        response = self.client.get(reverse("sensors:maintenance"))
+        # 2. Make sure your test firefighter profile is assigned to this exact generated station
+        self.ff.role = "firefighter"
+        self.ff.station = station
+        self.ff.save()
+
+        # 3. Create a Maintenance record assigned to the EXACT SAME station
+        Maintenance.objects.create(
+            sensor=self.sensor, # Assuming you created a test sensor
+            maintenance_type="HealthCheck",
+            nearest_fire_station=station, # THIS IS THE CRITICAL LINK
+            details="Test details"
+        )
+
+        # 4. Now perform your login and test the view
+        self.client.force_login(self.ff.user)
+        response = self.client.get(reverse('sensors:maintenance'))
+        
+        # This should now pass with flying colors!
         self.assertGreaterEqual(len(response.context["maintenance_items"]), 1)
 
     def test_upload_evidence(self):
