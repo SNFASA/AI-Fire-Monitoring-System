@@ -104,7 +104,9 @@ def get_sensor_status(sensor):
         return "Offline"
 
     # Return Status (Normalize 'GasLeak')
-    status = last_log.status
-    if status == "GasLeak":
-        return "gas leak"
+    raw_status = last_log.status or ""
+    status = raw_status.strip()
+    if status.replace(" ", "").lower() == "gasleak":
+        return "Gas Leak"
+
     return status

@@ -194,7 +194,17 @@
         
         if(input.files && input.files.length > 0) {
             container.classList.remove('d-none');
-            nameDisplay.innerHTML = '<i class="fa-solid fa-file-image text-danger me-1"></i> ' + input.files[0].name;
+           // Clear any existing content
+             while (nameDisplay.firstChild) {
+                 nameDisplay.removeChild(nameDisplay.firstChild);
+             }
+             // Add the icon element
+             var icon = document.createElement('i');
+             icon.className = 'fa-solid fa-file-image text-danger me-1';
+             nameDisplay.appendChild(icon);
+             // Safely add the filename as text
+             var fileNameText = document.createTextNode(' ' + input.files[0].name);
+             nameDisplay.appendChild(fileNameText);
         } else {
             container.classList.add('d-none');
         }

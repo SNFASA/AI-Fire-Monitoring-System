@@ -116,7 +116,7 @@ def receive_sensor_data(request):
 
                             # Build dynamic absolute URL
                             relative_url = reverse(
-                                "sensors:update_location_from_link", args=[signed_id]
+                                "sensors:update_location_link", args=[signed_id]
                             )
                             update_url = request.build_absolute_uri(relative_url)
 

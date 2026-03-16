@@ -51,7 +51,7 @@ class AlertSystemTest(TestCase):
     @patch("sensors.views.api.predictor.predict")
     @patch("sensors.views.api.send_sms_broadcast")
     @patch("sensors.views.api.get_channel_layer")
-    @patch("sensors.views.api.haversine")
+    @patch("sensors.utils.haversine")
     def test_fire_detected_scenario(
         self, mock_hav, mock_channel, mock_sms, mock_predict, mock_async
     ):
@@ -109,7 +109,7 @@ class AlertSystemTest(TestCase):
         self.assertEqual(response.content.decode(), "0")
         self.assertEqual(Report.objects.count(), 0)
 
-    @patch("sensors.views.api.haversine")
+    @patch("sensors.utils.haversine")
     @patch("sensors.views.api.predictor.predict")
     def test_deduplication_logic(self, mock_predict, mock_hav):
         mock_predict.return_value = "Fire"
@@ -139,7 +139,7 @@ class AlertSystemTest(TestCase):
         # Count should remain 1 (updated existing report instead of creating a new one)
         self.assertEqual(Report.objects.count(), 1)
 
-    @patch("sensors.views.api.haversine")
+    @patch("sensors.utils.haversine")
     @patch("sensors.views.api.predictor.predict")
     @patch("sensors.views.api.async_to_sync")
     def test_no_active_staff_fallback(self, mock_async, mock_predict, mock_hav):
@@ -177,3 +177,86 @@ class AlertSystemTest(TestCase):
     def test_invalid_method_get(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 405)
+
+
+@patch("sensors.views.api.send_sms_broadcast")
+@patch("sensors.views.api.predictor.predict")
+def test_missing_coordinates_sends_signed_link(self, mock_predict, mock_sms):
+    """
+    Tests the 'if user_address.latitude is None' branch.
+    Ensures a signed URL is generated and sent via SMS.
+    """
+    mock_predict.return_value = "Fire"
+
+    # 1. Clear coordinates for this test
+    self.owner_addr.latitude = None
+    self.owner_addr.longitude = None
+    self.owner_addr.save()
+
+    payload = {
+        "sensor_id": self.sensor.id,
+        "methane": 1000,
+        "lpg": 1000,
+        "co": 500,
+        "air_quality": 500,
+        "dht22_temp": 70.0,
+        "humidity": 15,
+        "flame_val": 100,
+    }
+
+    response = self.client.post(
+        self.url, json.dumps(payload), content_type="application/json"
+    )
+
+    # 2. Assertions
+    self.assertEqual(response.content.decode(), "1")
+    # Ensure SMS was called
+    self.assertTrue(mock_sms.called)
+
+    # Verify the message contains the update-location path
+    sent_msg = mock_sms.call_args[0][1]
+    self.assertIn("share your location", sent_msg)
+    self.assertIn("/update-location/", sent_msg)
+
+    # Verify no Report was created yet (waiting for GPS)
+    self.assertEqual(Report.objects.count(), 0)
+
+
+@patch("sensors.utils.haversine")
+@patch("sensors.views.api.predictor.predict")
+@patch("sensors.views.api.async_to_sync")
+def test_gas_leak_alert_scenario(self, mock_async, mock_predict, mock_hav):
+    """
+    Tests the 'ml_result in ["Fire", "Gas Leak"]' branch for Gas Leaks.
+    """
+    mock_predict.return_value = "Gas Leak"
+    mock_hav.return_value = 0.5
+    mock_async.side_effect = lambda func: lambda *args, **kwargs: None
+
+    payload = {
+        "sensor_id": self.sensor.id,
+        "methane": 2000,
+        "lpg": 300,
+        "co": 80,
+        "air_quality": 100,
+        "dht22_temp": 28.0,
+        "humidity": 50,
+        "flame_val": 4095,
+    }
+
+    self.client.post(self.url, json.dumps(payload), content_type="application/json")
+
+    # Verify Report was created for Gas Leak
+    report = Report.objects.first()
+    self.assertIsNotNone(report)
+    self.assertIn("Gas Leak", report.description)
+
+
+def test_malformed_json_handling(self):
+    """
+    Tests the 'except Exception' or 'json.JSONDecodeError' branch.
+    """
+    invalid_json = "{ 'sensor_id': 75, status: broken }"  # Missing quotes
+    response = self.client.post(self.url, invalid_json, content_type="application/json")
+
+    self.assertEqual(response.content.decode(), "0")

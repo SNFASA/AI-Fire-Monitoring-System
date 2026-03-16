@@ -1,85 +1,155 @@
+import json
 from django.test import TestCase, Client
 from django.urls import reverse
-
-# ADD AddressFactory to the imports
+from django.core.files.uploadedfile import SimpleUploadedFile
+from unittest.mock import patch
 from .factories import (
     UserProfileFactory,
-    SensorDataLogFactory,
     SensorFactory,
     AddressFactory,
+    FireStationFactory,
+    HouselayoutFactory,
 )
+from ..models import Houselayout, Address
 
 
-class FirefighterMapLoadTest(TestCase):
+class MapAndLayoutCoverageTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-        # 1. Setup Firefighter (Force Role & Password)
-        self.firefighter_profile = UserProfileFactory(user__username="chief_fire")
-        self.firefighter_profile.role = "firefighter"
-        self.firefighter_profile.save()
+        # 1. Setup Firefighter (Safely bypassing Django Signals)
+        self.station_addr = AddressFactory(latitude=3.12, longitude=101.5)
+        self.station = FireStationFactory(
+            address=self.station_addr, cover_area_sqm=3141592
+        )  # ~1km radius
+        
+        temp_ff = UserProfileFactory()
+        self.ff = temp_ff.user.userprofile
+        self.ff.role = "firefighter"
+        self.ff.station = self.station
+        self.ff.save()
 
-        user = self.firefighter_profile.user
-        user.set_password("password123")
-        user.save()
+        # 2. Setup Public User with Layout (Safely bypassing Django Signals)
+        self.public_addr = AddressFactory(latitude=3.13, longitude=101.6)
+        
+        temp_public = UserProfileFactory()
+        self.public_user = temp_public.user.userprofile
+        self.public_user.role = "public"
+        self.public_user.address = self.public_addr
+        self.public_user.save()
+        
+        self.layout = HouselayoutFactory(user=self.public_user.user, name="Floor 1")
+        self.sensor = SensorFactory(owner=self.public_user, layout=self.layout)
 
-        # 2. Setup Public Users (Victims)
-        self.public_users = []
-        for i in range(10):
-            profile = UserProfileFactory(
-                user__username=f"PublicUser{i}",
-                role="public",
-            )
+    # --- firefighter_map_data Tests ---
 
-            # --- CRITICAL FIX: MANUALLY ADD ADDRESS ---
-            # The signal created the profile without an address. We must add one.
-            if not profile.address:
-                profile.address = AddressFactory()
-                profile.save()
-            # ------------------------------------------
-
-            s1 = SensorFactory(owner=profile, name="Kitchen")
-
-            # Create 1 Fire (at index 2)
-            if i == 2:
-                SensorDataLogFactory(
-                    sensor=s1,
-                    status="Fire",
-                    methane=1023,
-                    lpg=1023,
-                    co=1023,
-                    air_quality=1023,
-                    flame_val=100,
-                    dht22_temp=80.0,
-                    humidity=80.0,
-                )
-            else:
-                SensorDataLogFactory(sensor=s1, status="Safe")
-
-            self.public_users.append(profile)
-
-    def test_map_api_returns_10_houses(self):
-        # 1. Login
-        login_success = self.client.login(
-            username="chief_fire", password="password123"
-        )  # nosec B106
-        self.assertTrue(login_success, "Firefighter login failed - check setUp()")
-
-        # 2. Call the API
+    def test_map_data_auth_and_filtering(self):
+        """Covers role check and coordinate filtering logic."""
+        # Unauth check
+        self.client.login(
+            username=self.public_user.user.username, password="password123"
+        )
         response = self.client.get(reverse("sensors:map_data"))
+        self.assertEqual(response.status_code, 403)
 
-        # 3. Check Status
-        self.assertEqual(
-            response.status_code, 200, f"API failed with status {response.status_code}"
+        # Success path + Coordinate check
+        self.client.login(username=self.ff.user.username, password="password123")
+        # Add a user with NULL coords to test the 'if profile.address' skip
+        temp_null = UserProfileFactory()
+        null_user = temp_null.user.userprofile
+        null_user.address = AddressFactory(latitude=None)
+        null_user.save()
+
+        response = self.client.get(reverse("sensors:map_data"))
+        data = response.json()
+        self.assertEqual(len(data["houses"]), 1)  # Only the valid public_user
+
+    @patch("sensors.views.maps.get_sensor_status")
+    def test_map_status_prioritization(self, mock_status):
+        """Covers the status loop (Fire > Gas Leak > Offline)."""
+        mock_status.return_value = "Fire"
+        self.client.login(username=self.ff.user.username, password="password123")
+
+        response = self.client.get(reverse("sensors:map_data"))
+        self.assertEqual(response.json()["houses"][0]["status"], "Fire")
+
+    # --- maps View Tests ---
+
+    def test_maps_public_layout_selection(self):
+        """Covers public role layout selection logic."""
+        self.client.login(
+            username=self.public_user.user.username, password="password123"
         )
 
-        # 4. Check Data
-        data = response.json()
-        print(f"\nGenerated {len(data.get('houses', []))} houses for testing.")
+        # Test with layout_id param
+        url = f"{reverse('sensors:maps')}?layout_id={self.layout.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.context["current_layout"].id, self.layout.id)
 
-        self.assertEqual(len(data["houses"]), 10, "Should return 10 houses")
+    def test_maps_firefighter_gps_guard(self):
+        """Covers the 'has_gps' logic and radius calculation."""
+        self.client.login(username=self.ff.user.username, password="password123")
 
-        fire_houses = [h for h in data["houses"] if h["status"] == "Fire"]
-        print(f"Houses on Fire: {len(fire_houses)}")
+        # Success path
+        response = self.client.get(reverse("sensors:maps"))
+        self.assertAlmostEqual(response.context["station_radius"], 1.0, places=4)
+        self.assertFalse(response.context["missing_station_gps"])
 
-        self.assertEqual(len(fire_houses), 1, "Should have exactly 1 house on fire")
+        # Missing GPS path
+        self.station_addr.latitude = None
+        self.station_addr.save()
+        response = self.client.get(reverse("sensors:maps"))
+        self.assertTrue(response.context["missing_station_gps"])
+
+    # --- AJAX Layout Management ---
+
+    def test_get_victim_layout_success(self):
+        """Covers firefighter fetching public user's layout."""
+        self.client.login(username=self.ff.user.username, password="password123")
+        url = reverse("sensors:get_victim_layout", args=[self.public_user.user.id])
+        response = self.client.get(url)
+        self.assertEqual(response.json()["success"], True)
+        self.assertEqual(len(response.json()["layouts"]), 1)
+
+    def test_edit_layout_ajax_success_and_errors(self):
+        """Covers edit_layout file upload and ObjectDoesNotExist branches."""
+        self.client.login(
+            username=self.public_user.user.username, password="password123"
+        )
+        url = reverse("sensors:edit_layout_ajax")
+
+        # 1. Success with Image
+        new_img = SimpleUploadedFile("new.png", b"data", content_type="image/png")
+        data = {"layout_id": self.layout.id, "name": "Renamed", "image": new_img}
+        response = self.client.post(url, data)
+        self.assertEqual(response.json()["success"], True)
+        self.layout.refresh_from_db()
+        self.assertEqual(self.layout.name, "Renamed")
+
+        # 2. Not Found branch
+        response = self.client.post(url, {"layout_id": 999})
+        self.assertEqual(response.status_code, 404)
+
+    # --- Station Coordinates ---
+
+    def test_update_station_coordinates_branches(self):
+        """Covers JSONDecodeError and missing coordinate branches."""
+        self.client.login(username=self.ff.user.username, password="password123")
+        # FIX: Changed URL name to match urls.py exactly
+        url = reverse("sensors:update_station_coords")
+
+        # 1. Missing coords
+        response = self.client.post(
+            url, json.dumps({"lat": None}), content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+        # 2. JSON Error
+        response = self.client.post(url, "not-json", content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+
+        # 3. Success
+        response = self.client.post(
+            url, json.dumps({"lat": 4.0, "lng": 102.0}), content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)

@@ -11387,3 +11387,54 @@
    └─ Inputs: Flame=279, Temp=67.09
    🔥 DECISION: [FIRE] Hardware Override (Flame < 500)
    ℹ️  AI Status: [Fire]
+[DATA] Sensor 2: Fire
+   ✅ DECISION: [SAFE] Confidence low (3.3%) (RandomForestClassifier)
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 1: Fire
+[DATA] Sensor 2: Fire
+   ✅ DECISION: [SAFE] Confidence low (3.3%) (RandomForestClassifier)
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 6: Safe
+[DATA] Sensor 1: Fire
+[DATA] Sensor 2: Fire
+   ✅ DECISION: [SAFE] Confidence low (3.3%) (RandomForestClassifier)
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 6: Safe
+   ✅ DECISION: [SAFE] Confidence low (3.3%) (RandomForestClassifier)
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 6: Safe
+[DATA] Sensor 1: Fire
+[DATA] Sensor 2: Fire
+   ✅ DECISION: [SAFE] Confidence low (3.3%) (RandomForestClassifier)
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 6: Safe
+[DATA] Sensor 1: Fire
+[DATA] Sensor 2: Fire
+   ✅ DECISION: [SAFE] Confidence low (3.3%) (RandomForestClassifier)
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 6: Safe
+[DATA] Sensor 2: Fire
+[DATA] Sensor 4: Fire
+[DATA] Sensor 2: Fire
+[DATA] Sensor 2: Fire
+[DATA] Sensor 4: Fire
+[DATA] Sensor 1: Fire
+[DATA] Sensor 2: Fire
+   ✅ DECISION: [SAFE] Confidence low (3.3%) (RandomForestClassifier)
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 6: Safe
+[DATA] Sensor 8: Fire
+[DATA] Sensor 8: Fire
+[DATA] Sensor 10: Fire

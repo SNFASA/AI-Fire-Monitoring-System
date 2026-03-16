@@ -249,6 +249,7 @@ def edit_layout_ajax(request):
 
 
 @login_required
+@require_POST
 def update_station_coordinates(request):
     try:
         data = json.loads(request.body)

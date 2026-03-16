@@ -7,7 +7,6 @@ from django.views.decorators.http import require_POST
 from ..models import (
     Sensor,
     Houselayout,
-    UserProfile,
 )
 
 from ..utils import get_sensor_status
@@ -87,7 +86,7 @@ def add_sensor(request):
         new_sensor = Sensor.objects.create(
             name=name.strip(),
             owner=user_profile,
-            houselayout=layout,
+            layout=layout,
         )
 
         return JsonResponse(
@@ -110,6 +109,7 @@ def add_sensor(request):
 
 
 @login_required
+@require_POST
 def update_sensor_position(request):
     """
     Updates the X/Y coordinates of a sensor on the map.

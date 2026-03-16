@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
-from django.db.models import Prefetch
+from django.db.models import OuterRef, Subquery, Prefetch
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
@@ -49,18 +49,23 @@ def dashboard_view(request):
 def get_dashboard_sensor_data(request):
     user_profile = request.user.userprofile
 
-    # 1. Logic Guard: Define the base queryset based on Role
-    # Public users see only their sensors; Firefighters/Admins see EVERYTHING
+    # 1. Base Queryset based on Role
     if user_profile.role == "public":
         sensor_qs = Sensor.objects.filter(owner=user_profile)
     else:
         sensor_qs = Sensor.objects.all()
 
-    # 2. Optimized Reading Fetch
-    # Use distinct to get the latest log for each sensor efficiently
-    latest_readings = SensorDataLog.objects.order_by("sensor", "-timestamp").distinct(
-        "sensor"
+    # 2. Portable "Latest Log" Fetch
+    # Instead of PostgreSQL-specific .distinct(), we use a Subquery.
+    # We find the latest log ID for each specific sensor.
+    latest_log_id = (
+        SensorDataLog.objects.filter(sensor=OuterRef("sensor"))
+        .order_by("-timestamp")
+        .values("id")[:1]
     )
+
+    # Filter the logs to only those whose ID matches the latest for that sensor
+    latest_readings = SensorDataLog.objects.filter(id__in=Subquery(latest_log_id))
 
     # 3. Prefetch the readings into the dynamic queryset
     sensors = sensor_qs.prefetch_related(

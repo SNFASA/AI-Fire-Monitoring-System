@@ -28,14 +28,23 @@ def _check_maintenance_access(request, maintenance):
 # ==========================================
 @login_required(login_url="login")
 def maintenance_view(request):
-    user_role = getattr(request.user.UserProfile, "role", "public")
+    # 1. Correctly access userprofile (lowercase)
+    user_profile = request.user.userprofile
+    user_role = getattr(user_profile, "role", "public")
+
     if user_role == "public":
         maintenances = (
-            Maintenance.objects.filter(sensor__owner__user=request.user.UserProfile)
-            .prefect_related("images", "sensor")
+            # 2. Use 'request.user' directly or 'user_profile'
+            Maintenance.objects.filter(sensor__owner=user_profile)
+            .prefetch_related(
+                "images", "sensor"
+            )  # 3. Fixed typo 'prefect' -> 'prefetch'
             .order_by("-scheduled_date")
         )
     else:
+        # For Firefighters/Admins: You likely want them to see ALL maintenance
+        # or maintenance for their specific station.
+        # If you want them to see everything:
         maintenances = (
             Maintenance.objects.all()
             .prefetch_related("images", "sensor")
@@ -113,6 +122,7 @@ def edit_maintenance(request, maintenance_id):
             )
             if form.is_valid():
                 m = form.save()
+                handle_images(request, m)
                 # handle_images(request, m) # Ensure this helper exists or import it
                 return redirect("sensors:maintenance_detail", maintenance_id=m.id)
         else:
@@ -126,6 +136,7 @@ def edit_maintenance(request, maintenance_id):
                 task.in_charge = request.user
             task.save()
             # handle_images(request, task)
+            handle_images(request, task)
             return redirect("sensors:maintenance_detail", maintenance_id=task.id)
     else:
         form = MaintenanceForm(instance=task, user=request.user)
