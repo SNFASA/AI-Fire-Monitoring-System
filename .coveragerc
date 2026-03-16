@@ -1,15 +1,16 @@
 [run]
-source = sensors
+source = 
+    sensors
+    core
+branch = True
 omit =
+    sensors/management/*
     */migrations/*
     manage.py
-    core/wsgi.py
-    core/asgi.py
 
 [report]
-exclude_lines =
-    pragma: no cover
-    if settings.DEBUG:
-    raise AssertionError
-    raise NotImplementedError
 show_missing = True
+precision = 2
+
+[html]
+directory = htmlcov

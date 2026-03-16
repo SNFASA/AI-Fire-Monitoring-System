@@ -4,163 +4,212 @@
 {% block title %}Dashboard - Fire Monitoring System{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row mb-4">
+<div class="container mt-4 mb-5">
+    <div class="row mb-4 align-items-center">
         <div class="col-lg-12">
-            <h1 class="display-4 fw-bold text-primary">Fire Monitoring Dashboard</h1>
-            <p class="text-muted">Real-time monitoring and management system</p>
+            <h2 class="fw-bolder text-primary mb-0">Fire Monitoring</h2>
+            <p class="text-muted small mb-0">Real-time management system</p>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-muted">Active Sensors</h5>
-                    <h2 class="text-primary fw-bold">{{ sensors_count }}</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card app-card shadow-sm h-100 position-relative overflow-hidden">
+                <div class="card-body p-3 p-md-4">
+                    <p class="text-muted small text-uppercase fw-bold mb-1">Active Sensors</p>
+                    <h2 class="text-primary fw-bolder mb-0">{{ sensors_count }}</h2>
+                    <i class="fas fa-broadcast-tower stat-icon text-primary"></i>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-muted">Maintenance</h5>
-                    <h2 class="text-warning fw-bold">{{ maintenance_pending }}</h2>
+        <div class="col-6 col-lg-3">
+            <div class="card app-card shadow-sm h-100 position-relative overflow-hidden">
+                <div class="card-body p-3 p-md-4">
+                    <p class="text-muted small text-uppercase fw-bold mb-1">Maintenance</p>
+                    <h2 class="text-warning fw-bolder mb-0">{{ maintenance_pending }}</h2>
+                    <i class="fas fa-tools stat-icon text-warning"></i>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-muted">Reports Filed</h5>
-                    <h2 class="text-danger fw-bold">{{ reports_count }}</h2>
+        <div class="col-6 col-lg-3">
+            <div class="card app-card shadow-sm h-100 position-relative overflow-hidden">
+                <div class="card-body p-3 p-md-4">
+                    <p class="text-muted small text-uppercase fw-bold mb-1">Reports</p>
+                    <h2 class="text-danger fw-bolder mb-0">{{ reports_count }}</h2>
+                    <i class="fas fa-file-alt stat-icon text-danger"></i>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-muted">Fire Stations</h5>
-                    <h2 class="text-info fw-bold">{{ stations_count }}</h2>
+        <div class="col-6 col-lg-3">
+            <div class="card app-card shadow-sm h-100 position-relative overflow-hidden">
+                <div class="card-body p-3 p-md-4">
+                    <p class="text-muted small text-uppercase fw-bold mb-1">Stations</p>
+                    <h2 class="text-info fw-bolder mb-0">{{ stations_count }}</h2>
+                    <i class="fas fa-building stat-icon text-info"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        
-        <div class="col-lg-8 mb-4">
+    <div class="row g-4">
+        <div class="col-lg-8">
             
             {% if request.user.userprofile.role == 'firefighter' %}
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-terminal me-2"></i>System Terminal Log</span>
-                        <span class="badge bg-warning blink-me">LIVE FEED</span>
+                <div class="card app-card shadow-sm border-0 mb-4">
+                    <div class="card-header  border-bottom p-3 d-flex justify-content-between align-items-center rounded-top-4">
+                        <h6 class="fw-bolder mb-0"><i class="fas fa-stream text-primary me-2"></i>Live Activity Feed</h6>
+                        <span class="badge bg-danger text-white blink-me rounded-pill px-3 py-1" style="font-size: 0.75rem;">LIVE</span>
                     </div>
-                    <div class="card-body p-0">
-                        <div id="terminal-box" class="terminal-window" style="height: 400px; overflow-y: auto; background: #000; color: #0f0; padding: 15px; font-family: monospace;">
-                            <div id="log-content">System Initialized. Waiting for data...</div>
+                    
+                    <div class="card-body p-3" id="activity-feed-box" style="height: 450px; overflow-y: auto; ">
+                        
+                        <div id="feed-content" class="d-flex flex-column gap-2">
+                            <div class="text-center text-muted py-4 small">
+                                <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                                <br>Awaiting telemetry...
+                            </div>
                         </div>
+                        
                     </div>
                 </div>
-
             {% else %}
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-microchip me-2"></i>Activity Sensors </span>
-                        <span class="badge bg-warning blink-me">LIVE FEED</span>
-                    </div>
-                    <div class="card-body p-4">
-                        {% if sensors %}
-                            <div class="table-responsive">
-                                <table class="table align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>Sensor Name</th>
-                                            <th>Humidity</th>
-                                            <th>Temperature</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="sensor-table-body">
-                                        {% for sensor in sensors %}
-                                        <tr id="sensor-row-{{ sensor.id }}">
-                                            <td class="fw-bold">{{ sensor.name }}</td>
-                                            
-                                            <td id="hum-{{ sensor.id }}">
-                                                {% if sensor.readings.first %}
-                                                    {{ sensor.readings.first.humidity|floatformat:1 }}%
-                                                {% else %}
-                                                    <span class="text-muted">Waiting...</span>
-                                                {% endif %}
-                                            </td>
-
-                                            <td id="temp-{{ sensor.id }}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bolder mb-0">Live Sensors</h5>
+                    <span class="badge bg-warning text-dark blink-me rounded-pill px-3 py-2">LIVE</span>
+                </div>
+                
+                {% if sensors %}
+                    <div class="sensor-list">
+                        {% for sensor in sensors %}
+                        <div class="card app-card shadow-sm mb-3 sensor-list-item" id="sensor-row-{{ sensor.id }}">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded-circle btn-icon-only me-3">
+                                            <i class="fas fa-microchip text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">{{ sensor.name }}</h6>
+                                            <div id="status-{{ sensor.id }}">
+                                                <span class="badge bg-secondary rounded-pill">Loading...</span> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center">
+                                        <div class="text-end me-3">
+                                            <div class="fw-bold text-dark fs-6" id="temp-{{ sensor.id }}">
                                                 {% if sensor.readings.first %}
                                                     {{ sensor.readings.first.dht22_temp|floatformat:1 }}°C
                                                 {% else %}
-                                                    <span class="text-muted">Waiting...</span>
+                                                    <span class="text-muted small">Wait...</span>
                                                 {% endif %}
-                                            </td>
-
-                                            <td id="status-{{ sensor.id }}">
-                                                <span class="badge bg-secondary">Loading...</span> 
-                                                </td>
-
-                                            <td>
-                                                <button onclick="confirmDelete({{ sensor.id }}, '{{ sensor.name }}')" 
-                                                        class="btn btn-sm btn-outline-danger shadow-sm">
-                                                    <i class="fas fa-trash-alt"></i> Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                                            </div>
+                                            <div class="text-muted small" id="hum-{{ sensor.id }}">
+                                                {% if sensor.readings.first %}
+                                                    <i class="fas fa-tint text-info opacity-75"></i> {{ sensor.readings.first.humidity|floatformat:1 }}%
+                                                {% else %}
+                                                    <span class="text-muted small">Wait...</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <button onclick="confirmDelete({{ sensor.id }}, '{{ sensor.name }}')" 
+                                                class="btn btn-light btn-icon-only text-danger border-0 shadow-none">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        {% else %}
-                            <p class="text-muted text-center py-4">No sensors available</p>
-                        {% endif %}
+                        </div>
+                        {% endfor %}
                     </div>
-                </div>
+                {% else %}
+                    <div class="card app-card shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-box-open text-muted fs-1 mb-3 opacity-50"></i>
+                            <p class="text-muted mb-0">No sensors available</p>
+                        </div>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
 
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white border-bottom pt-3 pb-2">
-                    <h5 class="mb-0 fw-bold">Recent Reports</h5>
+        <div class="col-lg-4">
+            
+            <div class="mb-4">
+                <h5 class="fw-bolder mb-3">Quick Actions</h5>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="{% url 'sensors:maps' %}" class="text-decoration-none">
+                            <div class="action-card text-center p-3 shadow-sm h-100">
+                                <i class="fas fa-globe fs-4 text-primary mb-2"></i>
+                                <h6 class="text-muted mb-0 small fw-bold">Maps</h6>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'sensors:maintenance' %}" class="text-decoration-none">
+                            <div class="action-card text-center p-3 shadow-sm h-100">
+                                <i class="fas fa-wrench fs-4 text-warning mb-2"></i>
+                                <h6 class="text-muted mb-0 small fw-bold">Maintenance</h6>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'sensors:reports' %}" class="text-decoration-none">
+                            <div class="action-card text-center p-3 shadow-sm h-100">
+                                <i class="fas fa-chart-line fs-4 text-danger mb-2"></i>
+                                <h6 class="text-muted mb-0 small fw-bold">Reports</h6>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'sensors:profile' %}" class="text-decoration-none">
+                            <div class="action-card text-center p-3 shadow-sm h-100">
+                                <i class="fas fa-user-circle fs-4 text-info mb-2"></i>
+                                <h6 class="text-muted mb-0 small fw-bold">Profile</h6>
+                            </div>
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body">
+            </div>
+
+            <div class="card app-card shadow-sm mb-4">
+                <div class="card-header bg-transparent border-bottom pt-4 pb-2">
+                    <h6 class="mb-0 fw-bolder">Recent Reports</h6>
+                </div>
+                <div class="card-body p-0">
                     {% if recent_reports %}
-                        <ul class="list-unstyled">
+                        <ul class="list-group list-group-flush rounded-bottom-4">
                             {% for report in recent_reports|slice:":5" %}
-                            <li class="mb-3 pb-3 border-bottom">
-                                <h6 class="mb-1 fw-bold">{{ report.fire_type }}</h6>
-                                <small class="text-muted">
-                                    {{ report.timestamp|date:"M d, H:i" }} <br> {{ report.address }}
-                                </small>
+                            <li class="list-group-item px-4 py-3 border-light">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-bold text-dark">{{ report.fire_type }}</h6>
+                                        <small class="text-muted"><i class="fas fa-map-marker-alt text-danger opacity-75 me-1"></i> {{ report.address }}</small>
+                                    </div>
+                                    <small class="text-muted fw-bold">{{ report.timestamp|date:"M d" }}</small>
+                                </div>
                             </li>
                             {% endfor %}
                         </ul>
                     {% else %}
-                        <p class="text-muted text-center py-4">No reports available</p>
+                        <p class="text-muted text-center py-4 mb-0">No reports available</p>
                     {% endif %}
                 </div>
             </div>
 
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-bottom pt-3 pb-2">
-                    <h5 class="mb-0 fw-bold">Maintenance Status</h5>
+            <div class="card app-card shadow-sm">
+                <div class="card-header bg-transparent border-bottom pt-4 pb-2">
+                    <h6 class="mb-0 fw-bolder">Maintenance Queue</h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if maintenance_items %}
-                        <ul class="list-unstyled">
+                        <ul class="list-group list-group-flush rounded-bottom-4">
                             {% for item in maintenance_items|slice:":5" %}
-                            <li class="mb-2 d-flex justify-content-between align-items-center">
-                                <span>{{ item.sensor.name }}</span>
-                                <span class="badge 
+                            <li class="list-group-item px-4 py-3 border-light d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-muted fs-6">{{ item.sensor.name }}</span>
+                                <span class="badge rounded-pill
                                     {% if item.status == 'Pending' %}bg-warning text-dark
                                     {% elif item.status == 'InProgress' %}bg-info
                                     {% elif item.status == 'Completed' %}bg-success
@@ -171,26 +220,11 @@
                             {% endfor %}
                         </ul>
                     {% else %}
-                        <p class="text-muted text-center py-4">No maintenance items</p>
+                        <p class="text-muted text-center py-4 mb-0">No maintenance items</p>
                     {% endif %}
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-lg-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h4 class="card-title mb-4 fw-bold">Quick Actions</h4>
-                    <div class="row g-3">
-                        <div class="col-md-3"><a href="{% url 'sensors:home' %}" class="btn btn-outline-primary w-100">View All Sensors</a></div>
-                        <div class="col-md-3"><a href="{% url 'sensors:maintenance' %}" class="btn btn-outline-primary w-100">Manage Maintenance</a></div>
-                        <div class="col-md-3"><a href="{% url 'sensors:reports' %}" class="btn btn-outline-primary w-100">View Reports</a></div>
-                        <div class="col-md-3"><a href="{% url 'sensors:profile' %}" class="btn btn-outline-primary w-100">My Profile</a></div>
-                    </div>
-                </div>
-            </div>
+            
         </div>
     </div>
 </div>
@@ -200,29 +234,75 @@
     // 1. TERMINAL LOGIC (FIREFIGHTER ONLY)
     // ==========================================
     {% if request.user.userprofile.role == 'firefighter' %}
-    function refreshTerminal() {
+    function refreshActivityFeed() {
         fetch('/get-live-logs/')
         .then(response => response.json())
         .then(data => {
-            const terminalContent = document.getElementById('log-content');
-            const terminalBox = document.getElementById('terminal-box');
+            const feedContent = document.getElementById('feed-content');
+            const feedBox = document.getElementById('activity-feed-box');
             
             if (data.logs) {
-                let formattedLogs = data.logs;
-                // Apply Colors
-                formattedLogs = formattedLogs.replaceAll('[🔮 PREDICTOR LOG]', '<span style="color:cyan; font-weight:bold;">[🔮 PREDICTOR LOG]</span>');
-                formattedLogs = formattedLogs.replaceAll('[SAFE]', '<span style="color:#0f0;">[SAFE]</span>');
-                formattedLogs = formattedLogs.replaceAll('[WARNING]', '<span style="color:orange;">[WARNING]</span>');
-                formattedLogs = formattedLogs.replaceAll('[FIRE]', '<span style="color:red; font-weight:bold; animation: blink 1s infinite;">[FIRE]</span>');
-                formattedLogs = formattedLogs.replace(/(Inputs:)/g, '<span style="color:yellow;">$1</span>');
+                // 1. Split by the block header [🔮 MQTT LOG] instead of newlines
+                const blocks = data.logs.split('[🔮 MQTT LOG]').filter(block => block.trim() !== '');
+                
+                feedContent.innerHTML = ''; 
 
-                terminalContent.innerHTML = formattedLogs;
-                terminalBox.scrollTop = terminalBox.scrollHeight;
+                blocks.forEach(block => {
+                    let cardClass = 'border-start border-4 border-secondary';
+                    let iconHTML = '<i class="fas fa-info-circle text-secondary"></i>';
+                    let statusBadgeHTML = '<span class="badge bg-secondary rounded-pill">INFO</span>';
+
+                    // 2. Determine the status of the WHOLE block
+                    if (block.includes('[Fire]') || block.includes('FIRE DETECTED')) {
+                        cardClass = 'border-start border-4 border-danger';
+                        iconHTML = '<i class="fas fa-fire text-danger"></i>';
+                        statusBadgeHTML = '<span class="badge bg-danger rounded-pill">FIRE DETECTED</span>';
+                    } else if (block.includes('[Warning]') || block.includes('WARNING')) {
+                        cardClass = 'border-start border-4 border-warning';
+                        iconHTML = '<i class="fas fa-exclamation-triangle text-warning"></i>';
+                        statusBadgeHTML = '<span class="badge bg-warning rounded-pill">WARNING</span>';
+                    } else if (block.includes('[Safe]') || block.includes('SAFE')) {
+                        cardClass = 'border-start border-4 border-success';
+                        iconHTML = '<i class="fas fa-check-circle text-success"></i>';
+                        statusBadgeHTML = '<span class="badge bg-success bg-opacity-10 text-success rounded-pill border border-success">SAFE</span>';
+                    }
+
+                    // 3. Clean up the text inside the block
+                    const cleanBlockText = block
+                        .replace(/\[SAFE\]/g, '')
+                        .replace(/\[WARNING\]/g, '')
+                        .replace(/\[FIRE\]/g, '')
+                        .trim();
+
+                    // 4. Create ONE card for the WHOLE block
+                    const card = document.createElement('div');
+                    card.className = `card shadow-sm border-0 mb-3 ${cardClass}`;
+                    card.innerHTML = `
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2 fw-bold text-primary" style="font-size: 0.9rem;">
+                                    ${iconHTML} Sensor Event
+                                </div>
+                                ${statusBadgeHTML}
+                            </div>
+                            <pre class="log-text-container mb-0" style="font-size: 0.8rem; font-family: 'Courier New', monospace; white-space: pre-wrap; padding: 10px; border-radius: 5px;"></pre>
+                        </div>
+                    `;
+
+                    // SECURE STEP: Set text as raw content to maintain the tree structure (├─, └─)
+                    card.querySelector('.log-text-container').textContent = cleanBlockText;
+
+                    feedContent.appendChild(card);
+                });
+
+                feedBox.scrollTo({ top: feedBox.scrollHeight, behavior: 'smooth' });
             }
         })
-        .catch(err => console.error("Terminal Error:", err));
+        .catch(err => console.error("Feed Error:", err));
     }
-    setInterval(refreshTerminal, 1000);
+
+    // Poll every 1 second
+    setInterval(refreshActivityFeed, 1000);
     {% endif %}
 
     // ==========================================
@@ -309,37 +389,45 @@
     setInterval(updateSensorReadings, 1000);
 
     // B. Delete Sensor (AJAX Action using Global Popup)
-    function confirmDelete(sensorId, sensorName) {
-        showPopup(
-            'warning', 
-            'Delete Sensor?', 
-            `Are you sure you want to delete sensor: "<strong>${sensorName}</strong>"?<br>This action cannot be undone.`, 
-            function() {
-                fetch(`/api/delete-sensor/${sensorId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'Content-Type': 'application/json'
+
+function confirmDelete(sensorId, sensorName) {
+    showPopup(
+        'warning', 
+        'Delete Sensor?', 
+        `Are you sure you want to delete sensor: "<strong>${sensorName}</strong>"?<br>This action cannot be undone.`, 
+        function() {
+            fetch(`/api/delete-sensor/${sensorId}/`, {
+                method: 'POST',
+                headers: {
+                    // Use the helper function if in an external .js file
+                    'X-CSRFToken': getCookie('csrftoken'), 
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                // Check if response is 404 or 500 before parsing JSON
+                if (!response.ok) return response.json().then(err => { throw err; });
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const row = document.getElementById(`sensor-row-${sensorId}`);
+                    if (row) {
+                        row.style.transition = "all 0.5s ease";
+                        row.style.opacity = "0";
+                        row.style.transform = "translateX(20px)"; // Visual cue for deletion
+                        setTimeout(() => row.remove(), 500);
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const row = document.getElementById(`sensor-row-${sensorId}`);
-                        if (row) {
-                            row.style.transition = "all 0.5s";
-                            row.style.opacity = "0";
-                            setTimeout(() => row.remove(), 500);
-                        }
-                        showPopup('success', 'Deleted', `Sensor "${sensorName}" has been removed.`);
-                    } else {
-                        showPopup('error', 'Error', data.message);
-                    }
-                })
-                .catch(err => showPopup('error', 'Connection Error', 'Failed to connect to the server.'));
-            }
-        );
-    }
+                    showPopup('success', 'Deleted', `Sensor "${sensorName}" has been removed.`);
+                }
+            })
+            .catch(err => {
+                const errMsg = err.message || 'Failed to connect to the server.';
+                showPopup('error', 'Error', errMsg);
+            });
+        }
+    );
+}
     {% endif %}
 </script>
 {% endblock %}

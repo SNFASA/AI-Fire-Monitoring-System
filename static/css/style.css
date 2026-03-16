@@ -155,7 +155,7 @@ a:hover {
     text-decoration: underline;
 }
 [data-theme="dark"] a {
-    color: #ff6b6b;
+    color: var(--white);
 }
  p, span, label, li {
     color: var(--text-primary);
@@ -406,7 +406,7 @@ textarea:focus {
 [data-theme="dark"] .form-select,
 [data-theme="dark"] textarea {
     background-color: var(--dark-header);
-    color: var(--dark-text);
+    color: white;
     border-color: #444;
 }
 
@@ -721,10 +721,6 @@ main {
     display: inline-block;
 }
 
-.d-none {
-    display: none !important;
-}
-
 .flex-wrap {
     flex-wrap: wrap;
 }
@@ -945,3 +941,149 @@ main {
     .log-warn   { color: #ffd700; font-weight: bold; } /* Gold */
     .log-fire   { color: #ff3333; font-weight: bold; } /* Red */
     .log-input  { color: #ce9178; }                    
+    /* App-like Custom Tweaks */
+    .app-card { border-radius: 16px; border: none; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .app-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
+    .stat-icon { position: absolute; right: -10px; bottom: -15px; font-size: 5rem; opacity: 0.5; transform: rotate(-15deg); }
+    .action-card {border-radius: 16px; border: 1px solid rgba(0,0,0,0.08); }
+    .app-card:active { transform: scale(0.98); } /* Touch feedback */
+    .action-card:hover { border-color: rgba(0,0,0,0.1); transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
+    [data-theme="dark"] .action-card {
+    background-color: var(--dark-card);
+    color: var(--dark-text);
+    border-color: var(--dark-header);
+}
+    
+    /* Sensor List Item */
+    .sensor-list-item { transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.03); }
+    .btn-icon-only { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+
+
+    .swipe-row {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 0.5rem;
+    }
+    .swipe-row::-webkit-scrollbar { display: none; }
+    
+    .swipe-item {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        overflow: hidden;
+        border-radius: 12px;
+        position: relative;
+    }
+
+    /* Floating Action Button (Mobile Only) */
+    .fab-btn {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1050;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        transition: transform 0.2s ease;
+    }
+    .fab-btn:active { transform: scale(0.9); }
+
+        /* Target standard Django inputs automatically */
+    .form-control, select, input[type="text"], input[type="date"], textarea {
+        border-radius: 12px !important;
+        border: 1.5px solid #e9ecef;
+        padding: 0.8rem 1rem;
+        width: 100%;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        display: block;
+    }
+    
+    .form-control:focus, select:focus, input:focus, textarea:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
+        outline: none;
+    }
+
+    /* Touch-friendly Camera Dropzone */
+    .upload-dropzone {
+        border: 2px dashed #ffcdd2;
+        border-radius: 16px;
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+    }
+    .upload-dropzone:active {
+        background-color: #ffebee;
+    }
+    /* Sticky Bottom Bar for Mobile */
+    @media (max-width: 767px) {
+        .sticky-bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1rem;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            z-index: 1050;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+        }
+    }
+    
+    /* Desktop layout for buttons */
+    @media (min-width: 768px) {
+        body { padding-bottom: 0; }
+        .sticky-bottom-bar {
+            background: transparent;
+            padding: 0;
+            margin-top: 2rem;
+            box-shadow: none;
+            border-radius: 0;
+        }
+    }
+    .list-group-item {
+        border: none;
+        padding: 1rem 1.25rem;
+        background-color: transparent;
+    }
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+    
+    .list-icon {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        margin-right: 12px;
+        color: #6c757d;
+    }
+    /* --- Setup Lockout Overlay --- */
+    .map-lockout-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        backdrop-filter: blur(5px);
+    }
+    .setup-step { transition: all 0.3s ease; }
+    .btn-gps-setup { padding: 12px 24px; font-size: 1.1rem; border-radius: 50px; }

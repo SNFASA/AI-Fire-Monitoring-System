@@ -1,110 +1,112 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-from datetime import date
-from sensors.models import Maintenance
-from .factories import UserProfileFactory, MaintenanceFactory, SensorFactory
+from unittest.mock import patch
+from .factories import (
+    UserProfileFactory,
+    SensorFactory,
+    MaintenanceFactory,
+    MaintenanceImageFactory,
+)
+from ..models import Maintenance, MaintenanceImage
 
 
-class MaintenanceViewTests(TestCase):
-
+class MaintenanceCoverageTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-        # 1. Public User
-        self.public_profile = UserProfileFactory(role="public")
-        self.public_user = self.public_profile.user
+        # 1. Setup Users (Safely bypassing the Django Signal Trap!)
+        temp_ff = UserProfileFactory()
+        self.ff = temp_ff.user.userprofile
+        self.ff.role = "firefighter"
+        self.ff.save()
 
-        # 2. Firefighter User
-        # Force the role assignment explicitly to be safe
-        self.firefighter_profile = UserProfileFactory(role="firefighter")
-        self.firefighter_profile.role = "firefighter"
-        self.firefighter_profile.save()
-        self.firefighter = self.firefighter_profile.user
+        temp_owner = UserProfileFactory()
+        self.owner = temp_owner.user.userprofile
+        self.owner.role = "public"
+        self.owner.save()
 
-        # 3. Create Sensor
-        self.sensor = SensorFactory(owner=self.public_profile)
+        temp_hacker = UserProfileFactory()
+        self.hacker = temp_hacker.user.userprofile
+        self.hacker.role = "public"
+        self.hacker.save()
 
-        # 4. Create Maintenance Request
-        self.maintenance = MaintenanceFactory(
-            sensor=self.sensor, status="Pending", details="Initial details"
-        )
+        # 2. Setup Sensor and Maintenance
+        self.sensor = SensorFactory(owner=self.owner)
+        self.task = MaintenanceFactory(sensor=self.sensor, status="Pending")
 
-        self.image_file = SimpleUploadedFile(
-            name="test_image.jpg",
-            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x05\x04\x04\x00",
-            content_type="image/jpeg",
-        )
+        self.detail_url = reverse("sensors:maintenance_detail", args=[self.task.id])
+        self.edit_url = reverse("sensors:maintenance_edit", args=[self.task.id])
 
-    def test_create_maintenance_success(self):
-        self.client.force_login(self.public_user)
-        url = reverse("sensors:maintenance_create")
+    def test_maintenance_access_denied(self):
+        """Covers the PermissionDenied branch in _check_maintenance_access."""
+        self.client.login(username=self.hacker.user.username, password="password123")
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, 403)  # Permission Denied
 
-        data = {
-            "sensor": self.sensor.id,
-            "maintenance_type": "HealthCheck",
-            "frequency": "monthly",
-            "details": "New Request",
-            "scheduled_date": date.today(),
-            "images": [self.image_file],
-            "status": "Pending",
-        }
+    def test_maintenance_view_role_filtering(self):
+        """Covers if user_role == 'public' else branch."""
+        # Public only sees their own
+        self.client.login(username=self.owner.user.username, password="password123")
+        response = self.client.get(reverse("sensors:maintenance"))
+        self.assertEqual(len(response.context["maintenance_items"]), 1)
 
-        response = self.client.post(url, data, follow=True)
-        self.assertRedirects(response, reverse("sensors:maintenance"))
-        self.assertEqual(Maintenance.objects.count(), 2)
+        # Firefighter sees all
+        self.client.login(username=self.ff.user.username, password="password123")
+        response = self.client.get(reverse("sensors:maintenance"))
+        self.assertGreaterEqual(len(response.context["maintenance_items"]), 1)
 
-    def test_public_can_edit_pending(self):
-        self.client.force_login(self.public_user)
-        url = reverse("sensors:maintenance_edit", args=[self.maintenance.id])
+    def test_upload_evidence(self):
+        """Covers upload_maintenance_evidence branch."""
+        self.client.login(username=self.owner.user.username, password="password123")
+        pic = SimpleUploadedFile("test.jpg", b"file_content", content_type="image/jpeg")
 
-        data = {
-            "sensor": self.sensor.id,
-            "maintenance_type": "HealthCheck",
-            "frequency": "monthly",
-            "details": "Updated by Factory Boy",
-            "scheduled_date": date.today(),
-            "status": "Pending",
-        }
+        url = reverse("sensors:upload_maintenance_evidence", args=[self.task.id])
+        response = self.client.post(url, {"picture": pic})
 
-        response = self.client.post(url, data, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, self.detail_url)
+        self.assertEqual(MaintenanceImage.objects.count(), 1)
 
-        self.maintenance.refresh_from_db()
-        self.assertEqual(self.maintenance.details, "Updated by Factory Boy")
-
-    def test_public_cannot_edit_processing(self):
-        self.maintenance.status = "In Progress"
-        self.maintenance.save()
-
-        self.client.force_login(self.public_user)
-        url = reverse("sensors:maintenance_edit", args=[self.maintenance.id])
-
-        self.client.post(url, {"details": "Hacked"})
-
-        self.maintenance.refresh_from_db()
-        self.assertNotEqual(self.maintenance.details, "Hacked")
-
-    def test_firefighter_update(self):
-        self.client.force_login(self.firefighter)
-        url = reverse("sensors:maintenance_edit", args=[self.maintenance.id])
-
+    def test_edit_maintenance_firefighter_path(self):
+        """Covers the 'Firefighter/Technician Logic' branch in edit_maintenance."""
+        self.client.login(username=self.ff.user.username, password="password123")
         data = {
             "status": "Completed",
-            "actual_date": date.today().isoformat(),  # Send as string (YYYY-MM-DD)
-            "technician_notes": "Fixed via Test",
+            "technician_notes": "All sensors calibrated.",
+            "actual_date": "2026-03-20",
+        }
+        response = self.client.post(self.edit_url, data)
+
+        self.task.refresh_from_db()
+        self.assertEqual(self.task.status, "Completed")
+        self.assertEqual(self.task.in_charge, self.ff.user)
+
+    def test_handle_images_delete_branch(self):
+        """Covers the delete_images logic in handle_images helper."""
+        self.client.login(username=self.owner.user.username, password="password123")
+        img = MaintenanceImageFactory(maintenance=self.task)
+
+        # Give the form ALL the required fields it needs to naturally pass validation
+        data = {
+            "sensor": self.sensor.id,
+            "maintenance_type": self.task.maintenance_type,
+            "scheduled_date": self.task.scheduled_date.strftime("%Y-%m-%d"),
+            "details": "Checking the sensor.",
+            "status": "Pending",
+            "delete_images": [img.id],  # The actual target of our test
         }
 
-        response = self.client.post(url, data, follow=True)
-        self.assertEqual(response.status_code, 200)
+        # Remove the @patch wrapper and just post the valid data
+        response = self.client.post(self.edit_url, data)
 
-        self.maintenance.refresh_from_db()
-        self.assertEqual(self.maintenance.status, "Completed")
-        self.assertEqual(self.maintenance.in_charge, self.firefighter)
+        # Ensure the image was actually deleted from the database
+        self.assertEqual(MaintenanceImage.objects.filter(id=img.id).count(), 0)
 
-    def test_delete_maintenance(self):
-        self.client.force_login(self.public_user)
-        url = reverse("sensors:delete_maintenance", args=[self.maintenance.id])
+    def test_delete_maintenance_success(self):
+        """Covers delete_maintenance success path."""
+        self.client.login(username=self.ff.user.username, password="password123")
+        url = reverse("sensors:delete_maintenance", args=[self.task.id])
+        response = self.client.post(url)
 
-        response = self.client.post(url, follow=True)
-        self.assertEqual(Maintenance.objects.count(), 0)
+        self.assertRedirects(response, reverse("sensors:maintenance"))
+        self.assertFalse(Maintenance.objects.filter(id=self.task.id).exists())

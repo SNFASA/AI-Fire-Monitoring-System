@@ -1,51 +1,78 @@
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.urls import reverse
+from .factories import UserFactory, UserProfileFactory, AddressFactory
 from sensors.models import UserProfile
-from .factories import UserProfileFactory, AddressFactory
 
 
-class UserProfileViewTest(TestCase):
-
+class ProfileTest(TestCase):
     def setUp(self):
-        self.client = Client()
-        self.url = reverse("sensors:profile")
-
-        # Create user with profile automatically
+        self.password = "pass123"
+        # Use UserProfileFactory to ensure the User AND Profile exist correctly
         self.profile = UserProfileFactory()
         self.user = self.profile.user
+        self.user.set_password(self.password)
+        self.user.save()
 
-        # Ensure address exists
-        if not self.profile.address:
-            self.profile.address = AddressFactory()
-            self.profile.save()
+        self.client.login(username=self.user.username, password=self.password)
+        self.url = reverse("sensors:profile")
 
-        self.client.login(username=self.user.username, password="password123")
-
-        # Create dummy data for update
-        fake_address = AddressFactory.build()
-        self.valid_data = {
-            "username": self.user.username,
-            "first_name": "NewFirst",
-            "last_name": "NewLast",
-            "email": "new@email.com",
-            "phone_number": "0123456789",
-            "street": fake_address.street,
-            "city": fake_address.city,
-            "state": fake_address.state,
-            "postal_code": fake_address.postal_code,
-        }
-
-    def test_profile_update_success(self):
-        response = self.client.post(self.url, self.valid_data)
-        self.assertEqual(response.status_code, 302)
-
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.first_name, "NewFirst")
-
-        updated_profile = UserProfile.objects.get(user=self.user)
-        self.assertEqual(updated_profile.address.city, self.valid_data["city"])
-
-    def test_profile_view_loads(self):
+    def test_profile_view_get(self):
+        """Covers the GET branch and UserProfile.objects.get_or_create"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "sensors/profile.html")
+        self.assertIn("u_form", response.context)
+        self.assertIn("p_form", response.context)
+        self.assertIn("a_form", response.context)
+
+    def test_profile_update_success_with_new_address(self):
+        """Covers form.is_valid() and the logic for creating an address if missing"""
+        # Ensure profile starts with no address to trigger that specific 'if' branch
+        self.profile.address = None
+        self.profile.save()
+
+        # Build data that satisfies ALL three forms (User, Profile, Address)
+        data = {
+            # UserUpdateForm fields
+            "username": self.user.username,  # <--- FIX: Add this required field!
+            "first_name": "Updated",
+            "last_name": "Name",
+            "email": "updated@example.com",
+            # ProfileUpdateForm fields
+            "phone_number": "01234567890",
+            "bio": "New bio info",
+            # AddressUpdateForm fields
+            "street": "123 Python Lane",
+            "city": "Django City",
+            "state": "Selangor",
+            "postal_code": "50000",
+        }
+
+        response = self.client.post(self.url, data)
+
+        # If it still fails, this print statement will tell you exactly which field is mad:
+        if response.status_code == 200:
+            print("USER FORM ERRORS:", response.context["u_form"].errors)
+            print("PROFILE FORM ERRORS:", response.context["p_form"].errors)
+            print("ADDRESS FORM ERRORS:", response.context["a_form"].errors)
+
+        self.assertRedirects(response, self.url)
+
+        self.user.refresh_from_db()
+        self.profile.refresh_from_db()
+
+        self.assertEqual(self.user.first_name, "Updated")
+        self.assertIsNotNone(self.profile.address)
+        self.assertEqual(self.profile.address.street, "123 Python Lane")
+
+    def test_profile_update_invalid(self):
+        """Covers the else branch when forms are invalid"""
+        # Provide an obviously invalid email
+        data = {
+            "email": "not-an-email",
+            "first_name": "Test",
+        }
+        response = self.client.post(self.url, data)
+
+        # Should stay on page (200) to show errors
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["u_form"].errors)

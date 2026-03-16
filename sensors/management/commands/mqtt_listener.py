@@ -103,7 +103,7 @@ class Command(BaseCommand):
                 color = self.style.SUCCESS
                 if prediction == "Fire":
                     color = self.style.ERROR
-                elif prediction in ["Warning", "Gas Leak"]:
+                elif prediction in ["Warning", "gas leak"]:
                     color = self.style.WARNING
                 # self.stdout.write(color(f"[{timezone.now().time()}] Sensor {sensor.id}: {prediction}"))
 

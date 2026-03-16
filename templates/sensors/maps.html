@@ -310,6 +310,25 @@
 <div id="user-map-container" class="map-wrapper">   
 
     <div class="map-container-wrapper" id="fullscreen-target">
+        {% if missing_station_gps %}
+            <div id="setup-overlay" class="map-lockout-overlay">
+                <div id="step-1" class="setup-step">
+                    <i class="fas fa-map-marked-alt fa-4x mb-4 text-primary"></i>
+                    <h2>Station Location Required</h2>
+                    <p class="lead">Your station is not yet pinned on the map. This is required for AI dispatching.</p>
+                    <button class="btn btn-primary btn-lg btn-gps-setup" onclick="startStationSetup()">
+                        <i class="fas fa-location-arrow"></i> Start Setup
+                    </button>
+                </div>
+                <div id="step-2" class="setup-step" style="display:none;">
+                    <div class="alert alert-info">
+                        <i class="fas fa-mouse-pointer me-2"></i> 
+                        <strong>Click on the map</strong> exactly where <b>{{ user_profile.station.name }}</b> is located.
+                    </div>
+                    <button class="btn btn-outline-light btn-sm mt-2" onclick="cancelSetup()">Cancel</button>
+                </div>
+            </div>
+        {% endif %}
         <div id="map">
             <div class="map-overlay-top-left">
                 <div class="style-switcher">
@@ -345,131 +364,68 @@
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
-    // --- MAP SETUP ---
-    const STATION_LOC = [Number.parseFloat("{{ station_lng|default:'103.0848' }}"), Number.parseFloat("{{ station_lat|default:'1.8548' }}")];
-    const STYLES = { 'streets': 'https://tiles.openfreemap.org/styles/liberty', 'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' };
-    const map = new maplibregl.Map({ container: 'map', style: STYLES.streets, center: STATION_LOC, zoom: 13, pitch: 60, antialias: true });
+    // --- 1. CONFIGURATION & HELPERS ---
+    const STYLES = { 
+        'streets': 'https://tiles.openfreemap.org/styles/liberty', 
+        'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 
+        'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
+    };
 
-    map.addControl(new maplibregl.FullscreenControl({ container: document.querySelector('.map-container-wrapper') }), 'top-right');
+    // Helper to get CSRF Token for Django POST requests
+
+    const rawLat = "{{ station_lat|default:'' }}";
+    const rawLng = "{{ station_lng|default:'' }}";
+    const INITIAL_VIEW = [103.0848, 1.8548]; 
+    const centerCoords = (rawLat && rawLng) ? [parseFloat(rawLng), parseFloat(rawLat)] : INITIAL_VIEW;
+
+    // --- 2. MAP INITIALIZATION ---
+    const map = new maplibregl.Map({ 
+        container: 'map', 
+        style: STYLES.streets, 
+        center: centerCoords, 
+        zoom: (rawLat && rawLng) ? 14 : 12, 
+        pitch: 60, 
+        antialias: true 
+    });
+
+    map.addControl(new maplibregl.FullscreenControl(), 'top-right');
     map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
-    map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'bottom-right');
-    
-    // --- NEW: RENDER ALL STATION MARKERS & ZONES ---
-    map.on('load', function() {
-        {% for st in all_stations %}
-        (function() {
-            const lng = Number.parseFloat("{{ st.address.longitude }}");
-            const lat = Number.parseFloat("{{ st.address.latitude }}");
-            const name = "{{ st.name }}";
-            const area = Number.parseFloat("{{ st.cover_area_sqm|default:0 }}");
-            const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0;
 
-            // Add Station Marker
-            const el = document.createElement('div');
-            el.innerHTML = '<i class="fas fa-building-shield"></i>';
-            el.style.cssText = 'background:#0d6efd; width:45px; height:45px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 15px rgba(13, 110, 253, 0.6); font-size:22px;';
-            new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).setPopup(new maplibregl.Popup({offset: 25}).setText(name)).addTo(map);
+    // --- 3. MODAL & POLLING LOGIC ---
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    }
 
-            // Add Coverage Zone
-            const sourceId = 'zone-{{ st.id }}';
-            const circle = createGeoJSONCircle([lng, lat], radius);
-            if(circle) {
-                map.addSource(sourceId, circle);
-                map.addLayer({ 'id': sourceId + '-fill', 'type': 'fill', 'source': sourceId, 'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.15 } });
-                map.addLayer({ 'id': sourceId + '-line', 'type': 'line', 'source': sourceId, 'paint': { 'line-color': '#0d6efd', 'line-width': 2, 'line-dasharray': [2, 2] } });
-            }
-        })();
-        {% endfor %}
-    });
-    
-    function createGeoJSONCircle(center, radiusInKm, points = 64) {
-        if(!center || isNaN(center[0])) return null;
-        const coords = { latitude: center[1], longitude: center[0] };
-        const ret = [];
-        const distanceX = radiusInKm / (111.320 * Math.cos(coords.latitude * Math.PI / 180));
-        const distanceY = radiusInKm / 110.574;
-        for(let i=0; i<points; i++) {
-            let theta = (i/points)*(2*Math.PI);
-            let x = distanceX * Math.cos(theta);
-            let y = distanceY * Math.sin(theta);
-            ret.push([coords.longitude+x, coords.latitude+y]);
+    function safePercent(val) {
+        const n = parseFloat(val);
+        return (isFinite(n) ? Math.min(100, Math.max(0, n)) : 0);
+    }
+
+    function safeSrc(url) {
+        try {
+            const parsed = new URL(url, window.location.origin);
+            return (parsed.protocol === 'https:' || parsed.protocol === 'http:') ? parsed.href : '';
+        } catch (_) {
+            return '';
         }
-        ret.push(ret[0]);
-        return { "type": "geojson", "data": { "type": "FeatureCollection", "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] } };
     }
 
-    // --- LIVE MAP DATA & COUNTERS (UNTOUCHED) ---
-    const markers = {};
-    let isFetching = false;
-
-    function fetchMapData() {
-        if (isFetching) return;
-        isFetching = true;
-
-        fetch("{% url 'sensors:map_data' %}")
-        .then(res => res.json())
-        .then(data => {
-            isFetching = false;
-            if(data.houses) { 
-                let fireCount = 0; 
-                let warnCount = 0;
-                
-                data.houses.forEach(house => {
-                    let cls = 'marker-safe'; 
-                    let icon = '';
-                    let st = (house.status || "").toLowerCase();
-                    
-                    if(st === 'fire') { 
-                        cls = 'marker-fire'; icon = '<i class="fas fa-fire"></i>'; fireCount++; 
-                    } else if(st === 'warning' || st === 'gasleak' || st === 'gas leak') { 
-                        cls = 'marker-warning'; icon = '<i class="fas fa-exclamation-triangle"></i>'; warnCount++; 
-                    } else if(st === 'offline') { 
-                        cls = 'marker-offline'; 
-                    }
-                    
-                    if(!markers[house.id]) {
-                        const el = document.createElement('div');
-                        el.className = cls; 
-                        el.innerHTML = icon;
-                        el.addEventListener('click', () => openLayoutModal(house.id));
-                        markers[house.id] = new maplibregl.Marker({ element: el })
-                            .setLngLat([house.lng, house.lat])
-                            .addTo(map);
-                    } else {
-                        const el = markers[house.id].getElement();
-                        if (el.className !== cls) el.className = cls;
-                        if (el.innerHTML !== icon) el.innerHTML = icon;
-                    }
-                });
-                document.getElementById('fire-count').innerText = fireCount;
-                document.getElementById('warning-count').innerText = warnCount;
-            }
-        })
-        .catch(err => { isFetching = false; });
-    }
-
-    setInterval(fetchMapData, 2000);
-    fetchMapData();
-
-    window.addEventListener('fireAlertReceived', function() {
-        fetchMapData();
-    });
-
-    // --- LAYOUT MODAL LOGIC (UNTOUCHED) ---
     let modalRefreshInterval = null;
-    let currentModalUserId = null;
-    let lastActiveTabId = null; 
+    let lastActiveTabId = null;
 
-    function openLayoutModal(userId) {
-        currentModalUserId = userId;
-        lastActiveTabId = null; 
+    window.openLayoutModal = function(userId) {
         const modal = new bootstrap.Modal(document.getElementById('layoutModal'));
         modal.show();
-        fetchModalData(userId); 
         
-        if(modalRefreshInterval) clearInterval(modalRefreshInterval);
-        modalRefreshInterval = setInterval(() => { fetchModalData(userId); }, 1000);
-    }
+        // Initial fetch
+        fetchModalData(userId);
+        
+        // Start polling while modal is open (Requirement 5)
+        if (modalRefreshInterval) clearInterval(modalRefreshInterval);
+        modalRefreshInterval = setInterval(() => fetchModalData(userId), 2000);
+    };
 
     function fetchModalData(userId) {
         fetch(`/api/get-victim-layout/${userId}/`)
@@ -478,7 +434,9 @@
             if(data.success) {
                 const tabsContainer = document.getElementById('victimLayoutTabs');
                 const contentContainer = document.getElementById('victimLayoutContent');
-                const currentActive = document.querySelector('.nav-link.active');
+                
+                // Save which tab was open to prevent UI jump during refresh
+                const currentActive = tabsContainer.querySelector('.nav-link.active');
                 if (currentActive) lastActiveTabId = currentActive.id;
 
                 tabsContainer.innerHTML = '';
@@ -490,62 +448,259 @@
                 }
 
                 data.layouts.forEach((layout, index) => {
-                    const tabId = `tab-${layout.layout_id}`;
+                    const safeLayoutId = escapeHTML(layout.layout_id);
+                    const tabId = `tab-${safeLayoutId}`;
                     let isActive = (lastActiveTabId === tabId || (!lastActiveTabId && index === 0)) ? 'active' : '';
                     let isShow = (lastActiveTabId === tabId || (!lastActiveTabId && index === 0)) ? 'show active' : '';
-                    
-                    const tabButton = document.createElement('button');
-                    tabButton.className = `nav-link ${isActive} fw-bold`;
-                    tabButton.id = tabId;
-                    tabButton.setAttribute('data-bs-toggle', 'tab');
-                    tabButton.setAttribute('data-bs-target', `#content-${layout.layout_id}`);
-                    tabButton.type = 'button';
-                    tabButton.role = 'tab';
-                    tabButton.innerText = layout.layout_name;
-                    tabButton.addEventListener('click', function() { lastActiveTabId = this.id; });
 
                     const li = document.createElement('li');
                     li.className = 'nav-item';
-                    li.appendChild(tabButton);
+                    const btn = document.createElement('button');
+                    btn.className = `nav-link ${isActive} fw-bold`;
+                    btn.id = tabId;
+                    btn.setAttribute('data-bs-toggle', 'tab');
+                    btn.setAttribute('data-bs-target', `#content-${safeLayoutId}`);
+                    btn.type = 'button';
+                    btn.setAttribute('role', 'tab');
+                    btn.textContent = layout.layout_name;
+                    li.appendChild(btn);
                     tabsContainer.appendChild(li);
 
-                    let sensorsHTML = layout.sensors.map((s, i) => {
-                        let cssClass = 'bg-safe';
-                        let st = (s.status || "").toLowerCase();
-                        if (st === 'fire') cssClass = 'bg-fire';
-                        else if (st === 'warning' || st === 'gasleak') cssClass = 'bg-warn';
-                        return `<div class="sensor-node ${cssClass}" style="left:${s.x}%; top:${s.y}%;">${i + 1}<div class="sensor-label">${s.name}</div></div>`;
-                    }).join('');
+                    const tabPane = document.createElement('div');
+                    tabPane.className = `tab-pane fade ${isShow}`;
+                    tabPane.id = `content-${safeLayoutId}`;
+                    tabPane.setAttribute('role', 'tabpanel');
+                    tabPane.style.cssText = 'height:100%; width:100%;';
 
-                    contentContainer.insertAdjacentHTML('beforeend', `
-                        <div class="tab-pane fade ${isShow}" id="content-${layout.layout_id}" role="tabpanel" style="height:100%; width:100%;">
-                            <div class="blueprint-wrapper" style="height:100%; width:100%; background-color: #0d1b2a; position: relative; overflow: hidden; border:none;">
-                                <img src="${layout.image_url}" class="blueprint-image" style="display:block; position: absolute; width: 100%; height: 100%; object-fit: fill; z-index: 1; filter: invert(1) grayscale(1) brightness(1.2) contrast(1.2); opacity: 0.8; mix-blend-mode: screen;" alt="Layout Blueprint">
-                                ${sensorsHTML}
-                            </div>
-                        </div>`);
+                    const blueprintWrapper = document.createElement('div');
+                    blueprintWrapper.className = 'blueprint-wrapper';
+                    blueprintWrapper.style.cssText = 'height:100%; width:100%; background-color: #0d1b2a; position: relative; overflow: hidden;';
+
+                    const img = document.createElement('img');
+                    img.src = safeSrc(layout.image_url);
+                    img.className = 'blueprint-image';
+                    img.style.cssText = 'width:100%; height:100%; object-fit:fill; filter: invert(1); opacity:0.8;';
+                    blueprintWrapper.appendChild(img);
+
+                    layout.sensors.forEach((s, i) => {
+                        const cssClass = (s.status || "").toLowerCase() === 'fire' ? 'bg-fire' :
+                                         ((s.status || "").toLowerCase() === 'warning' ? 'bg-warn' : 'bg-safe');
+                        const sensorNode = document.createElement('div');
+                        sensorNode.className = `sensor-node ${cssClass}`;
+                        sensorNode.style.cssText = `left:${safePercent(s.x)}%; top:${safePercent(s.y)}%; position:absolute;`;
+                        sensorNode.textContent = String(i + 1);
+                        const label = document.createElement('div');
+                        label.className = 'sensor-label';
+                        label.textContent = s.name;
+                        sensorNode.appendChild(label);
+                        blueprintWrapper.appendChild(sensorNode);
+                    });
+
+                    tabPane.appendChild(blueprintWrapper);
+                    contentContainer.appendChild(tabPane);
                 });
             }
         });
     }
 
-    const layoutModalEl = document.getElementById('layoutModal');
-    layoutModalEl.addEventListener('hidden.bs.modal', event => {
+    // Stop polling when modal closes
+    document.getElementById('layoutModal').addEventListener('hidden.bs.modal', () => {
         if (modalRefreshInterval) {
             clearInterval(modalRefreshInterval);
             modalRefreshInterval = null;
         }
     });
 
+    // --- 4. MAP DATA POLLING ---
+    const markers = {};
+    function fetchMapData() {
+        if (window.isSetupMode) return;
+        fetch("{% url 'sensors:map_data' %}")
+        .then(res => res.json())
+        .then(data => {
+            if(data.houses) { 
+                let fireCount = 0; 
+                let warnCount = 0;
+                data.houses.forEach(house => {
+                    if (house.lat === null || house.lng === null) return;
+
+                    // Normalize status to lowercase for comparison
+                    let st = (house.status || "").toLowerCase();
+                    
+                    // Logic for counts: Check for both 'warning' AND 'gas leak'
+                    if (st === 'fire') {
+                        fireCount++;
+                    } else if (st === 'warning' || st === 'gas leak') {
+                        warnCount++;
+                    }
+
+                    // Logic for marker appearance
+                    let cls = st === 'fire' ? 'marker-fire' : 
+                              (st === 'warning' || st === 'gas leak' ? 'marker-warning' : 'marker-safe');
+                    
+                    let icon = st === 'fire' ? '<i class="fas fa-fire"></i>' : 
+                               (st === 'warning' || st === 'gas leak' ? '<i class="fas fa-exclamation-triangle"></i>' : '');
+                    
+                    if(!markers[house.id]) {
+                        const el = document.createElement('div');
+                        el.className = cls; 
+                        el.innerHTML = icon;
+                        el.onclick = () => openLayoutModal(house.id);
+                        markers[house.id] = new maplibregl.Marker({ element: el }).setLngLat([house.lng, house.lat]).addTo(map);
+                    } else {
+                        const el = markers[house.id].getElement();
+                        el.className = cls;
+                        el.innerHTML = icon;
+                    }
+                });
+                // Update the UI counters
+                document.getElementById('fire-count').innerText = fireCount;
+                document.getElementById('warning-count').innerText = warnCount;
+            }
+        });
+    }
+    setInterval(fetchMapData, 2000);
+
+
+    // --- 5. STATION SETUP ---
+    window.startStationSetup = function() {
+        document.getElementById('setup-overlay').style.background = 'rgba(0,0,0,0.3)';
+        document.getElementById('setup-overlay').style.pointerEvents = 'none';
+        document.getElementById('step-2').style.display = 'block';
+        document.getElementById('step-2').style.pointerEvents = 'auto';
+        document.getElementById('step-1').style.display = 'none';
+        window.isSetupMode = true;
+    };
+
+    map.on('click', (e) => {
+        if (!window.isSetupMode) return;
+
+        // Fix: 'coords' was undefined. Use 'e.lngLat' from the click event.
+        const clickedLat = e.lngLat.lat;
+        const clickedLng = e.lngLat.lng;
+        const stationName = "{{ user_profile.station.name|escapejs|default:'Station' }}";
+
+        if (confirm(`Pin ${stationName} at this location?`)) {
+            fetch("{% url 'sensors:update_station_coords' %}", {
+                method: "POST",
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': getCookie('csrftoken') 
+                },
+                body: JSON.stringify({ 
+                    lat: clickedLat, 
+                    lng: clickedLng 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Station location saved!");
+                    location.reload();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            })
+            .catch(err => {
+                console.error("Coordinate update failed:", err);
+                alert("Connection error. Please try again.");
+            });
+        }
+    });
+
     window.switchStyle = function(styleName, btn) {
         document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        if(styleName === 'satellite') {
-             map.setStyle({ 'version': 8, 'sources': { 'raster-tiles': { 'type': 'raster', 'tiles': [STYLES.satellite], 'tileSize': 256 } }, 'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}] });
-        } else {
-            map.setStyle(STYLES[styleName]);
-        }
+        map.setStyle(styleName === 'satellite' ? { 'version': 8, 'sources': { 'raster-tiles': { 'type': 'raster', 'tiles': [STYLES.satellite], 'tileSize': 256 } }, 'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}] } : STYLES[styleName]);
     };
+    // --- 4. STATION MARKERS & COVERAGE ZONES (RESTORED) ---
+    map.on('load', function() {
+        {% for st in all_stations %}
+        (function() {
+            // Safely parse coordinates from Django context
+            const lng = parseFloat("{{ st.address.longitude }}");
+            const lat = parseFloat("{{ st.address.latitude }}");
+            
+            if (isNaN(lng) || isNaN(lat)) return; 
+
+            const name = "{{ st.name|escapejs }}";
+            // Calculate radius based on coverage area (sqm to km)
+            const area = parseFloat("{{ st.cover_area_sqm|default:0 }}");
+            const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0; // Default 3km if area is 0
+
+            // Create custom HTML element for Fire Station icon
+            const el = document.createElement('div');
+            el.innerHTML = '<i class="fas fa-building-shield"></i>';
+            el.style.cssText = `
+                background: #0d6efd; 
+                width: 45px; 
+                height: 45px; 
+                border-radius: 50%; 
+                color: white; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                border: 3px solid white; 
+                box-shadow: 0 0 15px rgba(13, 110, 253, 0.6); 
+                font-size: 22px; 
+                cursor: pointer;
+            `;
+            
+            // Add Marker to Map
+            new maplibregl.Marker({ element: el })
+                .setLngLat([lng, lat])
+                .setPopup(new maplibregl.Popup({offset: 25}).setText(name))
+                .addTo(map);
+
+            // Add the blue Coverage Zone circle
+            const sourceId = 'zone-{{ st.id }}';
+            const circleData = createGeoJSONCircle([lng, lat], radius);
+            
+            if(circleData) {
+                map.addSource(sourceId, circleData);
+                map.addLayer({
+                    'id': sourceId + '-fill',
+                    'type': 'fill',
+                    'source': sourceId,
+                    'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.15 }
+                });
+                map.addLayer({
+                    'id': sourceId + '-line',
+                    'type': 'line',
+                    'source': sourceId,
+                    'paint': { 'line-color': '#0d6efd', 'line-width': 2, 'line-dasharray': [2, 2] }
+                });
+            }
+        })();
+        {% endfor %}
+    });
+
+    // Helper function to generate the circle geometry for the coverage zones
+    function createGeoJSONCircle(center, radiusInKm, points = 64) {
+        if(!center || isNaN(center[0])) return null;
+        const coords = { latitude: center[1], longitude: center[0] };
+        const ret = [];
+        const distanceX = radiusInKm / (111.320 * Math.cos(coords.latitude * Math.PI / 180));
+        const distanceY = radiusInKm / 110.574;
+
+        for(let i=0; i<points; i++) {
+            let theta = (i/points)*(2*Math.PI);
+            let x = distanceX * Math.cos(theta);
+            let y = distanceY * Math.sin(theta);
+            ret.push([coords.longitude+x, coords.latitude+y]);
+        }
+        ret.push(ret[0]);
+        return { 
+            "type": "geojson", 
+            "data": { 
+                "type": "FeatureCollection", 
+                "features": [{ 
+                    "type": "Feature", 
+                    "geometry": { "type": "Polygon", "coordinates": [ret] } 
+                }] 
+            } 
+        };
+    }
 </script>
 
 {% endif %}

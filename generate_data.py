@@ -45,7 +45,7 @@ fire_data = pd.DataFrame(
     }
 )
 
-# Scenario C: Gas Leak
+# Scenario C: gas leak
 gas_data = pd.DataFrame(
     {
         "methane": generate_sensor_readings(n_gas, 3000, 400),

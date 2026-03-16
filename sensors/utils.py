@@ -1,9 +1,17 @@
-import math
 import json
+import math
 from django.conf import settings
 from django.utils import timezone
 from twilio.rest import Client
 from .models import FireStation
+from django.http import JsonResponse
+from datetime import timedelta
+from .logger import get_logs
+
+
+def get_live_logs(request):
+    """Returns system logs for the terminal UI"""
+    return JsonResponse({"logs": get_logs()})
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -49,6 +57,7 @@ def send_sms_broadcast(phone_numbers, message_text):
 
         current_time = timezone.now().strftime("%I:%M %p")
 
+        # Send the raw dictionary
         content_vars = json.dumps({"1": clean_location, "2": current_time})
 
         for number in phone_numbers:
@@ -60,6 +69,8 @@ def send_sms_broadcast(phone_numbers, message_text):
                 formatted_num = clean_num
             elif clean_num.startswith("+"):
                 formatted_num = f"whatsapp:{clean_num}"
+            elif clean_num.startswith("60") and len(clean_num) > 9:
+                formatted_num = f"whatsapp:+{clean_num}"
             elif clean_num.startswith("0"):
                 formatted_num = f"whatsapp:+60{clean_num[1:]}"
             else:
@@ -77,3 +88,25 @@ def send_sms_broadcast(phone_numbers, message_text):
     except Exception as e:
         print(f"❌ WhatsApp Failed: {e}")
     print("--------------------------------")
+
+
+# ==========================================
+# HELPER FUNCTIONS
+# ==========================================
+def get_sensor_status(sensor):
+    """Determines if a sensor is Safe, Fire, Warning, or Offline"""
+    last_log = sensor.readings.order_by("-timestamp").first()
+
+    # Offline Check (No data for 5 minutes)
+    if not last_log:
+        return "Offline"
+    if timezone.now() - last_log.timestamp > timedelta(minutes=5):
+        return "Offline"
+
+    # Return Status (Normalize 'GasLeak')
+    raw_status = last_log.status or ""
+    status = raw_status.strip()
+    if status.replace(" ", "").lower() == "gasleak":
+        return "Gas Leak"
+
+    return status
