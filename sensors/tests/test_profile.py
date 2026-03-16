@@ -38,7 +38,7 @@ class ProfileTest(TestCase):
             "last_name": "Name",
             "email": "updated@example.com",
             # ProfileUpdateForm fields
-            "phone_number": "01234567890",  
+            "phone_number": "01234567890",
             "bio": "New bio info",
             # AddressUpdateForm fields
             "street": "123 Python Lane",
@@ -51,9 +51,9 @@ class ProfileTest(TestCase):
 
         # If it still fails, this print statement will tell you exactly which field is mad:
         if response.status_code == 200:
-            print("USER FORM ERRORS:", response.context['u_form'].errors)
-            print("PROFILE FORM ERRORS:", response.context['p_form'].errors)
-            print("ADDRESS FORM ERRORS:", response.context['a_form'].errors)
+            print("USER FORM ERRORS:", response.context["u_form"].errors)
+            print("PROFILE FORM ERRORS:", response.context["p_form"].errors)
+            print("ADDRESS FORM ERRORS:", response.context["a_form"].errors)
 
         self.assertRedirects(response, self.url)
 

@@ -94,9 +94,9 @@ class MobilizationCoverageTest(TestCase):
             end_time=timezone.now() + timedelta(hours=1),
             is_active=True,
         )
-        
+
         self.client.login(username=self.ff_a.user.username, password="password123")
-        
+
         # 2. Trigger error by making the DB call fail
         with patch("sensors.models.Report.save", side_effect=Exception("DB Failure")):
             response = self.client.post(self.url)

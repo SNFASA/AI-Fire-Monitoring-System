@@ -5,6 +5,7 @@ from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from .factories import UserFactory, UserProfileFactory, FireStationFactory
 
+
 class ConsumerSecurityTest(TransactionTestCase):
 
     async def test_unauthenticated_connection_denied(self):
@@ -77,17 +78,17 @@ class ConsumerSecurityTest(TransactionTestCase):
         # FIX: Simulate the Django View sending an alert to the Group
         channel_layer = get_channel_layer()
         await channel_layer.group_send(
-            f"station_{station_id}", # The group name you defined in the consumer
+            f"station_{station_id}",  # The group name you defined in the consumer
             {
-                "type": "fire_alert", # This triggers your async def fire_alert()
+                "type": "fire_alert",  # This triggers your async def fire_alert()
                 "report_id": 1,
                 "address": "Test St",
                 "owner_name": "Nabil",
                 "owner_phone": "0123",
-                "lat": 3.1, 
+                "lat": 3.1,
                 "lng": 101.1,
-                "timestamp": "2026-03-16"
-            }
+                "timestamp": "2026-03-16",
+            },
         )
 
         # NOW the consumer will push the message down the WebSocket to our test client

@@ -22,7 +22,7 @@ class MapAndLayoutCoverageTest(TestCase):
         self.station = FireStationFactory(
             address=self.station_addr, cover_area_sqm=3141592
         )  # ~1km radius
-        
+
         temp_ff = UserProfileFactory()
         self.ff = temp_ff.user.userprofile
         self.ff.role = "firefighter"
@@ -31,13 +31,13 @@ class MapAndLayoutCoverageTest(TestCase):
 
         # 2. Setup Public User with Layout (Safely bypassing Django Signals)
         self.public_addr = AddressFactory(latitude=3.13, longitude=101.6)
-        
+
         temp_public = UserProfileFactory()
         self.public_user = temp_public.user.userprofile
         self.public_user.role = "public"
         self.public_user.address = self.public_addr
         self.public_user.save()
-        
+
         self.layout = HouselayoutFactory(user=self.public_user.user, name="Floor 1")
         self.sensor = SensorFactory(owner=self.public_user, layout=self.layout)
 

@@ -11,6 +11,7 @@ from .factories import (
 )
 from ..models import Report
 
+
 class AlertSystemCoverageTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -19,7 +20,7 @@ class AlertSystemCoverageTest(TestCase):
         # 1. Safely setup the profile and address bypassing signal bugs
         self.user_profile = UserProfileFactory(role="public")
         self.address = AddressFactory(latitude=None, longitude=None)
-        
+
         # Manually force the connection to ensure it is never None
         self.user_profile.address = self.address
         self.user_profile.phone_number = "0123456789"
@@ -49,7 +50,7 @@ class AlertSystemCoverageTest(TestCase):
         self.assertTrue(mock_sms.called)
 
     @patch("sensors.views.api.predictor.predict")
-    @patch("sensors.views.api.haversine") # FIX: Path updated to api.haversine
+    @patch("sensors.views.api.haversine")  # FIX: Path updated to api.haversine
     @patch("sensors.views.api.async_to_sync")
     def test_receive_data_fire_success_and_deduplication(
         self, mock_async, mock_hav, mock_predict

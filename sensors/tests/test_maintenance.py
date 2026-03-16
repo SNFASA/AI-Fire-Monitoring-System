@@ -93,7 +93,7 @@ class MaintenanceCoverageTest(TestCase):
             "scheduled_date": self.task.scheduled_date.strftime("%Y-%m-%d"),
             "details": "Checking the sensor.",
             "status": "Pending",
-            "delete_images": [img.id] # The actual target of our test
+            "delete_images": [img.id],  # The actual target of our test
         }
 
         # Remove the @patch wrapper and just post the valid data

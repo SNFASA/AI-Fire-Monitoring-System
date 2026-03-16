@@ -104,23 +104,26 @@ class ReportCoverageTest(TestCase):
         img_obj = ReportImageFactory(report=self.report)
 
         url = reverse("sensors:edit_report", args=[self.report.id])
-        
+
         # Include ALL potential required fields
         data = {
-            "address": self.station.address.id, # <--- FIX: Added address!
+            "address": self.station.address.id,  # <--- FIX: Added address!
             "fire_type": "Class A",
             "cause": "Electrical",
             "description": "Updated detail",
             "status": "Confirmed",
             "station": self.station.id,
-            "delete_images": [img_obj.id] 
+            "delete_images": [img_obj.id],
         }
-        
+
         response = self.client.post(url, data)
-        
+
         # DEBUG CHECK: If the form fails validation, this will tell us exactly why
         if response.status_code == 200:
-            print("🚨 FORM VALIDATION FAILED. MISSING FIELDS:", response.context['form'].errors)
+            print(
+                "🚨 FORM VALIDATION FAILED. MISSING FIELDS:",
+                response.context["form"].errors,
+            )
 
         # If this passes, we know the form saved successfully
         self.assertEqual(response.status_code, 302)
