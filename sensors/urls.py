@@ -110,33 +110,21 @@ urlpatterns = [
     # MAPS
     path("api/map-data/", maps.firefighter_map_data, name="map_data"),
     path("maps/", maps.maps, name="maps"),
-    path(
-        "api/update_station_coords/",
-        maps.update_station_coordinates,
-        name="update_station_coords",
-    ),
+    path("api/update_station_coords/",maps.update_station_coordinates,name="update_station_coords"),
     path("upload-layout/", maps.upload_layout, name="upload_layout"),
     path("api/edit-layout/", maps.edit_layout_ajax, name="edit_layout_ajax"),
-    path(
-        "delete-layout/<int:layout_id>/",
-        maps.delete_layout_ajax,
-        name="delete_layout_ajax",
-    ),
-    path(
-        "api/get-victim-layout/<int:user_id>/",
-        maps.get_victim_layout,
-        name="get_victim_layout",
-    ),
+    path("delete-layout/<int:layout_id>/",maps.delete_layout_ajax,name="delete_layout_ajax"),
+    path("api/get-victim-layout/<int:user_id>/",maps.get_victim_layout,name="get_victim_layout"),
+    
+    
     # Sensors
     # Live Data API (The Website checks this every 2 seconds)
     path("api/live-data/", sensors.get_live_data, name="live_data"),
     # API Endpoints (These feed the maps)
     path("api/add-sensor/", sensors.add_sensor, name="add_sensor"),
-    path(
-        "api/update-sensor-pos/",
-        sensors.update_sensor_position,
-        name="update_sensor_pos",
-    ),
+    path("api/update-sensor-pos/",sensors.update_sensor_position,name="update_sensor_pos"),
+    
+    
     # Duties
     path("duty/", duties.duty, name="duty"),
     path("api/mobilize/<int:report_id>/", duties.mobilize_team, name="mobilize_team"),
