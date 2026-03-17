@@ -33,7 +33,7 @@ class ProfileTest(TestCase):
         # Build data that satisfies ALL three forms (User, Profile, Address)
         data = {
             # UserUpdateForm fields
-            "username": self.user.username,  # <--- FIX: Add this required field!
+            "username": self.user.username,
             "first_name": "Updated",
             "last_name": "Name",
             "email": "updated@example.com",
@@ -45,6 +45,8 @@ class ProfileTest(TestCase):
             "city": "Django City",
             "state": "Selangor",
             "postal_code": "50000",
+            "latitude": "3.1390",
+            "longitude": "101.6869",
         }
 
         response = self.client.post(self.url, data)

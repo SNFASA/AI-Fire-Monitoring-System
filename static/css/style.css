@@ -1090,6 +1090,7 @@ main {
         border-radius: 50rem;
         color: #6c757d;
         font-weight: 600;
+        display: inline-flex;
         padding: 0.5rem 1rem;
         margin-right: 0.5rem;
         justify-content: center;

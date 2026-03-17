@@ -87,5 +87,4 @@ def profile(request):
         "a_form": a_form,
         "user_profile": user_profile,
     }
-    messages.success(request, "Profile updated successfully!")
     return render(request, "sensors/profile.html", context)

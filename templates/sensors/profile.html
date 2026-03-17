@@ -91,6 +91,15 @@
                         <label class="form-label fw-bold small mb-1 text-muted">Last Name</label>
                         <input type="text" name="last_name" class="form-control rounded-3" value="{{ u_form.last_name.value|default:'' }}" placeholder="Last Name" required>
                     </div>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold small mb-1 text-muted">Email Address</label>
+                        <input type="email" name="email" class="form-control rounded-3 {% if u_form.email.errors %}is-invalid{% endif %}" value="{{ u_form.email.value|default:user.email }}" placeholder="Email" required>
+                        {% if u_form.email.errors %}
+                            <div class="invalid-feedback">{{ u_form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
                     <div class="col-md-6">
                         <label class="form-label fw-bold small mb-1 text-muted">Username</label>
                         <input type="text" name="username" class="form-control rounded-3 {% if u_form.username.errors %}is-invalid{% endif %}" value="{{ u_form.username.value|default:'' }}" placeholder="Username" required>
@@ -141,6 +150,8 @@
             <div class="card app-card  p-4 mb-4">
                 <h6 class="fw-bolder text-muted text-uppercase small mb-3">Pin Your Location</h6>
                 
+                <div id="geocodingError" class="alert alert-warning d-none py-2 mb-3 small" role="alert"></div>
+
                 <div class="input-group mb-3 shadow-sm rounded-3 overflow-hidden">
                     <span class="input-group-text  border-end-0"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" id="mapSearchInput" class="form-control border-start-0 ps-0" placeholder="Search for a building or street...">
@@ -148,7 +159,9 @@
                 </div>
 
                 <div id="locationMap" style="height: 250px; width: 100%;" class="rounded-4 mb-3 border shadow-sm z-index-map"></div>
-                <p class="text-muted small text-center mb-4"><i class="fa-solid fa-circle-info me-1"></i> Tap map to adjust pin, or use GPS target button.</p>
+                
+                <p class="text-muted small text-center mb-1"><i class="fa-solid fa-circle-info me-1"></i> Tap map to adjust pin, or use GPS target button.</p>
+                <p class="text-muted small text-center mb-4" style="font-size: 0.75rem;"><i class="fa-solid fa-shield-halved me-1"></i> Privacy Notice: Map searches and pins utilize public OpenStreetMap services to auto-fill address details.</p>
 
                 <input type="hidden" name="latitude" id="latInput" value="{{ a_form.latitude.value|default:'3.0738' }}">
                 <input type="hidden" name="longitude" id="lngInput" value="{{ a_form.longitude.value|default:'101.5183' }}">
@@ -205,11 +218,11 @@
 </div>
 
 {% if user_profile.role == 'firefighter' %}
-<div class="modal fade" id="dutyModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="dutyModal" tabindex="-1" aria-hidden="true" aria-labelledby="dutyModalLabel">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-danger text-white border-0">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-calendar-days me-2"></i> Duty Roster</h5>
+                <h5 class="modal-title fw-bold" id="dutyModalLabel"><i class="fa-solid fa-calendar-days me-2"></i> Duty Roster</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
@@ -222,6 +235,14 @@
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
+    // --- UI Error Handling ---
+    function showGeocodeError(message) {
+        const errorBox = document.getElementById('geocodingError');
+        errorBox.textContent = message;
+        errorBox.classList.remove('d-none');
+        setTimeout(() => { errorBox.classList.add('d-none'); }, 6000);
+    }
+
     // --- Profile Picture Preview ---
     function previewImage(input) {
         if (input.files && input.files[0]) {
@@ -293,13 +314,16 @@
         });
     }
 
-    // Call Reverse Geocoding API (Nominatim)
+    // Call Reverse Geocoding API (Nominatim) with explicit error handling
     function updateLocationData(lngLat) {
         document.getElementById('latInput').value = lngLat.lat.toFixed(6);
         document.getElementById('lngInput').value = lngLat.lng.toFixed(6);
 
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lngLat.lat}&lon=${lngLat.lng}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
             .then(data => {
                 if (data.address) {
                     if (data.address.road) {
@@ -314,16 +338,22 @@
                     if (data.address.postcode) document.getElementById('postalCode').value = data.address.postcode;
                 }
             })
-            .catch(error => console.log("Geocoding failed:", error));
+            .catch(error => {
+                console.warn("Geocoding failed:", error);
+                showGeocodeError("Could not automatically pull address data (Rate limited or offline). Please enter the details manually.");
+            });
     }
 
-    // Search Address Logic
+    // Search Address Logic with explicit error handling
     document.getElementById('mapSearchBtn').addEventListener('click', function() {
         let query = document.getElementById('mapSearchInput').value;
         if (!query) return;
 
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
             .then(data => {
                 if (data.length > 0) {
                     let lat = parseFloat(data[0].lat);
@@ -333,8 +363,12 @@
                     marker.setLngLat([lng, lat]);
                     updateLocationData({lat: lat, lng: lng});
                 } else {
-                    alert("Location not found. Try a different search term.");
+                    showGeocodeError("Location not found. Try a different search term or check your spelling.");
                 }
+            })
+            .catch(error => {
+                console.warn("Geocoding Search failed:", error);
+                showGeocodeError("Address search is currently unavailable. Please drop the pin manually.");
             });
     });
 

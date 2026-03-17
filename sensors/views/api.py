@@ -15,6 +15,7 @@ from ..models import (
     FireStation,
     DutyAssignment,
     UserProfile,
+    Address,
 )
 from ..logger import add_log
 from ml_engine.predictor import FirePredictor
@@ -275,7 +276,14 @@ def update_location_from_link(request, signed_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            lat, lng = data.get("lat"), data.get("lng")
+            
+            # Extract coordinates and address info (with fallbacks if Nominatim fails)
+            lat = data.get("lat")
+            lng = data.get("lng")
+            street = data.get("street", "Emergency Location (GPS Pin)")
+            city = data.get("city", "Unknown")
+            state = data.get("state", "Unknown")
+            postal_code = data.get("postal_code", "00000")
 
             try:
                 lat = float(lat)
@@ -283,27 +291,52 @@ def update_location_from_link(request, signed_id):
             except (TypeError, ValueError):
                 lat = lng = None
 
+            # Extract text fields safely
+            street = data.get("street", "").strip()
+            city = data.get("city", "").strip()
+            state = data.get("state", "").strip()
+            postal_code = data.get("postal_code", "").strip()
+
             if (
                 lat is not None
                 and lng is not None
                 and -90 <= lat <= 90
                 and -180 <= lng <= 180
-                and owner_profile.address
             ):
-                address = owner_profile.address
-                address.latitude, address.longitude = lat, lng
-                address.save()
-                return JsonResponse(
-                    {"status": "success", "message": "Emergency location updated!"}
-                )
+                # 2. Check if Address exists. If yes, update. If no, create.
+                if owner_profile.address:
+                    address = owner_profile.address
+                    address.latitude = lat
+                    address.longitude = lng
+                    
+                    # SAFEGUARD: Only overwrite the text address if Nominatim actually found something
+                    if street and city and street != "Emergency Location (GPS Pin)":
+                        address.street = street
+                        address.city = city
+                        address.state = state
+                        address.postal_code = postal_code
+                        
+                    address.save()
+                else:
+                    # Create a new address record and link it to the profile
+                    new_address = Address.objects.create(
+                        latitude=lat,
+                        longitude=lng,
+                        street=street if street else "Emergency Location (GPS Pin)",
+                        city=city if city else "Unknown",
+                        state=state if state else "Unknown",
+                        postal_code=postal_code if postal_code else "00000"
+                    )
+                    owner_profile.address = new_address
+                    owner_profile.save()
 
-            return JsonResponse(
-                {"status": "error", "message": "Invalid data."}, status=400
-            )
-        except Exception:
-            return JsonResponse(
-                {"status": "error", "message": "Server error."}, status=500
-            )
+                return JsonResponse({"status": "success", "message": "Emergency location updated!"})
+
+            return JsonResponse({"status": "error", "message": "Invalid coordinates."}, status=400)
+        
+        except Exception as e:
+            print(f"Emergency Location Save Error: {e}")
+            return JsonResponse({"status": "error", "message": "Server error."}, status=500)
 
     return render(
         request,
