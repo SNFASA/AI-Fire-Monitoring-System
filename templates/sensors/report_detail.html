@@ -51,43 +51,62 @@
                         <div class="card app-card h-100 text-center p-3 d-flex flex-column justify-content-center">
                             <i class="fa-regular fa-clock text-primary fs-3 mb-2 opacity-75"></i>
                             <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Time Detected</small>
-                            <strong class= mt-1" style="font-size: 0.9rem;">{{ report.timestamp|date:"H:i, M d" }}</strong>
+                            <strong class= "mt-1" style="font-size: 0.9rem;">{{ report.timestamp|date:"H:i, M d" }}</strong>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="card app-card h-100 text-center p-3 d-flex flex-column justify-content-center">
                             <i class="fa-solid fa-temperature-half text-danger fs-3 mb-2 opacity-75"></i>
                             <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Temperature</small>
-                            <strong class= mt-1" style="font-size: 0.9rem;">{{ report.trigger_temperature|default:"--" }} °C</strong>
+                            <strong class= "mt-1" style="font-size: 0.9rem;">{{ report.trigger_temperature|default:"--" }} °C</strong>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="card app-card h-100 text-center p-3 d-flex flex-column justify-content-center">
                             <i class="fa-solid fa-cloud text-warning fs-3 mb-2 opacity-75"></i>
                             <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Gas/Smoke</small>
-                            <strong class= mt-1" style="font-size: 0.9rem;">{{ report.trigger_gas_level|default:"--" }} PPM</strong>
+                            <strong class= "mt-1" style="font-size: 0.9rem;">{{ report.trigger_gas_level|default:"--" }} PPM</strong>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="card app-card h-100 text-center p-3 d-flex flex-column justify-content-center">
                             <i class="fa-solid fa-location-dot text-success fs-3 mb-2 opacity-75"></i>
                             <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Sensor</small>
-                            <strong class= mt-1 text-truncate w-100 px-2" style="font-size: 0.9rem;">{{ report.trigger_sensor.name }}</strong>
+                            <strong class= "mt-1 text-truncate w-100 px-2" style="font-size: 0.9rem;">{{ report.trigger_sensor.name }}</strong>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="mb-4 px-2">
-                <h6 class="fw-bolder text-muted text-uppercase small mb-2 ms-1">Attached Evidence</h6>
+                <div class="d-flex justify-content-between align-items-end mb-2 ms-1">
+                    <h6 class="fw-bolder text-muted text-uppercase small mb-0">Attached Evidence</h6>
+                    {% if is_firefighter and report.images.all %}
+                        <small class="text-danger fw-bold" style="font-size: 0.7rem;">
+                            <i class="fa-solid fa-trash-can me-1"></i>Select to delete
+                        </small>
+                    {% endif %}
+                </div>
+
                 {% if report.images.all %}
                     <div class="swipe-row gap-2 pb-2">
                         {% for img in report.images.all %}
-                            <div class="swipe-item shadow-sm position-relative" style="width: 140px; height: 140px; cursor: pointer; border-radius: 12px; overflow: hidden;" onclick="openModal('{{ img.image.url }}')">
-                                <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover" alt="Evidence">
-                                <div class="position-absolute bottom-0 start-0 w-100 p-1 text-center" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
-                                    <small class= fw-bold" style="font-size: 0.65rem;">{{ img.uploaded_at|date:"M d, H:i" }}</small>
+                            <div class="swipe-item shadow-sm position-relative" style="width: 140px; height: 140px; border-radius: 12px; overflow: hidden;">
+                                
+                                <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover" alt="Evidence" onclick="openModal('{{ img.image.url }}')" style="cursor: pointer;">
+                                
+                                <div class="position-absolute bottom-0 start-0 w-100 p-1 text-center" style="background: linear-gradient(transparent, rgba(0,0,0,0.8)); pointer-events: none;">
+                                    <small class="fw-bold text-white" style="font-size: 0.65rem;">{{ img.uploaded_at|date:"M d, H:i" }}</small>
                                 </div>
+
+                                {% if is_firefighter %}
+                                    <div class="position-absolute top-0 end-0 p-2">
+                                        <input type="checkbox" name="delete_images" value="{{ img.id }}" form="reportForm" 
+                                               class="form-check-input border-2 border-white shadow-sm m-0" 
+                                               style="width: 1.4rem; height: 1.4rem; cursor: pointer; background-color: rgba(255,255,255,0.5);">
+                                    </div>
+                                {% endif %}
+                                
                             </div>
                         {% endfor %}
                     </div>

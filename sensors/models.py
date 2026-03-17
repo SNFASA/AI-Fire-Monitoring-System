@@ -47,8 +47,6 @@ class FireStation(models.Model):
 # ==========================================
 # 2. USERS
 # ==========================================
-
-
 class UserProfile(models.Model):
     # --- Choices ---
     ROLES = (("public", "Public User"), ("firefighter", "Firefighter"))
@@ -324,8 +322,7 @@ class Report(models.Model):
     fire_type = models.CharField(max_length=100, blank=True, default="")
     cause = models.CharField(max_length=100, blank=True, default="")
     is_approved = models.BooleanField(
-        default=False, 
-        help_text="Checked officially by KB or PBK"
+        default=False, help_text="Checked officially by KB or PBK"
     )
     approved_by = models.ForeignKey(
         User,
@@ -333,8 +330,9 @@ class Report(models.Model):
         null=True,
         blank=True,
         related_name="approved_reports",
-        help_text="The Commander who approved this report"
+        help_text="The Commander who approved this report",
     )
+
     def __str__(self):
         return f"Report #{self.id} - {self.status}"
 

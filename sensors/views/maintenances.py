@@ -9,8 +9,6 @@ from ..models import (
     UserProfile,
     Maintenance,
     MaintenanceImage,
-    Sensor,
-    
 )
 
 from ..forms import MaintenanceForm
@@ -45,7 +43,7 @@ def maintenance_view(request):
         # FIREFIGHTER LOGIC:
         # Step 1: Get the firefighter's assigned station from their profile
         firefighter_station = getattr(user_profile, "station", None)
-        
+
         if firefighter_station:
             # Step 2: Filter Maintenance using the 'nearest_fire_station' field
             maintenances = (
@@ -60,10 +58,7 @@ def maintenance_view(request):
     return render(
         request,
         "sensors/maintenance.html",
-        {
-            "maintenance_items": maintenances, 
-            "user_role": user_role
-        },
+        {"maintenance_items": maintenances, "user_role": user_role},
     )
 
 
@@ -103,7 +98,7 @@ def create_maintenance(request):
             return redirect("sensors:maintenance")
     else:
         form = MaintenanceForm(user=request.user)
-        
+
     return render(request, "sensors/maintenance_create.html", {"form": form})
 
 

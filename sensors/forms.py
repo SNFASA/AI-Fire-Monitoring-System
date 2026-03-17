@@ -124,20 +124,26 @@ class MaintenanceForm(forms.ModelForm):
         if "sensor" in self.fields:
             if self.user is not None and self.user.is_authenticated:
                 profile = getattr(self.user, "userprofile", None)
-                
+
                 if profile and profile.role == "firefighter":
                     # Firefighters can see ALL active sensors
-                    self.fields["sensor"].queryset = Sensor.objects.filter(is_active=True)
+                    self.fields["sensor"].queryset = Sensor.objects.filter(
+                        is_active=True
+                    )
                 elif profile:
                     # Regular owners only see THEIR active sensors
-                    self.fields["sensor"].queryset = Sensor.objects.filter(owner=profile, is_active=True)
+                    self.fields["sensor"].queryset = Sensor.objects.filter(
+                        owner=profile, is_active=True
+                    )
                 else:
                     self.fields["sensor"].queryset = Sensor.objects.none()
             else:
                 self.fields["sensor"].queryset = Sensor.objects.none()
 
         if "nearest_fire_station" in self.fields:
-            self.fields["nearest_fire_station"].empty_label = "Select Nearest Fire Station (Optional)"
+            self.fields["nearest_fire_station"].empty_label = (
+                "Select Nearest Fire Station (Optional)"
+            )
 
     def clean_sensor(self):
         # Always define 'sensor' first to prevent UnboundLocalError
@@ -145,13 +151,13 @@ class MaintenanceForm(forms.ModelForm):
 
         if sensor is not None and self.user is not None:
             profile = getattr(self.user, "userprofile", None)
-            
+
             if not profile:
                 raise forms.ValidationError("User profile not found.")
 
             # 2. Check Permissions: Allow if they are the owner OR a firefighter
-            is_owner = (sensor.owner == profile)
-            is_firefighter = (profile.role == "firefighter")
+            is_owner = sensor.owner == profile
+            is_firefighter = profile.role == "firefighter"
 
             if not (is_owner or is_firefighter):
                 raise forms.ValidationError(
@@ -193,14 +199,24 @@ class ReportCreateForm(forms.ModelForm):
 class ReportUpdateForm(forms.ModelForm):
     # Add a checkbox for commanders
     is_approved = forms.BooleanField(
-        required=False, 
+        required=False,
         label="Official Commander Approval",
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input ms-2", "style": "transform: scale(1.5);"})
+        widget=forms.CheckboxInput(
+            attrs={"class": "form-check-input ms-2", "style": "transform: scale(1.5);"}
+        ),
     )
 
     class Meta:
         model = Report
-        fields = ["fire_type", "cause", "description", "status", "station", "address", "is_approved"]
+        fields = [
+            "fire_type",
+            "cause",
+            "description",
+            "status",
+            "station",
+            "address",
+            "is_approved",
+        ]
         widgets = {
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "fire_type": forms.TextInput(attrs={"class": "form-control"}),
@@ -212,17 +228,17 @@ class ReportUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         # 1. Pop the user out of kwargs before initializing the standard form
-        self.user = kwargs.pop('user', None)
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
         # 2. Security Logic: Check rank
-        if self.user and hasattr(self.user, 'userprofile'):
+        if self.user and hasattr(self.user, "userprofile"):
             rank = self.user.userprofile.rank
-            
+
             # If they are NOT a Station Chief (KB) or Commander (PBK)
             if rank not in ["KB", "PBK"]:
                 # Remove sensitive fields so lower ranks cannot edit them
-                if 'status' in self.fields:
-                    del self.fields['status']
-                if 'is_approved' in self.fields:
-                    del self.fields['is_approved']
+                if "status" in self.fields:
+                    del self.fields["status"]
+                if "is_approved" in self.fields:
+                    del self.fields["is_approved"]

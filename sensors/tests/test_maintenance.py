@@ -1,16 +1,14 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-from unittest.mock import patch
 from .factories import (
     UserProfileFactory,
     SensorFactory,
     MaintenanceFactory,
     MaintenanceImageFactory,
-    AddressFactory,
     FireStationFactory,
 )
-from ..models import Maintenance, MaintenanceImage, FireStation
+from ..models import Maintenance, MaintenanceImage
 
 
 class MaintenanceCoverageTest(TestCase):
@@ -57,16 +55,16 @@ class MaintenanceCoverageTest(TestCase):
 
         # 3. Create a Maintenance record assigned to the EXACT SAME station
         Maintenance.objects.create(
-            sensor=self.sensor, # Assuming you created a test sensor
+            sensor=self.sensor,  # Assuming you created a test sensor
             maintenance_type="HealthCheck",
-            nearest_fire_station=station, # THIS IS THE CRITICAL LINK
-            details="Test details"
+            nearest_fire_station=station,  # THIS IS THE CRITICAL LINK
+            details="Test details",
         )
 
         # 4. Now perform your login and test the view
         self.client.force_login(self.ff.user)
-        response = self.client.get(reverse('sensors:maintenance'))
-        
+        response = self.client.get(reverse("sensors:maintenance"))
+
         # This should now pass with flying colors!
         self.assertGreaterEqual(len(response.context["maintenance_items"]), 1)
 

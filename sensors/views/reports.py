@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
-from flask import request
 
 # Local Imports
 from ..models import (
@@ -14,13 +13,6 @@ from ..models import (
 )
 from ..forms import ReportUpdateForm, ReportCreateForm
 
-def _check_report_access(request, report):
-    """Raise PermissionDenied unless the user is a firefighter or the report in-charge."""
-    user_role = getattr(getattr(request.user, "userprofile", None), "role", "public")
-    is_firefighter = user_role == "firefighter"
-    is_in_charge = report.in_charge == request.user
-    if not (is_firefighter or is_in_charge):
-        raise PermissionDenied
 
 # ==========================================
 # 7. REPORTS
@@ -29,43 +21,51 @@ def _check_report_access(request, report):
 def reports_view(request):
     user_profile = request.user.userprofile
     user_role = getattr(user_profile, "role", "public")
-    
+
     if user_role == "public":
-        reports = Report.objects.filter(
-            trigger_sensor__owner=request.user.userprofile
-        ).select_related('address', 'station').prefetch_related('images')
+        reports = (
+            Report.objects.filter(trigger_sensor__owner=request.user.userprofile)
+            .select_related("address", "station", "trigger_sensor")
+            .prefetch_related("images")
+            .order_by("-timestamp")
+        )
     else:
-        firefighter_station = getattr(user_profile, 'station', None)
+        firefighter_station = getattr(user_profile, "station", None)
 
         if firefighter_station:
-            reports = Report.objects.filter(
-                station=firefighter_station
-            ).select_related('address', 'station').prefetch_related('images')
+            reports = (
+                Report.objects.filter(station=firefighter_station)
+                .select_related("address", "station", "trigger_sensor")
+                .prefetch_related("images")
+                .order_by("-timestamp")
+            )
         else:
-
             reports = Report.objects.none()
 
     return render(
         request,
         "sensors/reports.html",
-        {
-            "reports": reports,
-            "user_role": user_role
-        },
+        {"reports": reports, "user_role": user_role},
     )
 
 
 @login_required(login_url="login")
 def report_detail(request, report_id):
-    report = get_object_or_404(Report.objects.prefetch_related("images", "station"), id=report_id)
+    qs = Report.objects.select_related(
+        "station", "address", "trigger_sensor"
+    ).prefetch_related("images")
+    report = get_object_or_404(qs, id=report_id)
+
     user_profile = getattr(request.user, "userprofile", None)
     user_role = getattr(user_profile, "role", "public")
 
     if user_role == "firefighter":
         firefighter_station = getattr(user_profile, "station", None)
         if report.station != firefighter_station:
-            raise PermissionDenied("You can only view reports assigned to your specific fire station.")
-            
+            raise PermissionDenied(
+                "You can only view reports assigned to your specific fire station."
+            )
+
     elif user_role == "public":
         if report.trigger_sensor and report.trigger_sensor.owner != user_profile:
             raise PermissionDenied("You do not have permission to view this report.")
@@ -75,25 +75,21 @@ def report_detail(request, report_id):
     is_commander = user_rank in ["KB", "PBK"]
 
     if request.method == "POST" and is_firefighter:
-        # Save standard editable fields
-        report.fire_type = request.POST.get("fire_type")
-        report.cause = request.POST.get("cause")
-        report.description = request.POST.get("description")
-        
+        report.fire_type = request.POST.get("fire_type", report.fire_type) or ""
+        report.cause = request.POST.get("cause", report.cause) or ""
+        report.description = request.POST.get("description", report.description) or ""
+
         station_id = request.POST.get("station")
         if station_id:
             report.station = get_object_or_404(FireStation, id=station_id)
 
         report.in_charge = request.user
 
-        # --- RANK-PROTECTED LOGIC (Status & Approval) ---
         if is_commander:
-            # 1. Only commanders can change the status
             status_val = request.POST.get("status")
             if status_val:
                 report.status = status_val
-            
-            # 2. Handle the "Official Commander Approval" toggle
+
             if request.POST.get("is_approved") == "on":
                 report.is_approved = True
                 report.approved_by = request.user
@@ -101,16 +97,15 @@ def report_detail(request, report_id):
                 report.is_approved = False
                 report.approved_by = None
         else:
-            # If a lower-rank firefighter edits the report, reset approval to force a re-check
             report.is_approved = False
             report.approved_by = None
 
         report.save()
-        
+
         delete_ids = request.POST.getlist("delete_images")
         if delete_ids:
             ReportImage.objects.filter(id__in=delete_ids).delete()
-            
+
         # Save any uploaded images
         for img in request.FILES.getlist("images"):
             ReportImage.objects.create(report=report, image=img)
@@ -168,8 +163,8 @@ def edit_report(request, report_id):
 
     # 1. Security Check (Assume this checks if they are a firefighter)
     # check_firefighter_role(request.user)
-    
-    user_rank = getattr(request.user.userprofile, 'rank', None)
+
+    user_rank = getattr(request.user.userprofile, "rank", None)
     is_commander = user_rank in ["KB", "PBK"]
 
     if request.method == "POST":
@@ -209,7 +204,7 @@ def edit_report(request, report_id):
     context = {
         "form": form,
         "report": report,
-        "is_commander": is_commander, # Pass this to HTML to show/hide UI elements
+        "is_commander": is_commander,  # Pass this to HTML to show/hide UI elements
     }
     return render(request, "sensors/update_report.html", context)
 
