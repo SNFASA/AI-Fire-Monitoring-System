@@ -4,24 +4,6 @@
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
-
-<style>
-    /* Mobile App-like styling */
-    .nav-pills .nav-link { border-radius: 50rem; color: #6c757d; font-weight: 600; padding: 0.5rem 1rem; margin-right: 0.5rem; }
-    .nav-pills .nav-link.active { background-color: #df2020; color: white; }
-    
-    .profile-upload-wrapper { position: relative; display: inline-block; cursor: pointer; }
-    .profile-upload-overlay { position: absolute; bottom: 0; right: 0; background-color: #df2020; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s; }
-    .profile-upload-wrapper:hover .profile-upload-overlay { transform: scale(1.1); }
-    
-    .mobile-tabs { overflow-x: auto; white-space: nowrap; -ms-overflow-style: none; scrollbar-width: none; }
-    .mobile-tabs::-webkit-scrollbar { display: none; }
-    
-    .app-card { border-radius: 1rem; border: none; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
-    .z-index-map { z-index: 1; }
-</style>
-
 <div class="container mt-4 mb-5 pb-4">
     
     {% if messages %}

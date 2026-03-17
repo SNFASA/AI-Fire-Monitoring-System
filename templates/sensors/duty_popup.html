@@ -1,63 +1,102 @@
+{% extends "sensors/layout/master.html" %}
 {% load static %}
-    <meta charset="UTF-8">
-    <title>Duty Roster</title>
-    
-    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
-    
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% block title %}My Duty Roster{% endblock %}
 
-        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-            <h6 class="mb-0"><i class="fas fa-calendar-check"></i> My Schedule</h6>
-        </div>
-        
-        <div class="card-body p-0">
-            <div class="table">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table small">
-                        <tr>
-                            <th>Date</th>
-                            <th>Shift Time</th>
-                            <th>Duration</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for duty in my_schedule %}
-                        <tr>
-                            <td class="align-middle">
-                                <span class="fw-bold">{{ duty.start_time|date:"D, d M" }}</span>
-                                <br>
-                                <small class="text-muted">{{ duty.start_time|date:"Y" }}</small>
-                            </td>
-                            
-                            <td class="align-middle">
-                                <div class="d-flex flex-column">
-                                    <span class="badge  border mb-1" style="font-family: monospace;">
-                                        Start: {{ duty.start_time|time:"H:i" }}
-                                    </span>
-                                    <span class="badge  border" style="font-family: monospace;">
-                                        End: &nbsp;{{ duty.end_time|time:"H:i" }}
-                                    </span>
-                                </div>
-                            </td>
-                            
-                            <td class="align-middle text-success fw-bold">
-                                {{ duty.start_time|timesince:duty.end_time }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center py-4 text-muted">
-                                <i class="fas fa-bed fa-2x mb-2"></i><br>
-                                No upcoming shifts assigned.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+{% block content %}
+<div class="roster-container pb-4">
+    
+    <div id="pageHeader" class="mb-4 text-center">
+        <h3 class="fw-bolder mb-1"><i class="fa-solid fa-calendar-days text-danger me-2"></i>My Schedule</h3>
+        <p class="text-muted small mb-0">Your upcoming mobilization roster</p>
+    </div>
+
+    <div id="rosterList">
+        {% for duty in my_schedule %}
+        <div class="shift-card" 
+             data-start="{{ duty.start_time|date:'c' }}" 
+             data-end="{{ duty.end_time|date:'c' }}">
+            
+            <div class="date-block shadow-sm">
+                <div class="date-month">{{ duty.start_time|date:"M" }}</div>
+                <div class="date-day">{{ duty.start_time|date:"d" }}</div>
+                <div class="date-year">{{ duty.start_time|date:"Y" }}</div>
+            </div>
+
+            <div class="flex-grow-1 ms-3">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="fw-bolder mb-0">{{ duty.start_time|date:"l" }} Shift</h6>
+                    <span class="status-label small fw-bold"></span>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <span class="time-badge shadow-sm">
+                        <i class="fa-regular fa-clock text-danger me-1"></i> 
+                        {{ duty.start_time|time:"H:i" }} - {{ duty.end_time|time:"H:i" }}
+                    </span>
+                    <span class="time-badge shadow-sm ">
+                        <i class="fa-solid fa-hourglass-half text-muted me-1"></i>
+                        {{ duty.start_time|timesince:duty.end_time }}
+                    </span>
+                </div>
             </div>
         </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <div class="d-inline-block  rounded-circle p-4 shadow-sm mb-3">
+                <i class="fa-solid fa-bed fs-1 text-muted opacity-50"></i>
+            </div>
+            <h5 class="fw-bolder">No Shifts Assigned</h5>
+            <p class="text-muted small mb-0">You have no upcoming duties. Enjoy your rest!</p>
+        </div>
+        {% endfor %}
     </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // 1. IFRAME DETECTOR
+        // If this page is loaded inside a modal/iframe, hide the standard website header/footer
+        if (window.self !== window.top) {
+            // Adjust these selectors based on your master.html classes (e.g., 'nav', 'header', 'footer')
+            const navbars = document.querySelectorAll('nav, header, footer, .navbar');
+            navbars.forEach(el => el.style.display = 'none');
+            
+            // Hide the page header since the Modal already has a title
+            const pageHeader = document.getElementById('pageHeader');
+            if (pageHeader) pageHeader.style.display = 'none';
+        }
+
+        // 2. SMART STATUS HIGHLIGHTING
+        const now = new Date();
+        let foundNext = false;
+        const shiftCards = document.querySelectorAll('.shift-card');
+
+        shiftCards.forEach(card => {
+            // Parse the ISO date strings injected by Django
+            const start = new Date(card.getAttribute('data-start'));
+            const end = new Date(card.getAttribute('data-end'));
+            const labelSpan = card.querySelector('.status-label');
+
+            if (now >= start && now <= end) {
+                // ACTIVE SHIFT
+                card.classList.add('is-active');
+                labelSpan.innerHTML = '<span class="status-dot pulse"></span> <span class="text-danger">ON DUTY</span>';
+            } 
+            else if (now > end) {
+                // COMPLETED SHIFT
+                card.classList.add('is-completed');
+                labelSpan.innerHTML = '<i class="fa-solid fa-check text-success me-1"></i> <span class="text-muted">Completed</span>';
+            } 
+            else if (now < start && !foundNext) {
+                // NEXT UPCOMING SHIFT
+                foundNext = true;
+                labelSpan.innerHTML = '<span class="text-primary"><i class="fa-solid fa-arrow-right me-1"></i> Next Up</span>';
+                card.style.borderLeft = "4px solid #0d6efd"; // Blue accent line for next shift
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1019,7 +1019,8 @@ main {
     }
     .upload-dropzone:active {
         background-color: #ffebee;
-    }
+    } 
+    .upload-dropzone:hover { border-color: #df2020; } 
     /* Sticky Bottom Bar for Mobile */
     @media (max-width: 767px) {
         .sticky-bottom-bar {
@@ -1133,4 +1134,83 @@ main {
     }
     .mobile-tabs::-webkit-scrollbar {
         display: none;
+    }
+
+    /* Container adjustments for iframe viewing */
+    .roster-container {
+        padding: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Modern Shift Cards */
+    .shift-card {
+
+        border-radius: 1.25rem;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Calendar Block (Left Side) */
+    .date-block {
+        border-radius: 1rem;
+        min-width: 65px;
+        text-align: center;
+        padding: 0.5rem;
+
+    }
+    
+    .date-month { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .date-day { font-size: 1.5rem; font-weight: 800; line-height: 1; margin: 0.2rem 0; color: #212529; }
+    .date-year { font-size: 0.7rem; font-weight: 600; }
+
+    /* Active Shift Styling */
+    .shift-card.is-active {
+        border: 2px solid #df2020;
+        box-shadow: 0 8px 24px rgba(223, 32, 32, 0.15);
+    }
+    .shift-card.is-active .date-block {
+        background-color: #df2020;
+        border-color: #df2020;
+    }
+    .shift-card.is-active .date-day, 
+    .shift-card.is-active .date-year { color: white; }
+
+    /* Completed Shift Styling */
+    .shift-card.is-completed {
+        opacity: 0.6;
+    }
+
+    /* Pulsing Red Dot for Active Status */
+    .status-dot {
+        height: 10px; width: 10px;
+        background-color: #df2020;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+    .pulse {
+        animation: pulse-animation 2s infinite;
+    }
+    @keyframes pulse-animation {
+        0% { box-shadow: 0 0 0 0 rgba(223, 32, 32, 0.5); }
+        70% { box-shadow: 0 0 0 10px rgba(223, 32, 32, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(223, 32, 32, 0); }
+    }
+
+    /* Badge overrides */
+    .time-badge {
+        font-family: 'Inter', monospace;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #495057;
+        padding: 0.35rem 0.6rem;
+        border-radius: 0.5rem;
     }

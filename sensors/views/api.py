@@ -276,7 +276,7 @@ def update_location_from_link(request, signed_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            
+
             # Extract coordinates and address info (with fallbacks if Nominatim fails)
             lat = data.get("lat")
             lng = data.get("lng")
@@ -308,14 +308,14 @@ def update_location_from_link(request, signed_id):
                     address = owner_profile.address
                     address.latitude = lat
                     address.longitude = lng
-                    
+
                     # SAFEGUARD: Only overwrite the text address if Nominatim actually found something
                     if street and city and street != "Emergency Location (GPS Pin)":
                         address.street = street
                         address.city = city
                         address.state = state
                         address.postal_code = postal_code
-                        
+
                     address.save()
                 else:
                     # Create a new address record and link it to the profile
@@ -325,18 +325,24 @@ def update_location_from_link(request, signed_id):
                         street=street if street else "Emergency Location (GPS Pin)",
                         city=city if city else "Unknown",
                         state=state if state else "Unknown",
-                        postal_code=postal_code if postal_code else "00000"
+                        postal_code=postal_code if postal_code else "00000",
                     )
                     owner_profile.address = new_address
                     owner_profile.save()
 
-                return JsonResponse({"status": "success", "message": "Emergency location updated!"})
+                return JsonResponse(
+                    {"status": "success", "message": "Emergency location updated!"}
+                )
 
-            return JsonResponse({"status": "error", "message": "Invalid coordinates."}, status=400)
-        
+            return JsonResponse(
+                {"status": "error", "message": "Invalid coordinates."}, status=400
+            )
+
         except Exception as e:
             print(f"Emergency Location Save Error: {e}")
-            return JsonResponse({"status": "error", "message": "Server error."}, status=500)
+            return JsonResponse(
+                {"status": "error", "message": "Server error."}, status=500
+            )
 
     return render(
         request,
