@@ -1084,3 +1084,52 @@ main {
     }
     .setup-step { transition: all 0.3s ease; }
     .btn-gps-setup { padding: 12px 24px; font-size: 1.1rem; border-radius: 50px; }
+
+    /* Mobile App-like styling */
+    .nav-pills .nav-link {
+        border-radius: 50rem;
+        color: #6c757d;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+        justify-content: center;
+        align-items: center;    
+    }
+    .nav-pills .nav-link.active {
+        background-color: #df2020;
+        color: white;
+    }
+    .profile-upload-wrapper {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+    .profile-upload-overlay {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background-color: #df2020;
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+    }
+    .profile-upload-wrapper:hover .profile-upload-overlay {
+        transform: scale(1.1);
+    }
+    /* Hide scrollbar for tabs on mobile but allow scrolling */
+    .mobile-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+    .mobile-tabs::-webkit-scrollbar {
+        display: none;
+    }
