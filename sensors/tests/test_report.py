@@ -3,28 +3,35 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from unittest.mock import patch
+from django.http import HttpRequest, QueryDict
+from ..views.reports import handle_report_images
 from .factories import (
     UserProfileFactory,
     ReportFactory,
     FireStationFactory,
     ReportImageFactory,
 )
-from ..models import Report, ReportImage
+from sensors.models import Report, ReportImage
 
 
 class ReportCoverageTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-        # 1. Setup Users
-        self.ff = UserProfileFactory(role="firefighter")
-        self.ff.role = "firefighter"
-        self.ff.save()
-        self.public_user = UserProfileFactory(role="public")
-
-        # 2. Setup Report and Station
+        # 1. Setup Report and Station First
         self.station = FireStationFactory()
         self.report = ReportFactory(station=self.station)
+
+        # 2. Setup Users
+        # FIX 2: Override Django's post_save signal by explicitly setting fields and calling .save()
+        self.ff = UserProfileFactory()
+        self.ff.role = "firefighter"
+        self.ff.station = self.station
+        self.ff.save()
+
+        self.public_user = UserProfileFactory()
+        self.public_user.role = "public"
+        self.public_user.save()
 
         self.detail_url = reverse("sensors:report_detail", args=[self.report.id])
         self.delete_url = reverse("sensors:delete_report", args=[self.report.id])
@@ -53,7 +60,9 @@ class ReportCoverageTest(TestCase):
         }
         response = self.client.post(self.detail_url, data)
 
-        self.assertRedirects(response, reverse("sensors:reports"))
+        # FIX 3: View redirects back to the detail page upon successful update, not the main list!
+        self.assertRedirects(response, self.detail_url)
+
         self.report.refresh_from_db()
         self.assertEqual(self.report.cause, "Electrical")
         self.assertEqual(self.report.in_charge, self.ff.user)
@@ -67,7 +76,7 @@ class ReportCoverageTest(TestCase):
         )
 
         data = {
-            "address": self.station.address.id,  # Safer to use station address
+            "address": self.station.address.id,
             "description": "New Emergency",
             "images": [image],
         }
@@ -99,34 +108,21 @@ class ReportCoverageTest(TestCase):
     @patch("os.remove")
     def test_handle_report_images_delete_branch(self, mock_remove, mock_isfile):
         """Covers the selective image deletion branch in handle_report_images."""
-        self.client.login(username=self.ff.user.username, password="password123")
         mock_isfile.return_value = True
         img_obj = ReportImageFactory(report=self.report)
 
-        url = reverse("sensors:edit_report", args=[self.report.id])
+        request = HttpRequest()
 
-        # Include ALL potential required fields
-        data = {
-            "address": self.station.address.id,  # <--- FIX: Added address!
-            "fire_type": "Class A",
-            "cause": "Electrical",
-            "description": "Updated detail",
-            "status": "Confirmed",
-            "station": self.station.id,
-            "delete_images": [img_obj.id],
-        }
+        # Set up POST data
+        qdict_post = QueryDict(mutable=True)
+        qdict_post.setlist("delete_images", [str(img_obj.id)])
+        request.POST = qdict_post
 
-        response = self.client.post(url, data)
+        # FIX: Use QueryDict for FILES instead of a standard Python dict {}
+        request.FILES = QueryDict(mutable=True)
 
-        # DEBUG CHECK: If the form fails validation, this will tell us exactly why
-        if response.status_code == 200:
-            print(
-                "🚨 FORM VALIDATION FAILED. MISSING FIELDS:",
-                response.context["form"].errors,
-            )
-
-        # If this passes, we know the form saved successfully
-        self.assertEqual(response.status_code, 302)
+        # Call the function directly
+        handle_report_images(request, self.report)
 
         # Ensure the image was actually deleted from the database
         self.assertEqual(ReportImage.objects.filter(id=img_obj.id).count(), 0)

@@ -28,28 +28,32 @@ def _check_maintenance_access(request, maintenance):
 # ==========================================
 @login_required(login_url="login")
 def maintenance_view(request):
-    # 1. Correctly access userprofile (lowercase)
     user_profile = request.user.userprofile
     user_role = getattr(user_profile, "role", "public")
 
     if user_role == "public":
+        # Public users see maintenance for sensors they own
         maintenances = (
-            # 2. Use 'request.user' directly or 'user_profile'
             Maintenance.objects.filter(sensor__owner=user_profile)
-            .prefetch_related(
-                "images", "sensor"
-            )  # 3. Fixed typo 'prefect' -> 'prefetch'
+            .select_related("sensor", "nearest_fire_station", "in_charge")
+            .prefetch_related("images")
             .order_by("-scheduled_date")
         )
     else:
-        # For Firefighters/Admins: You likely want them to see ALL maintenance
-        # or maintenance for their specific station.
-        # If you want them to see everything:
-        maintenances = (
-            Maintenance.objects.all()
-            .prefetch_related("images", "sensor")
-            .order_by("-scheduled_date")
-        )
+        # FIREFIGHTER LOGIC:
+        # Step 1: Get the firefighter's assigned station from their profile
+        firefighter_station = getattr(user_profile, "station", None)
+
+        if firefighter_station:
+            # Step 2: Filter Maintenance using the 'nearest_fire_station' field
+            maintenances = (
+                Maintenance.objects.filter(nearest_fire_station=firefighter_station)
+                .select_related("sensor", "nearest_fire_station", "in_charge")
+                .prefetch_related("images")
+                .order_by("-scheduled_date")
+            )
+        else:
+            maintenances = Maintenance.objects.none()
 
     return render(
         request,
@@ -94,6 +98,7 @@ def create_maintenance(request):
             return redirect("sensors:maintenance")
     else:
         form = MaintenanceForm(user=request.user)
+
     return render(request, "sensors/maintenance_create.html", {"form": form})
 
 
