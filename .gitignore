@@ -3,3 +3,4 @@ __pycache__/
 .pkl
 .system_los.txt
 .gif
+.env
