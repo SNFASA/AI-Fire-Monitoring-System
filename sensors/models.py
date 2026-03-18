@@ -361,15 +361,18 @@ class MaintenanceImage(models.Model):
 # Use gis_models instead of standard models
 class CountryBoundary(gis_models.Model):
     name = gis_models.CharField(max_length=100)
-    geom = gis_models.MultiPolygonField(srid=4326) # Now it knows what a Polygon is!
+    geom = gis_models.MultiPolygonField(srid=4326)  # Now it knows what a Polygon is!
 
     def __str__(self):
         return self.name
 
+
 class SatelliteHotspot(gis_models.Model):
     # This is a spatial point
-    location = gis_models.PointField(srid=4326, help_text="Longitude/Latitude of the fire")
-    
+    location = gis_models.PointField(
+        srid=4326, help_text="Longitude/Latitude of the fire"
+    )
+
     # Standard fields work perfectly fine with gis_models too
     brightness = gis_models.FloatField()
     acq_date = gis_models.DateField()
@@ -377,7 +380,7 @@ class SatelliteHotspot(gis_models.Model):
     satellite = gis_models.CharField(max_length=10)
     confidence = gis_models.CharField(max_length=20)
     frp = gis_models.FloatField(help_text="Fire Radiative Power")
-    
+
     created_at = gis_models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

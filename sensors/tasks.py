@@ -1,6 +1,7 @@
 from celery import shared_task
 from .services import fetch_and_filter_hotspots
 
+
 @shared_task
 def update_malaysia_hotspots():
     result = fetch_and_filter_hotspots()
