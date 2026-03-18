@@ -24,23 +24,21 @@ predictor = FirePredictor()
 
 
 def normalize_ml_result(result):
+    """
+    Standardizes ML output for consistency across the DB and UI.
+    """
     if result is None:
         return "Safe"
 
     normalized = str(result).strip().lower()
     if normalized == "fire":
         return "Fire"
-
-    if normalized in {"gas leak", "gasleak"}:
+    if normalized in ["gas leak", "gasleak"]:
         return "Gas Leak"
-
     if normalized == "warning":
         return "Warning"
 
-    if normalized == "safe":
-        return "Safe"
-
-    return str(result)
+    return "Safe"
 
 
 def test_log(request):
@@ -54,221 +52,204 @@ def test_log(request):
 @csrf_exempt
 def receive_sensor_data(request):
     """
-    Receives JSON from Simulator -> Runs AI -> Finds Nearest ACTIVE Station -> Sends Alerts
+    Receives JSON -> Runs AI -> Triages Result -> Optimized Dispatch -> Alerts
     """
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
+    if request.method != "POST":
+        return HttpResponse("0", status=405)
 
-            # 1. Parse Data
-            methane = data.get("methane", 0)
-            lpg = data.get("lpg", 0)
-            co = data.get("co", 0)
-            air_quality = data.get("air_quality", 0)
-            flame_val = data.get("flame_val", 4095)
-            dht22_temp = data.get("dht22_temp", 0)
-            humidity = data.get("humidity", 0)
-            sensor_id_raw = data.get("sensor_id")
+    if not request.body:
+        return HttpResponse("0")
 
-            # 2. AI Prediction
-            raw_ml_result = predictor.predict(
-                methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
-            )
+    try:
+        # 1. Parse Data
+        data = json.loads(request.body)
+        methane = data.get("methane", 0)
+        lpg = data.get("lpg", 0)
+        co = data.get("co", 0)
+        air_quality = data.get("air_quality", 0)
+        flame_val = data.get("flame_val", 4095)
+        dht22_temp = data.get("dht22_temp", 0)
+        humidity = data.get("humidity", 0)
+        sensor_id_raw = data.get("sensor_id")
 
-            ml_result = normalize_ml_result(raw_ml_result)
+        # 2. AI Prediction
+        raw_ml_result = predictor.predict(
+            methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
+        )
+        ml_result = normalize_ml_result(raw_ml_result)
 
-            print(f"📡 [DATA] Sensor {sensor_id_raw} | Status: {ml_result}")
-            add_log(f"[DATA] Sensor {sensor_id_raw}: {ml_result}")
+        print(f"📡 [DATA] Sensor {sensor_id_raw} | Status: {ml_result}")
+        add_log(f"[DATA] Sensor {sensor_id_raw}: {ml_result}")
 
-            # Optimization: select_related to get owner and address in one hit
-            sensor = (
-                Sensor.objects.select_related("owner", "owner__address", "owner__user")
-                .filter(id=sensor_id_raw)
-                .first()
-            )
+        # Fetch Sensor with optimized joins
+        sensor = (
+            Sensor.objects.select_related("owner", "owner__address", "owner__user")
+            .filter(id=sensor_id_raw)
+            .first()
+        )
 
-            if sensor:
-                # 3. Save Log to Database
-                SensorDataLog.objects.create(
-                    sensor=sensor,
-                    methane=methane,
-                    lpg=lpg,
-                    co=co,
-                    air_quality=air_quality,
-                    flame_val=flame_val,
-                    dht22_temp=dht22_temp,
-                    humidity=humidity,
-                    status=ml_result,
-                )
-
-                # 4. FIRE/GAS ALERT LOGIC
-                if (
-                    ml_result in ["Fire", "Gas Leak", "Warning"]
-                    and sensor.owner.address
-                ):
-                    user_address = sensor.owner.address
-
-                    # --- COORDINATE CHECK (SECURE) ---
-                    if user_address.latitude is None or user_address.longitude is None:
-                        if sensor.owner.phone_number:
-                            # Generate secure, time-limited token
-                            signer = TimestampSigner()
-                            signed_id = signer.sign(str(sensor.owner.id))
-
-                            # Build dynamic absolute URL
-                            relative_url = reverse(
-                                "sensors:update_location_link", args=[signed_id]
-                            )
-                            update_url = request.build_absolute_uri(relative_url)
-
-                            missing_coord_msg = (
-                                f"🚨 EMERGENCY: {ml_result.upper()} detected at your property!\n\n"
-                                f"We don't have your GPS coordinates. Click here to share your location "
-                                f"instantly so BOMBA can be dispatched: {update_url}"
-                            )
-
-                            send_sms_broadcast(
-                                [sensor.owner.phone_number], missing_coord_msg
-                            )
-
-                        return HttpResponse("1")  # Alert triggered but waiting for GPS
-
-                    # 5. Deduplication: Don't spam if report is already active
-                    active_report = Report.objects.filter(
-                        address=user_address,
-                        status__in=["System Detected", "Confirmed"],
-                    ).first()
-
-                    if active_report:
-                        active_report.save()  # Updates 'updated_at' timestamp
-                        print(f"ℹ️ Alert updated for Report #{active_report.id}")
-                    else:
-                        # --- FIND NEAREST STATION WITH ACTIVE STAFF ---
-                        # Fetch stations and their addresses
-                        stations = FireStation.objects.select_related("address").all()
-                        station_distances = []
-
-                        for station in stations:
-                            if (
-                                station.address.latitude is not None
-                                and station.address.longitude is not None
-                            ):
-                                dist = haversine(
-                                    user_address.latitude,
-                                    user_address.longitude,
-                                    station.address.latitude,
-                                    station.address.longitude,
-                                )
-                                station_distances.append((dist, station))
-
-                        # Sort by Nearest
-                        station_distances.sort(key=lambda x: x[0])
-
-                        target_station = None
-                        target_staff = []
-                        now = timezone.now()
-
-                        # Loop to find the first station with people ON DUTY
-                        for dist, station in station_distances:
-                            on_duty = DutyAssignment.objects.filter(
-                                firefighter__station=station,
-                                start_time__lte=now,
-                                end_time__gte=now,
-                                is_active=True,
-                            ).select_related("firefighter")
-
-                            if on_duty.exists():
-                                target_station = station
-                                target_staff = on_duty
-                                print(
-                                    f"✅ Active Station Found: {station.name} ({dist:.2f}km)"
-                                )
-                                break
-
-                        # Fallback: Nearest station if no one is on duty record
-                        if not target_station and station_distances:
-                            target_station = station_distances[0][1]
-                            print(
-                                f"⚠️ Defaulting to nearest station: {target_station.name}"
-                            )
-
-                        if target_station:
-                            # 6. Create Official Report
-                            new_report = Report.objects.create(
-                                status="System Detected",
-                                address=user_address,
-                                trigger_sensor=sensor,
-                                trigger_reading=dht22_temp,
-                                trigger_gas_level=max(methane, lpg, co),
-                                trigger_temperature=dht22_temp,
-                                station=target_station,
-                                description=f"Automated AI Alert: {ml_result} at {user_address.street}.",
-                            )
-
-                            # 7. SEND REAL-TIME ALERTS (WebSockets)
-                            channel_layer = get_channel_layer()
-                            payload = {
-                                "type": "fire_alert",
-                                "report_id": new_report.id,
-                                "address": f"{user_address.street}, {user_address.city}",
-                                "owner_name": sensor.owner.user.username,
-                                "owner_phone": sensor.owner.phone_number,
-                                "lat": float(user_address.latitude),
-                                "lng": float(user_address.longitude),
-                                "timestamp": timezone.now().strftime(
-                                    "%Y-%m-%d %H:%M:%S"
-                                ),
-                            }
-
-                            # Notify specific station group and global group
-                            async_to_sync(channel_layer.group_send)(
-                                f"station_{target_station.id}", payload
-                            )
-                            async_to_sync(channel_layer.group_send)(
-                                "station_all", payload
-                            )
-
-                            # 8. WHATSAPP NOTIFICATIONS
-                            # Alert Firefighters
-                            staff_phones = [
-                                d.firefighter.phone_number
-                                for d in target_staff
-                                if d.firefighter.phone_number
-                            ]
-                            if staff_phones:
-                                firefighter_msg = f"🔥 FIRE ALERT! Loc: {user_address.street}. Station {target_station.name} mobilized."
-                                send_sms_broadcast(staff_phones, firefighter_msg)
-
-                            # Alert Property Owner
-                            if sensor.owner.phone_number:
-                                owner_msg = f"URGENT: {ml_result} detected at your property ({user_address.street}). {target_station.name} has been notified."
-                                send_sms_broadcast(
-                                    [sensor.owner.phone_number], owner_msg
-                                )
-
-            return HttpResponse("1" if ml_result != "Safe" else "0")
-
-        except Exception as e:
-            print(f"❌ Error in receive_sensor_data: {e}")
+        if not sensor:
             return HttpResponse("0")
 
-    return HttpResponse("0", status=405)
+        # 3. Save Log with Timezone Support
+        SensorDataLog.objects.create(
+            sensor=sensor,
+            methane=methane,
+            lpg=lpg,
+            co=co,
+            air_quality=air_quality,
+            flame_val=flame_val,
+            dht22_temp=dht22_temp,
+            humidity=humidity,
+            status=ml_result,
+            timestamp=timezone.now(),
+        )
+
+        # 4. ALERT TRIAGE LOGIC
+        if ml_result in ["Fire", "Gas Leak", "Warning"] and sensor.owner.address:
+            user_address = sensor.owner.address
+
+            # --- A. SECURE COORDINATE CHECK ---
+            if user_address.latitude is None or user_address.longitude is None:
+                if sensor.owner.phone_number:
+                    signer = TimestampSigner()
+                    signed_id = signer.sign(str(sensor.owner.id))
+                    relative_url = reverse(
+                        "sensors:update_location_link", args=[signed_id]
+                    )
+                    update_url = request.build_absolute_uri(relative_url)
+
+                    msg = (
+                        f"🚨 EMERGENCY: {ml_result.upper()} detected!\n\n"
+                        f"We need your GPS coordinates to dispatch BOMBA. "
+                        f"Click here: {update_url}"
+                    )
+                    send_sms_broadcast([sensor.owner.phone_number], msg)
+                return HttpResponse("1")
+
+            # --- B. DEDUPLICATION ---
+            active_report = Report.objects.filter(
+                address=user_address,
+                status__in=["System Detected", "Confirmed"],
+            ).first()
+
+            if active_report:
+                active_report.save()  # Triggers auto-now updated_at
+                print(f"ℹ️ Alert updated for Report #{active_report.id}")
+
+            # --- C. BRANCH: FIRE DISPATCH ---
+            elif ml_result == "Fire":
+                # Find candidate stations
+                stations = FireStation.objects.select_related("address").all()
+                station_distances = []
+                for station in stations:
+                    if station.address.latitude and station.address.longitude:
+                        dist = haversine(
+                            user_address.latitude,
+                            user_address.longitude,
+                            station.address.latitude,
+                            station.address.longitude,
+                        )
+                        station_distances.append((dist, station))
+
+                station_distances.sort(key=lambda x: x[0])
+
+                # Optimized: Single DB hit for all active staff in nearby stations
+                now = timezone.now()
+                active_staff_all = DutyAssignment.objects.filter(
+                    firefighter__station__in=[s for d, s in station_distances],
+                    start_time__lte=now,
+                    end_time__gte=now,
+                    is_active=True,
+                ).select_related("firefighter", "firefighter__station")
+
+                target_station = None
+                target_staff = []
+
+                for dist, station in station_distances:
+                    staff = [
+                        d
+                        for d in active_staff_all
+                        if d.firefighter.station_id == station.id
+                    ]
+                    if staff:
+                        target_station = station
+                        target_staff = staff
+                        print(f"✅ Active Station Found: {station.name} ({dist:.2f}km)")
+                        break
+
+                # Fallback to nearest station regardless of duty logs
+                if not target_station and station_distances:
+                    target_station = station_distances[0][1]
+
+                if target_station:
+                    # Create Official Report
+                    new_report = Report.objects.create(
+                        status="System Detected",
+                        address=user_address,
+                        trigger_sensor=sensor,
+                        trigger_reading=dht22_temp,
+                        trigger_gas_level=max(methane, lpg, co),
+                        trigger_temperature=dht22_temp,
+                        station=target_station,
+                        description=f"Automated AI Fire Alert at {user_address.street}.",
+                    )
+
+                    # WebSocket Notification
+                    channel_layer = get_channel_layer()
+                    payload = {
+                        "type": "fire_alert",
+                        "report_id": new_report.id,
+                        "address": f"{user_address.street}, {user_address.city}",
+                        "owner_name": sensor.owner.user.username,
+                        "lat": float(user_address.latitude),
+                        "lng": float(user_address.longitude),
+                        "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                    async_to_sync(channel_layer.group_send)(
+                        f"station_{target_station.id}", payload
+                    )
+                    async_to_sync(channel_layer.group_send)("station_all", payload)
+
+                    # SMS Broadcast to Firefighters and Owner
+                    staff_phones = [
+                        d.firefighter.phone_number
+                        for d in target_staff
+                        if d.firefighter.phone_number
+                    ]
+                    if staff_phones:
+                        send_sms_broadcast(
+                            staff_phones,
+                            f"🔥 FIRE ALERT! {user_address.street}. Station {target_station.name} mobilized.",
+                        )
+
+                    if sensor.owner.phone_number:
+                        send_sms_broadcast(
+                            [sensor.owner.phone_number],
+                            f"URGENT: Fire detected at your property. Bomba mobilized.",
+                        )
+
+            # --- D. BRANCH: GAS LEAK (Owner-only Alert) ---
+            elif ml_result == "Gas Leak":
+                if sensor.owner.phone_number:
+                    gas_msg = f"⚠️ GAS LEAK: High gas detected at {user_address.street}. Please ventilate and check your home."
+                    send_sms_broadcast([sensor.owner.phone_number], gas_msg)
+                print(f"☣️ Gas Leak Notification sent for Sensor {sensor_id_raw}")
+
+        return HttpResponse("1" if ml_result != "Safe" else "0")
+
+    except Exception as e:
+        print(f"❌ Error in receive_sensor_data: {e}")
+        return HttpResponse("0")
 
 
 def update_location_from_link(request, signed_id):
-    """
-    Updates location using a signed token to prevent ID spoofing.
-    """
     signer = TimestampSigner()
     try:
-        # 1. Unsign the ID. This fails if the token was tampered with.
-        # Max_age ensures the emergency link expires after 30 minutes.
         owner_id = signer.unsign(signed_id, max_age=1800)
     except (SignatureExpired, BadSignature):
         return render(
-            request,
-            "sensors/error.html",
-            {"message": "This emergency link has expired or is invalid."},
+            request, "sensors/error.html", {"message": "Invalid/Expired link."}
         )
 
     owner_profile = get_object_or_404(UserProfile, id=owner_id)
@@ -277,72 +258,57 @@ def update_location_from_link(request, signed_id):
         try:
             data = json.loads(request.body)
 
-            # Extract coordinates and address info (with fallbacks if Nominatim fails)
-            lat = data.get("lat")
-            lng = data.get("lng")
-            street = data.get("street", "Emergency Location (GPS Pin)")
-            city = data.get("city", "Unknown")
-            state = data.get("state", "Unknown")
-            postal_code = data.get("postal_code", "00000")
-
+            # 1. Clean extraction
             try:
-                lat = float(lat)
-                lng = float(lng)
+                lat = float(data.get("lat"))
+                lng = float(data.get("lng"))
             except (TypeError, ValueError):
-                lat = lng = None
+                return JsonResponse(
+                    {"status": "error", "message": "Invalid coordinates."}, status=400
+                )
 
-            # Extract text fields safely
+            # Check bounds
+            if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+                return JsonResponse(
+                    {"status": "error", "message": "Out of bounds."}, status=400
+                )
+
+            # 2. Extract address fields once
             street = data.get("street", "").strip()
             city = data.get("city", "").strip()
             state = data.get("state", "").strip()
             postal_code = data.get("postal_code", "").strip()
 
-            if (
-                lat is not None
-                and lng is not None
-                and -90 <= lat <= 90
-                and -180 <= lng <= 180
-            ):
-                # 2. Check if Address exists. If yes, update. If no, create.
-                if owner_profile.address:
-                    address = owner_profile.address
-                    address.latitude = lat
-                    address.longitude = lng
+            # 3. Update or Create logic
+            if owner_profile.address:
+                address = owner_profile.address
+                address.latitude = lat
+                address.longitude = lng
 
-                    # SAFEGUARD: Only overwrite the text address if Nominatim actually found something
-                    if street and city and street != "Emergency Location (GPS Pin)":
-                        address.street = street
-                        address.city = city
-                        address.state = state
-                        address.postal_code = postal_code
-
-                    address.save()
-                else:
-                    # Create a new address record and link it to the profile
-                    new_address = Address.objects.create(
-                        latitude=lat,
-                        longitude=lng,
-                        street=street if street else "Emergency Location (GPS Pin)",
-                        city=city if city else "Unknown",
-                        state=state if state else "Unknown",
-                        postal_code=postal_code if postal_code else "00000",
-                    )
-                    owner_profile.address = new_address
-                    owner_profile.save()
-
-                return JsonResponse(
-                    {"status": "success", "message": "Emergency location updated!"}
+                # Only update text if we actually got a street name from the geocoder
+                if street:
+                    address.street = street
+                    address.city = city
+                    address.state = state
+                    address.postal_code = postal_code
+                address.save()
+            else:
+                # Create brand new address with fallbacks
+                new_address = Address.objects.create(
+                    latitude=lat,
+                    longitude=lng,
+                    street=street or "Emergency Location (GPS Pin)",
+                    city=city or "Unknown",
+                    state=state or "Unknown",
+                    postal_code=postal_code or "00000",
                 )
+                owner_profile.address = new_address
+                owner_profile.save()
 
-            return JsonResponse(
-                {"status": "error", "message": "Invalid coordinates."}, status=400
-            )
+            return JsonResponse({"status": "success", "message": "Location updated!"})
 
         except Exception as e:
-            print(f"Emergency Location Save Error: {e}")
-            return JsonResponse(
-                {"status": "error", "message": "Server error."}, status=500
-            )
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     return render(
         request,

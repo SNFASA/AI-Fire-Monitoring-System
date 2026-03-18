@@ -2,6 +2,7 @@ import json
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.signing import TimestampSigner
+from django.utils import timezone
 from unittest.mock import patch
 from .factories import (
     UserProfileFactory,
@@ -9,7 +10,7 @@ from .factories import (
     AddressFactory,
     FireStationFactory,
 )
-from ..models import Report
+from ..models import Report, UserProfile, Address, User
 
 
 class AlertSystemCoverageTest(TestCase):
@@ -33,6 +34,12 @@ class AlertSystemCoverageTest(TestCase):
         self.receive_url = reverse("sensors:receive_data")
 
     # --- receive_sensor_data Tests ---
+    def test_receive_data_exception_handling(self):
+        """Covers the 'except Exception as e' branch."""
+        # Sending non-JSON data to trigger a JSONDecodeError/Exception
+        response = self.client.post(
+            self.receive_url, "invalid-data", content_type="application/json"
+        )
 
     @patch("sensors.views.api.predictor.predict")
     @patch("sensors.views.api.send_sms_broadcast")
@@ -145,3 +152,69 @@ class AlertSystemCoverageTest(TestCase):
         # Send empty body to trigger exception
         response = self.client.post(url, "", content_type="application/json")
         self.assertEqual(response.status_code, 500)
+
+
+class LocationUpdateTests(TestCase):
+    def setUp(self):
+        # 1. Use the standard Client
+        self.client = Client()
+
+        # 2. Create the User first
+        self.user = User.objects.create_user(
+            username="testuser", password="password123"
+        )
+
+        # 3. FIX: Safely get the auto-created profile (or create if missing)
+        self.profile, created = UserProfile.objects.get_or_create(user=self.user)
+
+        # Ensure it has no address for our test scenario
+        self.profile.address = None
+        self.profile.save()
+
+        self.signer = TimestampSigner()
+        self.signed_id = self.signer.sign(self.profile.id)
+
+        # 4. Use the namespaced URL name
+        self.url = reverse("sensors:update_location_link", args=[self.signed_id])
+
+    def test_create_address_when_none_exists(self):
+        """
+        Verify that if a profile has no address, the view creates one
+        and links it correctly.
+        """
+        payload = {
+            "lat": 34.0522,
+            "lng": -118.2437,
+            "street": "123 Main St",
+            "city": "Los Angeles",
+            "state": "CA",
+            "postal_code": "90012",
+        }
+
+        response = self.client.post(
+            self.url, data=json.dumps(payload), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        # Refresh profile from DB
+        self.profile.refresh_from_db()
+        self.assertIsNotNone(self.profile.address)
+        self.assertEqual(float(self.profile.address.latitude), 34.0522)
+        self.assertEqual(self.profile.address.street, "123 Main St")
+
+    def test_create_address_with_empty_fields_uses_fallbacks(self):
+        """
+        Verify that fallbacks work when geocoding data is missing.
+        """
+        payload = {"lat": 0.0, "lng": 0.0, "street": "", "city": ""}
+
+        response = self.client.post(
+            self.url, data=json.dumps(payload), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.address.street, "Emergency Location (GPS Pin)")
+        self.assertEqual(self.profile.address.city, "Unknown")

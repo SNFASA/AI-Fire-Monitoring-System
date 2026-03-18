@@ -1,6 +1,6 @@
 import math, json
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages 
+from django.contrib import messages
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -205,26 +205,28 @@ def get_victim_layout(request, user_id):
 def delete_layout_ajax(request, layout_id):
     if request.method == "POST":
         try:
-            # Note: I changed 'owner' to 'user'. 
+            # Note: I changed 'owner' to 'user'.
             # If your models.py uses 'owner', change this back to owner=request.user
             layout = get_object_or_404(Houselayout, id=layout_id, user=request.user)
-            
+
             layout.delete()
-            
+
             # Since we are using an HTML form now, we don't need the JSON stuff.
             # We just send a success message and redirect!
             messages.success(request, "Layout has been successfully deleted.")
-            return redirect('sensors:maps')
+            return redirect("sensors:maps")
 
         except Exception as e:
-            # THIS IS CRITICAL: If it fails, look at your terminal! 
+            # THIS IS CRITICAL: If it fails, look at your terminal!
             # It will print the exact reason it crashed.
-            print(f"🚨 ERROR DELETING LAYOUT: {e}") 
-            
-            messages.error(request, "Layout not found or you do not have permission to delete it.")
-            return redirect('sensors:maps')
+            print(f"🚨 ERROR DELETING LAYOUT: {e}")
 
-    return redirect('sensors:maps')
+            messages.error(
+                request, "Layout not found or you do not have permission to delete it."
+            )
+            return redirect("sensors:maps")
+
+    return redirect("sensors:maps")
 
 
 @login_required

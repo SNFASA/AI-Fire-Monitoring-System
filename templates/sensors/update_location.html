@@ -34,6 +34,9 @@
     </style>
 </head>
 <body>
+     <form method="post" style="display: none;">
+         {% csrf_token %}
+     </form>
     <div class="app-header">
         <h4 class="fw-bolder mb-1"><i class="fa-solid fa-triangle-exclamation me-2"></i>EMERGENCY ALERT</h4>
         <p class="mb-0 small text-white-50">Fire/Gas sensor triggered at your property</p>
@@ -77,180 +80,179 @@
     </div>
 
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script>
-    // --- Django CSRF Setup ---
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+    <script>
+        // --- Django CSRF Setup ---
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
             }
+            return cookieValue;
         }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken') || '{{ csrf_token }}';
+        const csrftoken = getCookie('csrftoken')
 
-    // --- Map & Data Setup ---
-    let map;
-    let marker;
-    
-    // Data to be sent to Django
-    let payloadData = {
-        lat: null, lng: null, street: "", city: "", state: "", postal_code: ""
-    };
+        // --- Map & Data Setup ---
+        let map;
+        let marker;
+        
+        // Data to be sent to Django
+        let payloadData = {
+            lat: null, lng: null, street: "", city: "", state: "", postal_code: ""
+        };
 
-    function initMap(lat = 3.0738, lng = 101.5183) { 
-        map = new maplibregl.Map({
-            container: 'locationMap',
-            style: 'https://tiles.openfreemap.org/styles/liberty',
-            center: [lng, lat],
-            zoom: 13
+        function initMap(lat = 3.0738, lng = 101.5183) { 
+            map = new maplibregl.Map({
+                container: 'locationMap',
+                style: 'https://tiles.openfreemap.org/styles/liberty',
+                center: [lng, lat],
+                zoom: 13
+            });
+
+            map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+
+            const el = document.createElement('div');
+            el.innerHTML = '<i class="fa-solid fa-location-dot" style="color:#df2020; font-size:45px; text-shadow: 0px 4px 6px rgba(0,0,0,0.4);"></i>';
+            el.style.transform = "translate(0, -22px)";
+            
+            marker = new maplibregl.Marker({ element: el, draggable: true })
+                .setLngLat([lng, lat])
+                .addTo(map);
+
+            marker.on('dragend', function() {
+                const pos = marker.getLngLat();
+                updateLocationData(pos.lat, pos.lng);
+            });
+
+            map.on('click', function(e) {
+                marker.setLngLat(e.lngLat);
+                updateLocationData(e.lngLat.lat, e.lngLat.lng);
+            });
+        }
+
+        // --- Geocoding Logic (Matches Profile Page) ---
+        function updateLocationData(lat, lng) {
+            payloadData.lat = lat;
+            payloadData.lng = lng;
+            
+            const submitBtn = document.getElementById('btnSubmitLocation');
+
+            // Show coords while waiting for street name
+            document.getElementById('coordDisplay').innerHTML = `Lat: <span class="fw-bold">${lat.toFixed(5)}</span> | Lng: <span class="fw-bold">${lng.toFixed(5)}</span><br><small class="text-warning"><i class="fa-solid fa-spinner fa-spin"></i> Finding street address...</small>`;
+            
+            // Un-hide the submit button immediately, but keep it DISABLED
+            submitBtn.classList.remove('d-none');
+            submitBtn.disabled = true; 
+            document.getElementById('btnAutoGps').classList.remove('pulse-ring');
+
+            // Fetch Address from OpenStreetMap
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.address) {
+                        if (data.address.road) {
+                            let street = data.address.road;
+                            if(data.address.house_number) street = data.address.house_number + ' ' + street;
+                            payloadData.street = street;
+                        }
+                        payloadData.city = data.address.city || data.address.town || data.address.county || "Unknown City";
+                        payloadData.state = data.address.state || "Unknown State";
+                        payloadData.postal_code = data.address.postcode || "00000";
+
+                        // Update UI to show the resolved address for user confidence
+                        document.getElementById('coordDisplay').innerHTML = `
+                            <strong class="text-dark">${payloadData.street}</strong><br>
+                            ${payloadData.city}, ${payloadData.state} ${payloadData.postal_code}
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.warn("Geocoding failed, falling back to pure coordinates:", error);
+                    document.getElementById('coordDisplay').innerHTML = `Lat: <span class="fw-bold">${lat.toFixed(5)}</span> | Lng: <span class="fw-bold">${lng.toFixed(5)}</span><br><small class="text-danger">Address not found. Sending GPS only.</small>`;
+                })
+                .finally(() => {
+                    // Unlock the submit button whether Nominatim succeeded or failed
+                    submitBtn.disabled = false;
+                });
+        }
+
+        // --- Hardware GPS Button ---
+        document.getElementById('btnAutoGps').addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> LOCATING...';
+            
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        map.flyTo({ center: [lng, lat], zoom: 17 });
+                        marker.setLngLat([lng, lat]);
+                        updateLocationData(lat, lng);
+                        
+                        btn.innerHTML = '<i class="fa-solid fa-check me-2"></i> GPS FOUND';
+                        btn.classList.replace('btn-gps', 'btn-dark');
+                    },
+                    function(error) {
+                        console.warn("GPS Error:", error);
+                        alert("Could not pull GPS data. Please drag the pin on the map manually.");
+                        btn.innerHTML = originalText;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                alert("Geolocation is not supported by this device.");
+                btn.innerHTML = originalText;
+            }
         });
 
-        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+        // --- POST Complete Data to Django Backend ---
+        document.getElementById('btnSubmitLocation').addEventListener('click', function() {
+            if (!payloadData.lat || !payloadData.lng) return;
 
-        const el = document.createElement('div');
-        el.innerHTML = '<i class="fa-solid fa-location-dot" style="color:#df2020; font-size:45px; text-shadow: 0px 4px 6px rgba(0,0,0,0.4);"></i>';
-        el.style.transform = "translate(0, -22px)";
-        
-        marker = new maplibregl.Marker({ element: el, draggable: true })
-            .setLngLat([lng, lat])
-            .addTo(map);
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> TRANSMITTING...';
 
-        marker.on('dragend', function() {
-            const pos = marker.getLngLat();
-            updateLocationData(pos.lat, pos.lng);
-        });
-
-        map.on('click', function(e) {
-            marker.setLngLat(e.lngLat);
-            updateLocationData(e.lngLat.lat, e.lngLat.lng);
-        });
-    }
-
-    // --- Geocoding Logic (Matches Profile Page) ---
-    function updateLocationData(lat, lng) {
-        payloadData.lat = lat;
-        payloadData.lng = lng;
-        
-        const submitBtn = document.getElementById('btnSubmitLocation');
-
-        // Show coords while waiting for street name
-        document.getElementById('coordDisplay').innerHTML = `Lat: <span class="fw-bold">${lat.toFixed(5)}</span> | Lng: <span class="fw-bold">${lng.toFixed(5)}</span><br><small class="text-warning"><i class="fa-solid fa-spinner fa-spin"></i> Finding street address...</small>`;
-        
-        // Un-hide the submit button immediately, but keep it DISABLED
-        submitBtn.classList.remove('d-none');
-        submitBtn.disabled = true; 
-        document.getElementById('btnAutoGps').classList.remove('pulse-ring');
-
-        // Fetch Address from OpenStreetMap
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(payloadData) // Sending lat, lng, street, city, etc.
+            })
             .then(response => response.json())
             .then(data => {
-                if (data.address) {
-                    if (data.address.road) {
-                        let street = data.address.road;
-                        if(data.address.house_number) street = data.address.house_number + ' ' + street;
-                        payloadData.street = street;
-                    }
-                    payloadData.city = data.address.city || data.address.town || data.address.county || "Unknown City";
-                    payloadData.state = data.address.state || "Unknown State";
-                    payloadData.postal_code = data.address.postcode || "00000";
-
-                    // Update UI to show the resolved address for user confidence
-                    document.getElementById('coordDisplay').innerHTML = `
-                        <strong class="text-dark">${payloadData.street}</strong><br>
-                        ${payloadData.city}, ${payloadData.state} ${payloadData.postal_code}
-                    `;
+                if (data.status === 'success') {
+                    document.getElementById('inputScreen').style.display = 'none';
+                    document.getElementById('successScreen').style.display = 'block';
+                    document.querySelector('.app-header').style.backgroundColor = '#28a745';
+                    document.querySelector('.app-header h4').innerHTML = '<i class="fa-solid fa-shield-check me-2"></i>SYSTEM UPDATED';
+                } else {
+                    throw new Error(data.message || 'Validation failed');
                 }
             })
             .catch(error => {
-                console.warn("Geocoding failed, falling back to pure coordinates:", error);
-                document.getElementById('coordDisplay').innerHTML = `Lat: <span class="fw-bold">${lat.toFixed(5)}</span> | Lng: <span class="fw-bold">${lng.toFixed(5)}</span><br><small class="text-danger">Address not found. Sending GPS only.</small>`;
-            })
-            .finally(() => {
-                // Unlock the submit button whether Nominatim succeeded or failed
-                submitBtn.disabled = false;
+                console.error('Error:', error);
+                alert("Failed to send: " + error.message + ". Check connection and try again.");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane me-2"></i> SEND LOCATION TO BOMBA';
             });
-    }
-
-    // --- Hardware GPS Button ---
-    document.getElementById('btnAutoGps').addEventListener('click', function() {
-        const btn = this;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> LOCATING...';
-        
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    
-                    map.flyTo({ center: [lng, lat], zoom: 17 });
-                    marker.setLngLat([lng, lat]);
-                    updateLocationData(lat, lng);
-                    
-                    btn.innerHTML = '<i class="fa-solid fa-check me-2"></i> GPS FOUND';
-                    btn.classList.replace('btn-gps', 'btn-dark');
-                },
-                function(error) {
-                    console.warn("GPS Error:", error);
-                    alert("Could not pull GPS data. Please drag the pin on the map manually.");
-                    btn.innerHTML = originalText;
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        } else {
-            alert("Geolocation is not supported by this device.");
-            btn.innerHTML = originalText;
-        }
-    });
-
-    // --- POST Complete Data to Django Backend ---
-    document.getElementById('btnSubmitLocation').addEventListener('click', function() {
-        if (!payloadData.lat || !payloadData.lng) return;
-
-        const btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> TRANSMITTING...';
-
-        fetch(window.location.href, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify(payloadData) // Sending lat, lng, street, city, etc.
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                document.getElementById('inputScreen').style.display = 'none';
-                document.getElementById('successScreen').style.display = 'block';
-                document.querySelector('.app-header').style.backgroundColor = '#28a745';
-                document.querySelector('.app-header h4').innerHTML = '<i class="fa-solid fa-shield-check me-2"></i>SYSTEM UPDATED';
-            } else {
-                throw new Error(data.message || 'Validation failed');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert("Failed to send: " + error.message + ". Check connection and try again.");
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-2"></i> SEND LOCATION TO BOMBA';
         });
-    });
 
-    // Load map when page is ready
-    document.addEventListener("DOMContentLoaded", function() {
-        initMap();
-    });
-</script>
+        // Load map when page is ready
+        document.addEventListener("DOMContentLoaded", function() {
+            initMap();
+        });
+    </script>
 </body>
 </html>

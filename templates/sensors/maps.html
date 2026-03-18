@@ -109,7 +109,7 @@
                             </button>
 
                         {% else %}
-                            <div class="-50 text-center w-100" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2;">
+                            <div class="text-center w-100" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2;">
                                 <i class="fas fa-map-marked-alt fa-4x mb-3"></i><br><h4 class="fw-bold">No Layout Selected</h4>
                                 <p class="small">Open the menu to upload or select a floor plan.</p>
                             </div>
@@ -270,31 +270,44 @@
     // Touch & Mouse Drag Logic (Upgraded to modern Pointer Events)
     const sensorsNodes = document.querySelectorAll('.sensor-node');
     const mapContainer = document.getElementById('user-map-container');
-    
+
+    // State tracker for the currently dragged element
+    let activeSensor = null;
+
+    // 1. Move the Move/Up listeners OUTSIDE the loop
+    mapContainer.addEventListener('pointermove', (e) => {
+        if (!activeSensor) return;
+
+        const rect = mapContainer.getBoundingClientRect();
+        
+        // Calculate percentage coordinates
+        let x = ((e.clientX - rect.left) / rect.width) * 100;
+        let y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        // Constrain to bounds (0-95%)
+        x = Math.max(0, Math.min(x, 95)); 
+        y = Math.max(0, Math.min(y, 95));
+
+        activeSensor.style.left = `${x}%`; 
+        activeSensor.style.top = `${y}%`;
+    });
+
+    // Use 'window' or 'document' for pointerup to ensure 
+    // the release triggers even if the cursor leaves the container
+    window.addEventListener('pointerup', (e) => {
+        if (activeSensor) {
+            activeSensor.releasePointerCapture(e.pointerId);
+            savePosition(activeSensor); 
+            activeSensor = null; // Clear state
+        }
+    });
+
+    // 2. The loop now only handles the initial 'down' event
     sensorsNodes.forEach(sensor => {
-        let isDragging = false;
-        
-        sensor.addEventListener('pointerdown', (e) => { 
-            isDragging = true; 
-            sensor.setPointerCapture(e.pointerId); // Locks the touch to this element
+        sensor.addEventListener('pointerdown', (e) => {
+            activeSensor = sensor; 
+            sensor.setPointerCapture(e.pointerId); 
             e.preventDefault(); 
-        });
-        
-        sensor.addEventListener('pointerup', (e) => { 
-            if(isDragging) { 
-                isDragging = false; 
-                sensor.releasePointerCapture(e.pointerId);
-                savePosition(sensor); 
-            } 
-        });
-        
-        mapContainer.addEventListener('pointermove', (e) => {
-            if(!isDragging) return;
-            const rect = mapContainer.getBoundingClientRect();
-            let x = ((e.clientX - rect.left) / rect.width) * 100;
-            let y = ((e.clientY - rect.top) / rect.height) * 100;
-            x = Math.max(0, Math.min(x, 95)); y = Math.max(0, Math.min(y, 95));
-            sensor.style.left = x + '%'; sensor.style.top = y + '%';
         });
     });
     
