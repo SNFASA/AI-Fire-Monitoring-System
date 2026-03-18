@@ -16,14 +16,20 @@
     @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
     
     /* --- Map Layout --- */
-    .map-wrapper, .map-container-wrapper { width: 100%; height: 85vh; position: relative; border-radius: 12px; overflow: hidden; background: #222; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .map-wrapper, .map-container-wrapper { width: 100%; height: 85vh; position: relative; border-radius: 16px; overflow: hidden; background: #f4f6f9; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
     #map { width: 100%; height: 100%; }
-    .maplibregl-popup-content { color: #000 !important; font-weight: bold; font-size: 14px; border: 2px solid #0d6efd; border-radius: 8px; }
+    .maplibregl-popup-content { color: #000 !important; font-weight: bold; font-size: 14px; border: 2px solid #0d6efd; border-radius: 12px; padding: 10px 15px; }
 
     /* --- Public User Sensor Nodes --- */
-    .sensor-node { width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-weight: 900; position: absolute; z-index: 1000; cursor: grab; box-shadow: 0 4px 8px rgba(0,0,0,0.5); transition: transform 0.1s; }
+    .sensor-node { 
+        width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        color: white; font-weight: 900; position: absolute; z-index: 1000; cursor: grab; 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5); transition: transform 0.1s; 
+        touch-action: none; /* CRITICAL: Prevents mobile scrolling while dragging */
+    }
     .sensor-node:active { transform: scale(1.2); cursor: grabbing; }
-    .sensor-label { position: absolute; top: 42px; white-space: nowrap; font-size: 11px; color: white; text-shadow: 1px 1px 2px black, -1px -1px 2px black; font-weight: bold; pointer-events: none; text-transform: uppercase; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; }
+    .sensor-label { position: absolute; top: 42px; white-space: nowrap; font-size: 11px; color: white; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-weight: bold; pointer-events: none; text-transform: uppercase; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 6px; }
     
     /* --- Status Colors --- */
     .bg-safe { background: #198754; box-shadow: 0 0 10px #198754; } 
@@ -34,132 +40,175 @@
     /* --- Firefighter Map Overlays --- */
     .map-overlay-top-left { position: absolute; top: 15px; left: 15px; z-index: 10; }
     .map-overlay-top-right { position: absolute; top: 15px; right: 60px; z-index: 10; }
-    .style-switcher { background: rgba(255,255,255,0.95); padding: 5px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 5px; }
-    .map-btn { padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: black;}
-    .map-btn:hover { background: #f8f9fa; } .map-btn.active { background: #0d6efd; color: white; border-color: #0d6efd; }
+    .map-layer-btn { background: white; border: none; padding: 0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.2rem; color: #495057; transition: all 0.2s; }
+    .map-layer-btn:hover { background: #f8f9fa; color: #0d6efd; }
     
     /* --- Status Panel (Counters) --- */
     .status-panel { display: flex; gap: 10px; }
-    .status-item { padding: 8px 15px; border-radius: 20px; color: white; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+    .status-item { padding: 10px 18px; border-radius: 50rem; color: white; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .status-fire { background-color: #dc3545; animation: pulse-red 1.5s infinite; }
     .status-warn { background-color: #ffc107; color: black; animation: pulse-yellow 1.5s infinite; }
     
     /* --- Firefighter Map Markers --- */
-    .marker-fire { width: 40px; height: 40px; background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%); border: 3px solid white; border-radius: 50%; animation: pulse-red 1s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; cursor: pointer; }
-    .marker-safe { width: 15px; height: 15px; background: #198754; border: 2px solid white; border-radius: 50%; opacity: 0.8; cursor: pointer; }
-    .marker-warning { width: 30px; height: 30px; background: #ffc107; border: 2px solid white; border-radius: 50%; animation: pulse-yellow 1s infinite; display: flex; justify-content: center; align-items: center; color: black; cursor: pointer; }
-    .marker-offline { width: 15px; height: 15px; background: #6c757d; border: 2px solid #ccc; border-radius: 50%; cursor: pointer; }
+    .marker-fire { width: 40px; height: 40px; background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%); border: 3px solid white; border-radius: 50%; animation: pulse-red 1s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    .marker-safe { width: 18px; height: 18px; background: #198754; border: 3px solid white; border-radius: 50%; opacity: 0.9; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    .marker-warning { width: 34px; height: 34px; background: #ffc107; border: 3px solid white; border-radius: 50%; animation: pulse-yellow 1s infinite; display: flex; justify-content: center; align-items: center; color: black; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
     
-    /* --- Blueprint Wrapper --- */
-    .blueprint-wrapper { width: 100%; height: 600px; position: relative; background-color: #0d1b2a; border: 2px solid #666; border-radius: 8px; overflow: hidden; background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px); background-size: 40px 40px; }
-    .blueprint-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; z-index: 1; filter: invert(1) grayscale(1) brightness(1.3) contrast(1.2); opacity: 0.8; mix-blend-mode: screen; }
-    .blueprint-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Courier New', Courier, monospace; font-size: 5rem; color: rgba(255, 255, 255, 0.05); font-weight: bold; pointer-events: none; z-index: 0; }
+    /* --- Blueprint Wrapper (Clean Dark Mode) --- */
+    .blueprint-wrapper { width: 100%; height: 75vh; position: relative; background-color: #1a1a1a; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+    .blueprint-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; z-index: 1; filter: invert(1) grayscale(1) brightness(1.3); opacity: 0.85; mix-blend-mode: screen; }
+    .blueprint-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Inter', sans-serif; font-size: 4rem; color: rgba(255, 255, 255, 0.04); font-weight: 900; pointer-events: none; z-index: 0; letter-spacing: 5px; }
+
+    /* --- Public UI Elements --- */
+    .fab-add-sensor { position: absolute; bottom: 20px; right: 20px; z-index: 1010; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(25, 135, 84, 0.4); font-size: 24px; color: white; background-color: #198754; border: none; transition: transform 0.2s; }
+    .fab-add-sensor:active { transform: scale(0.95); }
+    
+    .mobile-menu-btn { position: absolute; top: 20px; left: 20px; z-index: 1010; background: white; border: none; border-radius: 50rem; padding: 10px 20px; font-weight: 700; color: #343a40; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    
+    /* Offcanvas Bottom Sheet Styling */
+    .offcanvas-bottom { border-top-left-radius: 20px; border-top-right-radius: 20px; max-height: 80vh; }
 </style>
-
-{% if role == 'public' %}
-
-<div class="container-fluid mt-3">
-    <div class="row">
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Floors</h5>
-                    <a href="{% url 'sensors:upload_layout' %}" class="btn text-white btn-sm"><i class="fas fa-plus"></i></a>
-                </div>
-                
-                <div class="list-group list-group-flush">
-                    {% for l in layouts %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center {% if l.id == current_layout.id %}bg-light{% endif %}" id="layout-item-{{ l.id }}">
-                        <a href="?layout_id={{ l.id }}" class="text-decoration-none fw-bold text-truncate" style="max-width: 50%;">
-                            {{ l.name }}
-                        </a>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary" onclick="openEditModal('{{ l.id }}', '{{ l.name|escapejs }}', '{{ l.image.url }}')" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-outline-danger" onclick="confirmDeleteLayout({{ l.id }}, '{{ l.name|escapejs }}')" title="Delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="p-3 text-center"><small>No floors uploaded.</small></div>
-                    {% endfor %}
-                </div>
-
-                {% if current_layout %}
-                <div class="card-body border-top mt-auto">
-                    <h6 class="fw-bold d-flex justify-content-between align-items-center">Sensors on {{ current_layout.name }}</h6>
-                    <button class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#addSensorModal">
-                        <i class="fas fa-plus"></i> Add Sensor Here
-                    </button>
-                    <ul class="list-group list-group-flush mb-3 small" style="max-height: 200px; overflow-y: auto;">
-                        {% for sensor in sensors %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0" id="list-sensor-{{ sensor.id }}">
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-secondary rounded-pill me-2">{{ forloop.counter }}</span>
-                                <span class="fw-bold">{{ sensor.name }}</span>
-                            </div>
-                            {% with status=sensor.readings.last.status|default:"Safe" %}
-                                <span class="badge rounded-pill {% if status == 'Fire' %}bg-danger animate-pulse{% elif status == 'Warning' %}bg-warning text-dark{% elif status == 'Offline' %}bg-secondary{% else %}bg-success{% endif %}">
-                                    {{ status }}
-                                </span>
-                            {% endwith %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        </div>
-
-        <div class="col-md-9">
-            <div class="card shadow h-100">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-project-diagram me-2"></i> {% if current_layout %}{{ current_layout.name }}{% else %}House Layout{% endif %}</h4>
-                </div>
-                <div class="card-body p-3 bg-light">
+        {% endfor %}
+    {% endif %}
+{% if role == 'public' %}
+<div class="container-fluid mt-3 mb-4">
+    <div class="row g-4">
+        
+        <div class="col-md-8 col-lg-9 order-1 order-md-2">
+            <div class="card shadow-sm border-0 rounded-4 h-100 ">
+                <div class="card-body p-2">
+                    
                     <div id="user-map-container" class="blueprint-wrapper">
+                        
+                        <button class="mobile-menu-btn d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
+                            <i class="fas fa-bars me-2"></i> Menu
+                        </button>
+
                         <div class="blueprint-label">{% if current_layout %}{{ current_layout.name|upper }}{% else %}HOUSE{% endif %}</div>
+                        
                         {% if current_layout %}
                             <img src="{{ current_layout.image.url }}" class="blueprint-image" alt="Layout Blueprint">
+                            
                             {% for sensor in sensors %}
                             <div class="sensor-node {% if sensor.readings.last.status == 'Fire' %}bg-fire{% elif sensor.readings.last.status == 'Warning' %}bg-warn{% else %}bg-safe{% endif %}"
-                                 id="sensor-{{ sensor.id }}" draggable="true"
+                                 id="sensor-{{ sensor.id }}" 
                                  style="left: {{ sensor.x_position|default:5 }}%; top: {{ sensor.y_position|default:5 }}%;">
                                 {{ forloop.counter }}
                                 <div class="sensor-label">{{ sensor.name }}</div>
                             </div>
                             {% endfor %}
+
+                            <button class="fab-add-sensor" data-bs-toggle="modal" data-bs-target="#addSensorModal" title="Add Sensor Here">
+                                <i class="fas fa-plus"></i>
+                            </button>
+
                         {% else %}
-                            <div class="text-white-50 text-center" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2;">
-                                <i class="fas fa-image fa-3x mb-3"></i><br><h3>Select or Upload a Layout</h3>
+                            <div class="text-center w-100" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2;">
+                                <i class="fas fa-map-marked-alt fa-4x mb-3"></i><br><h4 class="fw-bold">No Layout Selected</h4>
+                                <p class="small">Open the menu to upload or select a floor plan.</p>
                             </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="col-md-4 col-lg-3 order-2 order-md-1">
+            <div class="offcanvas-md offcanvas-bottom h-auto h-md-100 shadow-lg border-0" tabindex="-1" id="sidebarOffcanvas">
+                
+                <div class="offcanvas-header border-bottom d-md-none">
+                    <h5 class="offcanvas-title fw-bolder"><i class="fas fa-layer-group text-primary me-2"></i> Control Panel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+                
+                <div class="offcanvas-body flex-column p-0 h-100">
+                    <div class="card border-0 h-100 bg-transparent">
+                        
+                        <div class="card-header   d-none d-md-flex justify-content-between align-items-center rounded-top-4">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-layer-group me-2 text-primary"></i>Floors</h5>
+                            <a href="{% url 'sensors:upload_layout' %}" class="btn btn-primary btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px;"><i class="fas fa-plus"></i></a>
+                        </div>
+                        
+                        <div class="list-group list-group-flush shadow-sm rounded-4 rounded-top-md-0 mb-3 ">
+                            <div class="list-group-item d-md-none  text-center p-0">
+                                <a href="{% url 'sensors:upload_layout' %}" class="btn btn-link text-decoration-none fw-bold text-primary w-100 py-3"><i class="fas fa-plus-circle me-1"></i> Upload New Floor</a>
+                            </div>
+
+                            {% for l in layouts %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center py-3 {% if l.id == current_layout.id %}bg-primary bg-opacity-10 border-start border-4{% endif %}">
+                                <a href="?layout_id={{ l.id }}" class="text-decoration-none fw-bolder  text-truncate" style="max-width: 55%;">
+                                    {{ l.name }}
+                                </a>
+                                <div class="btn-group btn-group-sm shadow-sm rounded-3">
+                                    <button class="btn  border-0 text-secondary" onclick="openEditModal('{{ l.id }}', '{{ l.name|escapejs }}', '{{ l.image.url }}')" title="Edit"><i class="fas fa-pen"></i></button>
+                                    <form action="/delete-layout/{{ l.id }}/" method="POST" class="m-0 d-inline">
+                                        {% csrf_token %}
+                                        <button type="button" class="btn btn-light border text-danger" onclick="confirmDeleteLayout(this.form)" title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="p-4 text-center text-muted"><i class="fas fa-folder-open mb-2 fa-2x opacity-50"></i><br><small>No floors uploaded.</small></div>
+                            {% endfor %}
+                        </div>
+
+                        {% if current_layout %}
+                        <div class="card-body  rounded-4 shadow-sm p-0 overflow-hidden d-flex flex-column mt-auto" style="max-height: 40vh;">
+                            <div class="p-3  border-bottom">
+                                <h6 class="fw-bolder mb-0 "><i class="fas fa-microchip text-success me-2"></i> Sensors ({{ current_layout.name }})</h6>
+                            </div>
+                            <ul class="list-group list-group-flush small overflow-auto">
+                                {% for sensor in sensors %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge  rounded-circle me-3" style="width: 24px; height:24px; display:flex; align-items:center; justify-content:center;">{{ forloop.counter }}</span>
+                                        <span class="fw-bold " style="font-size: 0.95rem;">{{ sensor.name }}</span>
+                                    </div>
+                                    {% with status=sensor.readings.last.status|default:"Safe" %}
+                                        <span class="badge rounded-pill px-3 py-2 shadow-sm {% if status == 'Fire' %}bg-danger animate-pulse{% elif status == 'Warning' %}bg-warning {% elif status == 'Offline' %}bg-secondary{% else %}bg-success{% endif %}">
+                                            {{ status }}
+                                        </span>
+                                    {% endwith %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <div class="modal fade" id="addSensorModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">Add Sensor to {{ current_layout.name }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-success  border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i> Add Sensor to {{ current_layout.name }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <div id="sensorFormStep">
-                    <label class="form-label fw-bold">Sensor Name</label>
-                    <input type="text" class="form-control mb-3" id="newSensorName" placeholder="Name (e.g. Kitchen)">
-                    <button type="button" class="btn btn-success w-100" onclick="submitNewSensor()">Create</button>
+                    <label class="form-label fw-bold text-muted small text-uppercase mb-2">Sensor Name / Location</label>
+                    <input type="text" class="form-control form-control-lg mb-4  border-0" id="newSensorName" placeholder="e.g. Kitchen Ceiling">
+                    <button type="button" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm" onclick="submitNewSensor()">Create Sensor</button>
                 </div>
                 <div id="sensorSuccessStep" style="display:none; text-align: center;">
-                    <h4>Success!</h4>
-                    <div class="alert alert-dark">ID: <strong class="text-warning" id="newSensorIdDisplay">0</strong></div>
-                    <button class="btn btn-primary w-100" onclick="location.reload()">Done</button>
+                    <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
+                    <h4 class="fw-bolder">Sensor Created!</h4>
+                    <div class="alert alert-light border shadow-sm rounded-3 mt-3 mb-4">Hardware ID: <strong class="text-primary fs-5" id="newSensorIdDisplay">0</strong></div>
+                    <button class="btn btn-primary rounded-pill w-100 fw-bold" onclick="location.reload()">Done</button>
                 </div>
             </div>
         </div>
@@ -167,40 +216,40 @@
 </div>
 
 <div class="modal fade" id="editLayoutModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Edit Floor Plan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-primary  border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-pen me-2"></i> Edit Floor Plan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <form id="editLayoutForm" enctype="multipart/form-data">
                     <input type="hidden" name="layout_id" id="edit_layout_id">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Floor Name</label>
-                        <input type="text" class="form-control" name="name" id="edit_layout_name" required>
+                        <label class="form-label fw-bold text-muted small text-uppercase">Floor Name</label>
+                        <input type="text" class="form-control  border-0" name="name" id="edit_layout_name" required>
                     </div>
                     <div class="mb-3 text-center">
-                        <div class="border p-2 bg-dark rounded">
-                            <img id="edit_layout_preview" src="" alt="Preview" style="max-height: 150px; max-width: 100%; filter: invert(1);">
+                        <div class="border-0 p-3  rounded-4 shadow-sm">
+                            <img id="edit_layout_preview" src="" alt="Preview" class="img-fluid" style="max-height: 120px; filter: invert(1) opacity(0.8);">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Replace Image (Optional)</label>
+                        <label class="form-label fw-bold text-muted small text-uppercase">Replace Image (Optional)</label>
                         <input type="file" class="form-control" name="image" id="edit_layout_file" accept="image/*">
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="submitEditLayout()">Save Changes</button>
+            <div class="modal-footer border-0 pb-4 px-4">
+                <button type="button" class="btn btn-light border fw-bold rounded-pill w-100 mb-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary fw-bold rounded-pill w-100 m-0 shadow-sm" onclick="submitEditLayout()">Save Changes</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Public User Scripts (Add/Edit/Move Sensor)
+    // --- Public User Scripts ---
     function submitNewSensor() {
         const name = document.getElementById('newSensorName').value;
         const layoutId = "{{ current_layout.id }}";
@@ -218,19 +267,47 @@
         });
     }
 
-    const sensors = document.querySelectorAll('.sensor-node');
-    const container = document.getElementById('user-map-container');
-    sensors.forEach(sensor => {
-        let isDragging = false;
-        sensor.addEventListener('mousedown', (e) => { isDragging = true; e.preventDefault(); });
-        document.addEventListener('mouseup', () => { if(isDragging) { isDragging = false; savePosition(sensor); } });
-        container.addEventListener('mousemove', (e) => {
-            if(!isDragging) return;
-            const rect = container.getBoundingClientRect();
-            let x = ((e.clientX - rect.left) / rect.width) * 100;
-            let y = ((e.clientY - rect.top) / rect.height) * 100;
-            x = Math.max(0, Math.min(x, 96)); y = Math.max(0, Math.min(y, 96));
-            sensor.style.left = x + '%'; sensor.style.top = y + '%';
+    // Touch & Mouse Drag Logic (Upgraded to modern Pointer Events)
+    const sensorsNodes = document.querySelectorAll('.sensor-node');
+    const mapContainer = document.getElementById('user-map-container');
+
+    // State tracker for the currently dragged element
+    let activeSensor = null;
+
+    // 1. Move the Move/Up listeners OUTSIDE the loop
+    mapContainer.addEventListener('pointermove', (e) => {
+        if (!activeSensor) return;
+
+        const rect = mapContainer.getBoundingClientRect();
+        
+        // Calculate percentage coordinates
+        let x = ((e.clientX - rect.left) / rect.width) * 100;
+        let y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        // Constrain to bounds (0-95%)
+        x = Math.max(0, Math.min(x, 95)); 
+        y = Math.max(0, Math.min(y, 95));
+
+        activeSensor.style.left = `${x}%`; 
+        activeSensor.style.top = `${y}%`;
+    });
+
+    // Use 'window' or 'document' for pointerup to ensure 
+    // the release triggers even if the cursor leaves the container
+    window.addEventListener('pointerup', (e) => {
+        if (activeSensor) {
+            activeSensor.releasePointerCapture(e.pointerId);
+            savePosition(activeSensor); 
+            activeSensor = null; // Clear state
+        }
+    });
+
+    // 2. The loop now only handles the initial 'down' event
+    sensorsNodes.forEach(sensor => {
+        sensor.addEventListener('pointerdown', (e) => {
+            activeSensor = sensor; 
+            sensor.setPointerCapture(e.pointerId); 
+            e.preventDefault(); 
         });
     });
     
@@ -245,6 +322,7 @@
         });
     }
 
+    // Polling and layout management functions remain identical...
     function fetchMySensors() {
         fetch("{% url 'sensors:live_data' %}") 
         .then(res => res.json())
@@ -264,19 +342,19 @@
             }
         });
     }
-    setInterval(fetchMySensors, 1000);
+    setInterval(fetchMySensors, 2000);
 
-    function confirmDeleteLayout(layoutId, layoutName) {
-        if (confirm(`Delete "${layoutName}"?`)) {
-            fetch(`/delete-layout/${layoutId}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
-            }).then(res => res.json()).then(data => {
-                if (data.success) location.href = "{% url 'sensors:maps' %}";
-                else alert(data.message);
-            });
+        function confirmDeleteLayout(formElement) {
+            showPopup(
+                'warning', 
+                'Delete layout?', 
+                'Are you sure you want to delete this layout?<br>This action cannot be undone.',
+                function() {
+                    formElement.submit();
+                }
+            );
         }
-    }
+    // Edit/Delete JS remains the same...
 
     function openEditModal(id, name, imageUrl) {
         document.getElementById('edit_layout_id').value = id;
@@ -284,7 +362,6 @@
         document.getElementById('edit_layout_preview').src = imageUrl;
         new bootstrap.Modal(document.getElementById('editLayoutModal')).show();
     }
-
     function submitEditLayout() {
         const formData = new FormData(document.getElementById('editLayoutForm'));
         fetch("{% url 'sensors:edit_layout_ajax' %}", {
@@ -298,49 +375,56 @@
     }
 </script>
 
-
 {% elif role == 'firefighter' %}
 
-<div class="container-fluid mt-3">
-    <h4 class="fw-bold text-primary">
-        <i class="fas fa-fire-extinguisher text-danger"></i> 
-        Command Center - {{ user_profile.station.name|default:"HQ" }}
-    </h4>
+<div class="container-fluid mt-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bolder  mb-0">
+            <i class="fas fa-shield-alt text-primary me-2"></i> 
+            Command Center <span class="text-muted fs-6 fw-normal ms-2 d-none d-md-inline">| {{ user_profile.station.name|default:"HQ" }}</span>
+        </h4>
+    </div>
 
-<div id="user-map-container" class="map-wrapper">   
+    <div id="user-map-container" class="map-wrapper shadow-sm border">   
 
-    <div class="map-container-wrapper" id="fullscreen-target">
-        {% if missing_station_gps %}
-            <div id="setup-overlay" class="map-lockout-overlay">
-                <div id="step-1" class="setup-step">
-                    <i class="fas fa-map-marked-alt fa-4x mb-4 text-primary"></i>
-                    <h2>Station Location Required</h2>
-                    <p class="lead">Your station is not yet pinned on the map. This is required for AI dispatching.</p>
-                    <button class="btn btn-primary btn-lg btn-gps-setup" onclick="startStationSetup()">
-                        <i class="fas fa-location-arrow"></i> Start Setup
-                    </button>
-                </div>
-                <div id="step-2" class="setup-step" style="display:none;">
-                    <div class="alert alert-info">
-                        <i class="fas fa-mouse-pointer me-2"></i> 
-                        <strong>Click on the map</strong> exactly where <b>{{ user_profile.station.name }}</b> is located.
+        <div class="map-container-wrapper" id="fullscreen-target">
+            {% if missing_station_gps %}
+                <div id="setup-overlay" class="map-lockout-overlay  bg-opacity-75 d-flex justify-content-center align-items-center position-absolute w-100 h-100" style="z-index: 2000;">
+                    <div id="step-1" class="setup-step text-center  p-5 rounded-4 shadow-lg" style="max-width: 450px;">
+                        <i class="fas fa-map-marked-alt fa-4x mb-4 text-primary"></i>
+                        <h3 class="fw-bolder">Station Location Required</h3>
+                        <p class="text-muted mb-4">Your station is not yet pinned on the map. This is required for AI dispatching and coverage visualization.</p>
+                        <button class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm" onclick="startStationSetup()">
+                            <i class="fas fa-location-arrow me-2"></i> Set Location Now
+                        </button>
                     </div>
-                    <button class="btn btn-outline-light btn-sm mt-2" onclick="cancelSetup()">Cancel</button>
+                    <div id="step-2" class="setup-step text-center mt-3" style="display:none;">
+                        <div class="alert alert-primary shadow-lg border-0 fw-bold rounded-pill px-4">
+                            <i class="fas fa-crosshairs me-2 fa-spin"></i> Click on the map where <b>{{ user_profile.station.name }}</b> is located.
+                        </div>
+                        <button class="btn btn-dark rounded-pill shadow" onclick="location.reload()">Cancel</button>
+                    </div>
                 </div>
-            </div>
-        {% endif %}
-        <div id="map">
-            <div class="map-overlay-top-left">
-                <div class="style-switcher">
-                    <button class="map-btn active" onclick="switchStyle('streets', this)"><i class="fas fa-sun text-warning"></i> Light</button>
-                    <button class="map-btn" onclick="switchStyle('dark', this)"><i class="fas fa-moon text-secondary"></i> Dark</button>
-                    <button class="map-btn" onclick="switchStyle('satellite', this)"><i class="fas fa-satellite text-primary"></i> Satellite</button>
+            {% endif %}
+            
+            <div id="map">
+                <div class="map-overlay-top-left dropdown">
+                    <button class="map-layer-btn" type="button" id="layerDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Change Map Style">
+                        <i class="fas fa-layer-group"></i>
+                    </button>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 mt-2" aria-labelledby="layerDropdown">
+                        <li><h6 class="dropdown-header fw-bold text-uppercase small">Map Style</h6></li>
+                        <li><button class="dropdown-item fw-bold py-2" onclick="switchStyle('streets', this)"><i class="fas fa-map text-secondary me-2"></i> Streets (Light)</button></li>
+                        <li><button class="dropdown-item fw-bold py-2" onclick="switchStyle('dark', this)"><i class="fas fa-moon  me-2"></i> Dark Mode</button></li>
+                        <li><button class="dropdown-item fw-bold py-2" onclick="switchStyle('satellite', this)"><i class="fas fa-satellite text-success me-2"></i> Satellite</button></li>
+                    </ul>
                 </div>
-            </div>
-            <div class="map-overlay-top-right">
-                <div class="status-panel">
-                    <div class="status-item status-fire"><i class="fas fa-fire"></i> <span id="fire-count">0</span></div>
-                    <div class="status-item status-warn"><i class="fas fa-exclamation-triangle"></i> <span id="warning-count">0</span></div>
+
+                <div class="map-overlay-top-right">
+                    <div class="status-panel">
+                        <div class="status-item status-fire" title="Active Fires"><i class="fas fa-fire"></i> <span id="fire-count">0</span></div>
+                        <div class="status-item status-warn" title="Gas/Warnings"><i class="fas fa-exclamation-triangle"></i> <span id="warning-count">0</span></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -348,15 +432,15 @@
 </div>
 
 <div class="modal fade" id="layoutModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Live Incident Layouts</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header bg-danger  border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-bell me-2"></i> Live Incident Viewer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <ul class="nav nav-tabs" id="victimLayoutTabs" role="tablist"></ul>
-                <div class="tab-content border border-top-0 p-0 bg-dark" id="victimLayoutContent" style="height: 70vh; position: relative;"></div>
+            <div class="modal-body p-0 ">
+                <ul class="nav nav-tabs nav-fill  border-0" id="victimLayoutTabs" role="tablist"></ul>
+                <div class="tab-content " id="victimLayoutContent" style="height: 70vh; position: relative;"></div>
             </div>
         </div>
     </div>
@@ -371,25 +455,67 @@
         'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
     };
 
-    // Helper to get CSRF Token for Django POST requests
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
     const rawLat = "{{ station_lat|default:'' }}";
     const rawLng = "{{ station_lng|default:'' }}";
-    const INITIAL_VIEW = [103.0848, 1.8548]; 
-    const centerCoords = (rawLat && rawLng) ? [parseFloat(rawLng), parseFloat(rawLat)] : INITIAL_VIEW;
+    
+    // Fallback view just to render the map before GPS kicks in
+    const FALLBACK_VIEW = [101.5183, 3.0738]; 
+    const centerCoords = (rawLat && rawLng) ? [parseFloat(rawLng), parseFloat(rawLat)] : FALLBACK_VIEW;
 
     // --- 2. MAP INITIALIZATION ---
     const map = new maplibregl.Map({ 
         container: 'map', 
         style: STYLES.streets, 
         center: centerCoords, 
-        zoom: (rawLat && rawLng) ? 14 : 12, 
+        zoom: (rawLat && rawLng) ? 15 : 6, // Zoomed out slightly until GPS locates them
         pitch: 60, 
         antialias: true 
     });
 
     map.addControl(new maplibregl.FullscreenControl(), 'top-right');
-    map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+
+    // Add Native GPS "Current Location" Button
+    const geolocate = new maplibregl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true
+    });
+    map.addControl(geolocate, 'bottom-right');
+    map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'bottom-right');
+
+    // Automatically trigger GPS detection when the map loads IF the station isn't set yet
+    map.on('load', () => {
+        if (!rawLat || !rawLng) {
+            geolocate.trigger();
+        }
+    });
+
+    // Layer Switcher
+    window.switchStyle = function(styleName, btn) {
+        const layerBtnIcon = document.querySelector('#layerDropdown i');
+        layerBtnIcon.classList.add('fa-spin');
+        
+        map.setStyle(styleName === 'satellite' ? { 'version': 8, 'sources': { 'raster-tiles': { 'type': 'raster', 'tiles': [STYLES.satellite], 'tileSize': 256 } }, 'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}] } : STYLES[styleName]);
+        
+        map.once('styledata', () => {
+            layerBtnIcon.classList.remove('fa-spin');
+        });
+    };
 
     // --- 3. MODAL & POLLING LOGIC ---
     function escapeHTML(str) {
@@ -419,10 +545,8 @@
         const modal = new bootstrap.Modal(document.getElementById('layoutModal'));
         modal.show();
         
-        // Initial fetch
         fetchModalData(userId);
         
-        // Start polling while modal is open (Requirement 5)
         if (modalRefreshInterval) clearInterval(modalRefreshInterval);
         modalRefreshInterval = setInterval(() => fetchModalData(userId), 2000);
     };
@@ -435,7 +559,6 @@
                 const tabsContainer = document.getElementById('victimLayoutTabs');
                 const contentContainer = document.getElementById('victimLayoutContent');
                 
-                // Save which tab was open to prevent UI jump during refresh
                 const currentActive = tabsContainer.querySelector('.nav-link.active');
                 if (currentActive) lastActiveTabId = currentActive.id;
 
@@ -443,7 +566,7 @@
                 contentContainer.innerHTML = '';
 
                 if (data.layouts.length === 0) {
-                    contentContainer.innerHTML = '<div class="text-white p-5 text-center">No layouts found for this user.</div>';
+                    contentContainer.innerHTML = '<div class=" p-5 text-center w-100 h-100 d-flex flex-column justify-content-center align-items-center"><i class="fas fa-layer-group fa-3x mb-3 opacity-50"></i><h5>No layouts found for this location.</h5></div>';
                     return;
                 }
 
@@ -456,7 +579,7 @@
                     const li = document.createElement('li');
                     li.className = 'nav-item';
                     const btn = document.createElement('button');
-                    btn.className = `nav-link ${isActive} fw-bold`;
+                    btn.className = `nav-link ${isActive} fw-bold `;
                     btn.id = tabId;
                     btn.setAttribute('data-bs-toggle', 'tab');
                     btn.setAttribute('data-bs-target', `#content-${safeLayoutId}`);
@@ -474,20 +597,21 @@
 
                     const blueprintWrapper = document.createElement('div');
                     blueprintWrapper.className = 'blueprint-wrapper';
-                    blueprintWrapper.style.cssText = 'height:100%; width:100%; background-color: #0d1b2a; position: relative; overflow: hidden;';
+                    blueprintWrapper.style.cssText = 'height:100%; width:100%; background-color: #1a1a1a; position: relative; overflow: hidden;';
 
+                    // CRITICAL FIX: object-fit: fill ensures the image scales perfectly so pins don't float
                     const img = document.createElement('img');
                     img.src = safeSrc(layout.image_url);
                     img.className = 'blueprint-image';
-                    img.style.cssText = 'width:100%; height:100%; object-fit:fill; filter: invert(1); opacity:0.8;';
+                    img.style.cssText = 'width:100%; height:100%; object-fit:fill; filter: invert(1) grayscale(1) brightness(1.3); opacity:0.85; mix-blend-mode: screen;';
                     blueprintWrapper.appendChild(img);
 
                     layout.sensors.forEach((s, i) => {
                         const cssClass = (s.status || "").toLowerCase() === 'fire' ? 'bg-fire' :
-                                         ((s.status || "").toLowerCase() === 'warning' ? 'bg-warn' : 'bg-safe');
+                                         ((s.status || "").toLowerCase() === 'warning' || (s.status || "").toLowerCase() === 'gas leak' ? 'bg-warn' : 'bg-safe');
                         const sensorNode = document.createElement('div');
                         sensorNode.className = `sensor-node ${cssClass}`;
-                        sensorNode.style.cssText = `left:${safePercent(s.x)}%; top:${safePercent(s.y)}%; position:absolute;`;
+                        sensorNode.style.cssText = `left:${safePercent(s.x)}%; top:${safePercent(s.y)}%; position:absolute; pointer-events: none;`;
                         sensorNode.textContent = String(i + 1);
                         const label = document.createElement('div');
                         label.className = 'sensor-label';
@@ -503,7 +627,6 @@
         });
     }
 
-    // Stop polling when modal closes
     document.getElementById('layoutModal').addEventListener('hidden.bs.modal', () => {
         if (modalRefreshInterval) {
             clearInterval(modalRefreshInterval);
@@ -524,17 +647,10 @@
                 data.houses.forEach(house => {
                     if (house.lat === null || house.lng === null) return;
 
-                    // Normalize status to lowercase for comparison
                     let st = (house.status || "").toLowerCase();
-                    
-                    // Logic for counts: Check for both 'warning' AND 'gas leak'
-                    if (st === 'fire') {
-                        fireCount++;
-                    } else if (st === 'warning' || st === 'gas leak') {
-                        warnCount++;
-                    }
+                    if (st === 'fire') { fireCount++; } 
+                    else if (st === 'warning' || st === 'gas leak') { warnCount++; }
 
-                    // Logic for marker appearance
                     let cls = st === 'fire' ? 'marker-fire' : 
                               (st === 'warning' || st === 'gas leak' ? 'marker-warning' : 'marker-safe');
                     
@@ -553,7 +669,6 @@
                         el.innerHTML = icon;
                     }
                 });
-                // Update the UI counters
                 document.getElementById('fire-count').innerText = fireCount;
                 document.getElementById('warning-count').innerText = warnCount;
             }
@@ -564,10 +679,9 @@
 
     // --- 5. STATION SETUP ---
     window.startStationSetup = function() {
-        document.getElementById('setup-overlay').style.background = 'rgba(0,0,0,0.3)';
+        document.getElementById('setup-overlay').style.background = 'transparent';
         document.getElementById('setup-overlay').style.pointerEvents = 'none';
         document.getElementById('step-2').style.display = 'block';
-        document.getElementById('step-2').style.pointerEvents = 'auto';
         document.getElementById('step-1').style.display = 'none';
         window.isSetupMode = true;
     };
@@ -575,84 +689,55 @@
     map.on('click', (e) => {
         if (!window.isSetupMode) return;
 
-        // Fix: 'coords' was undefined. Use 'e.lngLat' from the click event.
         const clickedLat = e.lngLat.lat;
         const clickedLng = e.lngLat.lng;
         const stationName = "{{ user_profile.station.name|escapejs|default:'Station' }}";
 
-        if (confirm(`Pin ${stationName} at this location?`)) {
+        if (confirm(`Pin ${stationName} exactly at this location?`)) {
             fetch("{% url 'sensors:update_station_coords' %}", {
                 method: "POST",
                 headers: { 
                     'Content-Type': 'application/json', 
                     'X-CSRFToken': getCookie('csrftoken') 
                 },
-                body: JSON.stringify({ 
-                    lat: clickedLat, 
-                    lng: clickedLng 
-                })
+                body: JSON.stringify({ lat: clickedLat, lng: clickedLng })
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    alert("Station location saved!");
-                    location.reload();
-                } else {
-                    alert("Error: " + data.error);
-                }
-            })
-            .catch(err => {
-                console.error("Coordinate update failed:", err);
-                alert("Connection error. Please try again.");
-            });
+                if (data.success) { location.reload(); } 
+                else { alert("Error: " + data.error); }
+            }).catch(err => { alert("Connection error. Please try again."); });
         }
     });
 
-    window.switchStyle = function(styleName, btn) {
-        document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        map.setStyle(styleName === 'satellite' ? { 'version': 8, 'sources': { 'raster-tiles': { 'type': 'raster', 'tiles': [STYLES.satellite], 'tileSize': 256 } }, 'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}] } : STYLES[styleName]);
-    };
-    // --- 4. STATION MARKERS & COVERAGE ZONES (RESTORED) ---
+    // --- 6. STATION MARKERS & COVERAGE ZONES ---
     map.on('load', function() {
         {% for st in all_stations %}
         (function() {
-            // Safely parse coordinates from Django context
             const lng = parseFloat("{{ st.address.longitude }}");
             const lat = parseFloat("{{ st.address.latitude }}");
             
             if (isNaN(lng) || isNaN(lat)) return; 
 
             const name = "{{ st.name|escapejs }}";
-            // Calculate radius based on coverage area (sqm to km)
             const area = parseFloat("{{ st.cover_area_sqm|default:0 }}");
-            const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0; // Default 3km if area is 0
+            const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0; // 3km default
 
-            // Create custom HTML element for Fire Station icon
+            // Station Icon
             const el = document.createElement('div');
             el.innerHTML = '<i class="fas fa-building-shield"></i>';
             el.style.cssText = `
-                background: #0d6efd; 
-                width: 45px; 
-                height: 45px; 
-                border-radius: 50%; 
-                color: white; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                border: 3px solid white; 
-                box-shadow: 0 0 15px rgba(13, 110, 253, 0.6); 
-                font-size: 22px; 
-                cursor: pointer;
+                background: #0d6efd; width: 45px; height: 45px; border-radius: 50%; color: white; 
+                display: flex; align-items: center; justify-content: center; border: 3px solid white; 
+                box-shadow: 0 0 15px rgba(13, 110, 253, 0.6); font-size: 22px; cursor: pointer;
             `;
             
-            // Add Marker to Map
             new maplibregl.Marker({ element: el })
                 .setLngLat([lng, lat])
-                .setPopup(new maplibregl.Popup({offset: 25}).setText(name))
+                .setPopup(new maplibregl.Popup({offset: 25, className: 'fw-bold'}).setText(name))
                 .addTo(map);
 
-            // Add the blue Coverage Zone circle
+            // Coverage Zone Circle
             const sourceId = 'zone-{{ st.id }}';
             const circleData = createGeoJSONCircle([lng, lat], radius);
             
@@ -675,7 +760,7 @@
         {% endfor %}
     });
 
-    // Helper function to generate the circle geometry for the coverage zones
+    // GeoJSON circle math generator
     function createGeoJSONCircle(center, radiusInKm, points = 64) {
         if(!center || isNaN(center[0])) return null;
         const coords = { latitude: center[1], longitude: center[0] };
@@ -694,15 +779,11 @@
             "type": "geojson", 
             "data": { 
                 "type": "FeatureCollection", 
-                "features": [{ 
-                    "type": "Feature", 
-                    "geometry": { "type": "Polygon", "coordinates": [ret] } 
-                }] 
+                "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] 
             } 
         };
     }
 </script>
-
 {% endif %}
 
 {% endblock %}

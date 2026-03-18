@@ -18,7 +18,7 @@ class SignUpForm(UserCreationForm):
 class AddressUpdateForm(forms.ModelForm):
     class Meta:
         model = Address
-        fields = ["street", "city", "state", "postal_code"]
+        fields = ["street", "city", "state", "postal_code", "latitude", "longitude"]
 
 
 class UserUpdateForm(forms.ModelForm):

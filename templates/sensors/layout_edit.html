@@ -4,62 +4,71 @@
 {% block title %}Edit Floor Plan{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
+<div class="container mt-4 mb-5 pb-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
             
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-primary text-white text-center py-3">
-                    <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Layout</h4>
+            <div class="app-card p-4 p-md-5">
+                
+                <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                    <a href="{% url 'sensors:maps' %}?layout_id={{ layout.id }}" class="text-secondary text-decoration-none me-3" style="font-size: 1.25rem;">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                    <h4 class="fw-bolder mb-0 text-dark">Edit Blueprint</h4>
                 </div>
                 
-                <div class="card-body p-4">
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
 
-                        <div class="mb-4">
-                            <label for="id_name" class="form-label fw-bold">Floor Name</label>
-                            <input type="text" name="name" id="id_name" class="form-control form-control-lg" 
-                                   value="{{ form.name.value|default:layout.name }}" 
-                                   placeholder="e.g. Ground Floor" required>
-                            {% if form.name.errors %}
-                                <div class="text-danger small mt-1">{{ form.name.errors }}</div>
-                            {% endif %}
-                        </div>
+                    <div class="mb-4">
+                        <label for="id_name" class="form-label fw-bold text-muted small text-uppercase mb-2">Floor Name</label>
+                        <input type="text" name="name" id="id_name" class="form-control form-control-app fw-bold" 
+                               value="{{ form.name.value|default:layout.name }}" 
+                               placeholder="e.g. Ground Floor" required>
+                        {% if form.name.errors %}
+                            <div class="text-danger small mt-2 fw-bold"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
 
-                        <div class="mb-4 text-center">
-                            <label class="form-label fw-bold d-block text-muted">Current Blueprint</label>
-                            <div class="border rounded p-2 " style="display: inline-block;">
-                                <img src="{{ layout.image.url }}" alt="Current Layout" 
-                                     class="img-fluid" 
-                                     style="max-height: 250px; filter: invert(1) opacity(0.9);">
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="id_image" class="form-label fw-bold">Replace Blueprint (Optional)</label>
-                            <input type="file" name="image" id="id_image" class="form-control" accept="image/*" onchange="previewImage(this)">
-                            <div class="form-text">Leave empty to keep the current image.</div>
-                            {% if form.image.errors %}
-                                <div class="text-danger small mt-1">{{ form.image.errors }}</div>
+                    <div class="mb-5">
+                        <label class="form-label fw-bold text-muted small text-uppercase mb-2">Layout Image</label>
+                        
+                        <div class="upload-zone shadow-sm" onclick="document.getElementById('id_image').click()">
+                            {% if layout.image %}
+                                <img id="blueprint-preview" src="{{ layout.image.url }}" alt="Current Layout" class="img-fluid w-100 object-fit-cover" style="filter: invert(1) opacity(0.9);">
+                            {% else %}
+                                <img id="blueprint-preview" src="" alt="New Layout" class="img-fluid w-100 object-fit-cover d-none">
+                                <div id="empty-state-icon" class="text-muted text-center py-5">
+                                    <i class="fa-solid fa-map pt-2 pb-3 fa-3x opacity-50"></i>
+                                    <p class="mb-0 fw-bold">No blueprint uploaded</p>
+                                </div>
                             {% endif %}
                             
-                            <div id="new-preview-container" class="mt-3 text-center" style="display:none;">
-                                <label class="text-success fw-bold small">New Image Selected:</label><br>
-                                <img id="new-image-preview" src="#" class="img-fluid border border-success rounded" style="max-height: 150px;">
+                            <div class="upload-overlay">
+                                <i class="fa-solid fa-camera fa-2x mb-2"></i>
+                                <span class="fw-bold" id="upload-text">Tap to change blueprint</span>
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-5">
-                            <a href="{% url 'sensors:maps' %}?layout_id={{ layout.id }}" class="btn btn-outline-secondary px-4">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </a>
-                            <button type="submit" class="btn btn-primary px-5 fw-bold">
-                                <i class="fas fa-save me-2"></i>Save Changes
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                        <input type="file" name="image" id="id_image" class="d-none" accept="image/*" onchange="previewImage(this)">
+                        
+                        <div class="form-text text-center mt-2 small text-muted"><i class="fa-solid fa-circle-info me-1"></i>Supports JPG, PNG (Max 5MB)</div>
+                        
+                        {% if form.image.errors %}
+                            <div class="text-danger small mt-2 fw-bold text-center"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ form.image.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-between mt-2">
+                        <button type="submit" class="btn btn-bomba flex-grow-1 order-1 order-md-2">
+                            <i class="fa-solid fa-check me-2"></i> Save Changes
+                        </button>
+                        <a href="{% url 'sensors:maps' %}?layout_id={{ layout.id }}" class="btn btn-cancel flex-grow-1 order-2 order-md-1 text-center text-decoration-none">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
             </div>
 
         </div>
@@ -67,13 +76,31 @@
 </div>
 
 <script>
+    // Seamless Image Preview Update
     function previewImage(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
+            
             reader.onload = function(e) {
-                document.getElementById('new-image-preview').src = e.target.result;
-                document.getElementById('new-preview-container').style.display = 'block';
+                const previewImg = document.getElementById('blueprint-preview');
+                const emptyState = document.getElementById('empty-state-icon');
+                const uploadText = document.getElementById('upload-text');
+                
+                // Hide empty state icon if it exists
+                if (emptyState) emptyState.classList.add('d-none');
+                
+                // Show and update image
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('d-none');
+                
+                // Reset styling to ensure standard viewing for newly uploaded image
+                previewImg.style.filter = "none";
+                
+                // Update overlay text to confirm selection
+                uploadText.innerHTML = "Image updated. Tap to change again.";
+                uploadText.classList.add("text-success");
             }
+            
             reader.readAsDataURL(input.files[0]);
         }
     }
