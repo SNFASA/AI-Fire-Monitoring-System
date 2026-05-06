@@ -8,7 +8,7 @@ from sensors.utils import get_sensor_status, get_live_logs
 from sensors.views.api import test_log
 from django.contrib.auth.models import User
 
-
+# Note: Test For Alert and early Warning system is in test_api.py, and Map & Layout tests are in test_maps.py and test_layout.py respectively.
 class GetSensorStatusTestCase(TestCase):
     """Tests for get_sensor_status helper function"""
 
@@ -42,12 +42,12 @@ class GetSensorStatusTestCase(TestCase):
     # --- Test Cases ---
 
     def test_offline_no_logs(self):
-        """Sensor with no logs should return Offline"""
+        """TC-8-007: Sensor offline no logs."""
         status = get_sensor_status(self.sensor)
         self.assertEqual(status, "Offline")
 
     def test_offline_stale_data(self):
-        """Sensor with data older than 5 minutes should return Offline"""
+        """TC-8-008: Offline stale data."""
         old_time = timezone.now() - timedelta(minutes=6)
         # Use update() to force a specific timestamp (auto_now_add usually blocks manual setting)
         log = self.create_dummy_log(status="Safe", timestamp=old_time)
@@ -57,28 +57,28 @@ class GetSensorStatusTestCase(TestCase):
         self.assertEqual(status, "Offline")
 
     def test_returns_fire_status(self):
-        """Sensor with Fire status should return Fire"""
+        """TC-6-001: Fire status analysis."""
         recent_time = timezone.now() - timedelta(minutes=2)
         self.create_dummy_log(status="Fire", timestamp=recent_time, methane=800.0)
         status = get_sensor_status(self.sensor)
         self.assertEqual(status, "Fire")
 
     def test_returns_safe_status(self):
-        """Sensor with Safe status should return Safe"""
+        """TC-04-004 Sensor with Safe status should return Safe"""
         recent_time = timezone.now() - timedelta(minutes=2)
         self.create_dummy_log(status="Safe", timestamp=recent_time)
         status = get_sensor_status(self.sensor)
         self.assertEqual(status, "Safe")
 
     def test_normalizes_gasleak_status(self):
-        """GasLeak status should be normalized to 'gas leak'"""
+        """TC-04-005 GasLeak status should be normalized to 'gas leak'"""
         recent_time = timezone.now() - timedelta(minutes=2)
         self.create_dummy_log(status="GasLeak", timestamp=recent_time, methane=500.0)
         status = get_sensor_status(self.sensor)
         self.assertEqual(status, "Gas Leak")
 
     def test_returns_warning_status(self):
-        """Sensor with Warning status should return Warning"""
+        """TC-04-006 Sensor with Warning status should return Warning"""
         recent_time = timezone.now() - timedelta(minutes=2)
         self.create_dummy_log(status="Warning", timestamp=recent_time, methane=500.0)
         status = get_sensor_status(self.sensor)

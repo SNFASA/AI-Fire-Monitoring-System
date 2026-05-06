@@ -183,7 +183,7 @@ class AlertSystemTest(TestCase):
 @patch("sensors.views.api.predictor.predict")
 def test_missing_coordinates_sends_signed_link(self, mock_predict, mock_sms):
     """
-    Tests the 'if user_address.latitude is None' branch.
+    TC-04-009 Tests the 'if user_address.latitude is None' branch.
     Ensures a signed URL is generated and sent via SMS.
     """
     mock_predict.return_value = "Fire"
@@ -227,7 +227,7 @@ def test_missing_coordinates_sends_signed_link(self, mock_predict, mock_sms):
 @patch("sensors.views.api.async_to_sync")
 def test_gas_leak_alert_scenario(self, mock_async, mock_predict, mock_hav):
     """
-    Tests the 'ml_result in ["Fire", "Gas Leak"]' branch for Gas Leaks.
+    TC-04-008 Tests the 'ml_result in ["Fire", "Gas Leak"]' branch for Gas Leaks.
     """
     mock_predict.return_value = "Gas Leak"
     mock_hav.return_value = 0.5

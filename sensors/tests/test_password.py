@@ -48,6 +48,7 @@ class ChangePasswordTest(TestCase):
         self.assertContains(response, "error", count=None)
 
     def test_password_mismatch(self):
+        
         data = {
             "old_password": self.old_password,
             "new_password": "PasswordA123!",
