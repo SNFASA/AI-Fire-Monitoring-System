@@ -57,8 +57,8 @@ def reports_view(request):
     # 4. Context: Send the filter, the paginated objects, and the role to the template
     context = {
         "filter": report_filter,
-        "reports": page_obj,  # This matches {% for report in reports %} in HTML
-        "page_obj": page_obj, # This powers the Next/Prev buttons in HTML
+        "reports": page_obj,  
+        "page_obj": page_obj, 
         "user_role": user_role,
     }
 

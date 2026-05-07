@@ -34,12 +34,14 @@ class MaintenanceFilter(django_filters.FilterSet):
     maintenance_type = django_filters.CharFilter(method='filter_maintenance_type')
     frequency = django_filters.CharFilter(method='filter_frequency')
     search = django_filters.CharFilter(method='custom_search')
+    start_date = django_filters.DateFilter(field_name="scheduled_date", lookup_expr='date__gte')
+    end_date = django_filters.DateFilter(field_name="actual_date", lookup_expr='date__lte')
     
 
     class Meta:
         model = Maintenance
         # Only list fields that exist on the model or are defined above
-        fields = ['status', 'maintenance_type', 'frequency', 'scheduled_date']
+        fields = ['status', 'maintenance_type', 'frequency', 'scheduled_date', 'actual_date']
         
     # 2. Methods must be indented under the main class, NOT inside the Meta class
     def filter_status(self, queryset, name, value):
