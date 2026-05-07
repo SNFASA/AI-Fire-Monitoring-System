@@ -1,9 +1,12 @@
 import os
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
+from sensors.filters import ReportFilter
+from django.core.paginator import Paginator
 
 # Local Imports
 from ..models import (
@@ -22,31 +25,44 @@ def reports_view(request):
     user_profile = request.user.userprofile
     user_role = getattr(user_profile, "role", "public")
 
+    # 1. Base Queryset: Secure the data based on the user's role
     if user_role == "public":
-        reports = (
+        base_queryset = (
             Report.objects.filter(trigger_sensor__owner=request.user.userprofile)
             .select_related("address", "station", "trigger_sensor")
-            .prefetch_related("images")
+            .prefetch_related("images", "in_charge") 
             .order_by("-timestamp")
         )
     else:
         firefighter_station = getattr(user_profile, "station", None)
-
         if firefighter_station:
-            reports = (
+            base_queryset = (
                 Report.objects.filter(station=firefighter_station)
                 .select_related("address", "station", "trigger_sensor")
-                .prefetch_related("images")
+                .prefetch_related("images", "in_charge")
                 .order_by("-timestamp")
             )
         else:
-            reports = Report.objects.none()
+            base_queryset = Report.objects.none()
 
-    return render(
-        request,
-        "sensors/reports.html",
-        {"reports": reports, "user_role": user_role},
-    )
+    # 2. Apply Filters: Pass the secure base_queryset into your ReportFilter
+    report_filter = ReportFilter(request.GET, queryset=base_queryset)
+
+    # 3. Pagination: Apply pagination to the FILTERED results (.qs)
+    # We use 10 reports per page, you can change this number
+    paginator = Paginator(report_filter.qs, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 4. Context: Send the filter, the paginated objects, and the role to the template
+    context = {
+        "filter": report_filter,
+        "reports": page_obj,  # This matches {% for report in reports %} in HTML
+        "page_obj": page_obj, # This powers the Next/Prev buttons in HTML
+        "user_role": user_role,
+    }
+
+    return render(request, "sensors/reports.html", context)
 
 
 @login_required(login_url="login")
@@ -248,3 +264,29 @@ def handle_report_images(request, report_instance):
                 os.remove(img_obj.image.path)
 
         images_to_delete.delete()
+
+@login_required
+def filter_reports(request):
+    # Base queryset optimized with select_related
+    queryset = Report.objects.select_related(
+        'station', 'address', 'trigger_sensor'
+    ).all().order_by('-timestamp')
+    
+    # Apply the filters
+    report_filter = ReportFilter(request.GET, queryset=queryset)
+    
+    # Extract exactly the data needed for the JsonResponse
+    data = list(report_filter.qs.values(
+        'id', 
+        'fire_type', 
+        'cause', 
+        'description', 
+        'status', 
+        'is_approved',
+        'timestamp', 
+        'station__name', 
+        'address__full_address', # Ensure Address model has 'full_address' property/field
+        'trigger_sensor__name'
+    ))
+    
+    return JsonResponse({"success": True, "reports": data})

@@ -1,6 +1,6 @@
 {% extends "sensors/layout/master.html" %}
 {% load static %}
-
+{% load thumbnail %}
 {% block title %}Fire Incident Reports{% endblock %}
 
 {% block content %}
@@ -33,21 +33,77 @@
     {% if reports %}
     <div class="mb-4">
         <span class="badge bg-light text-dark border rounded-pill px-3 py-2 shadow-sm">
-            <i class="fa-solid fa-layer-group text-danger me-1"></i> {{ reports|length }} Total Incidents
+            <i class="fa-solid fa-layer-group text-danger me-1"></i> {{ page_obj.paginator.count }} Total Incidents
         </span>
     </div>
     {% endif %}
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-3">
+            <form method="get" class="row g-2 align-items-center">
+                
+                <!-- Search Input -->
+                <div class="col-lg-4 col-md-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-muted">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" 
+                               placeholder="Search ID or Sensor..." value="{{ request.GET.search }}">
+                    </div>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-lg-3 col-md-4 col-6">
+                    <select name="status" class="form-select text-muted">
+                        <option value="All" {% if request.GET.status == 'All' %}selected{% endif %}>All Statuses</option>
+                        <option value="System Detected" {% if request.GET.status == 'System Detected' %}selected{% endif %}>System Detected</option>
+                        <option value="Confirmed" {% if request.GET.status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="False Alarm" {% if request.GET.status == 'False Alarm' %}selected{% endif %}>False Alarm</option>
+                        <option value="Resolved" {% if request.GET.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                    </select>
+                </div>
+
+                <!-- Approval Filter -->
+                <div class="col-lg-2 col-md-3 col-6">
+                    <select name="is_approved" class="form-select text-muted">
+                        <option value="" {% if not request.GET.is_approved %}selected{% endif %}>All Approvals</option>
+                        <option value="true" {% if request.GET.is_approved == 'true' %}selected{% endif %}>Approved</option>
+                        <option value="false" {% if request.GET.is_approved == 'false' %}selected{% endif %}>Pending</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6 ">
+                    <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                </div>
+                <div class="col-lg-2 col-md-3 col-6 ">
+                    <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                </div>
+                <!-- Action Buttons -->
+                <div class="col-lg-auto col-md-2 col-6 ms-auto">
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm w-100">
+                        Filter
+                    </button>
+                </div>
+                <div class="col-lg-auto col-md-3 col-6">
+                    <a href="{% url 'sensors:reports' %}" class="btn btn-outline-secondary rounded-pill px-4 w-100">
+                        Clear
+                    </a>
+                </div>
+                
+            </form>
+        </div>
+    </div>
 
     <div class="row g-3">
         {% if reports %}
             {% for report in reports %}
             <div class="col-lg-6 col-12">
-                <div class="card app-card h-100  border-0 shadow-sm rounded-4">
+                <div class="card app-card h-100 border-0 shadow-sm rounded-4">
                     <div class="card-body p-3">
                         
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="pe-2">
-                                <h6 class="fw-bolder mb-0 ">{{ report.address|truncatechars:40 }}</h6>
+                                <h6 class="fw-bolder mb-0 ">{{ report.address|default:"Location Unspecified"|truncatechars:40 }}</h6>
                                 <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> {{ report.station.name|default:"External Unit" }}</small>
                             </div>
                             {% if user.userprofile.role == 'firefighter' %}
@@ -61,7 +117,7 @@
                         </div>
 
                         <div class="d-flex align-items-center gap-2 mb-3 " style="font-size: 0.8rem;">
-                            <span class="badge rounded-pill px-2 py-1   border border-danger-subtle fw-bold">
+                            <span class="badge rounded-pill px-2 py-1 border border-danger-subtle fw-bold text-dark">
                                 {{ report.status|default:"Filed"|upper }}
                             </span>
                             <span class="text-muted border-start ps-2">
@@ -69,16 +125,19 @@
                             </span>
                         </div>
 
-                        <div class="p-2 rounded-3  mb-3">
+                        <div class="p-2 rounded-3 mb-3 bg-light">
                             <small class="text-muted d-block" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Reported Cause</small>
-                            <span class="fw-bold" style="font-size: 0.9rem;">{{ report.cause }}</span>
+                            <span class="fw-bold" style="font-size: 0.9rem;">{{ report.cause|default:"Cause Under Investigation" }}</span>
                         </div>
 
                         {% if report.images.all %}
-                            <div class="swipe-row gap-2 mb-3 pb-1">
+                            <div class="d-flex gap-2 mb-3 pb-1 overflow-auto" style="scrollbar-width: thin;">
                                 {% for img in report.images.all %}
-                                    <div class="swipe-item shadow-sm rounded-3 overflow-hidden" onclick="openModal('{{ img.image.url }}')" style="cursor: pointer; width: 80px; height: 60px;">
-                                        <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover" alt="Scene">
+                                    <div class="shadow-sm rounded-3 overflow-hidden flex-shrink-0" onclick="openModal('{{ img.image.url }}')" style="cursor: pointer; width: 80px; height: 60px;">
+                                        <!-- Note: If you don't have sorl-thumbnail installed, revert this back to standard img tag -->
+                                        {% thumbnail img.image "160x120" crop="center" as im %}
+                                            <img src="{{ im.url }}" class="w-100 h-100 object-fit-cover" alt="Scene">
+                                        {% endthumbnail %}
                                     </div>
                                 {% endfor %}
                             </div>
@@ -94,7 +153,7 @@
                                 {% if report.in_charge %}{{ report.in_charge.username }}{% else %}Pending{% endif %}
                             </div>
 
-                            <a href="{% url 'sensors:report_detail' report.id %}" class="btn btn-sm btn-danger fw-bold  rounded-pill px-4 shadow-sm">
+                            <a href="{% url 'sensors:report_detail' report.id %}" class="btn btn-sm btn-danger fw-bold rounded-pill px-4 shadow-sm">
                                 View Full Report
                             </a>
                         </div>
@@ -103,17 +162,63 @@
                 </div>
             </div>
             {% endfor %}
+
+            <!-- BOOTSTRAP PAGINATION CONTROLS -->
+            {% if page_obj.has_other_pages %}
+            <div class="col-12 mt-4">
+                <nav aria-label="Report navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link text-danger rounded-start-pill" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.is_approved %}&is_approved={{ request.GET.is_approved }}{% endif %}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link rounded-start-pill">Previous</span>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item disabled">
+                            <span class="page-link text-dark bg-light border-danger-subtle">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link text-danger rounded-end-pill" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.is_approved %}&is_approved={{ request.GET.is_approved }}{% endif %}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link rounded-end-pill">Next</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
         {% else %}
             <div class="col-12 text-center py-5 mt-4">
-                <div class="d-inline-block  rounded-circle p-4 shadow-sm mb-3">
-                    <i class="fa-solid fa-fire-extinguisher fs-1 text-danger opacity-50"></i>
-                </div>
-                <h4 class="fw-bolder ">No Incidents Reported</h4>
-                <p class="text-muted mb-4">The record is currently empty. Great job on fire prevention!</p>
-                {% if user.userprofile.role == 'firefighter' %}
-                    <a href="{% url 'sensors:create_report' %}" class="btn btn-danger rounded-pill px-4 py-2 shadow-sm fw-bold">
-                        Create First Report
+                <!-- Check if specific filter parameters exist, not just any GET request -->
+                {% if request.GET.search or request.GET.status and request.GET.status != 'All' or request.GET.is_approved or request.GET.start_date or request.GET.end_date %}
+                    <div class="d-inline-block rounded-circle p-4 shadow-sm mb-3">
+                        <i class="fa-solid fa-magnifying-glass fs-1 text-secondary opacity-50"></i>
+                    </div>
+                    <h4 class="fw-bolder">No matching incidents found</h4>
+                    <p class="text-muted mb-4">Try adjusting your search terms or clearing the filters.</p>
+                    <a href="{% url 'sensors:reports' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                        Clear Filters
                     </a>
+                {% else %}
+                    <div class="d-inline-block rounded-circle p-4 shadow-sm mb-3">
+                        <i class="fa-solid fa-fire-extinguisher fs-1 text-danger opacity-50"></i>
+                    </div>
+                    <h4 class="fw-bolder">No Incidents Reported</h4>
+                    <p class="text-muted mb-4">The record is currently empty. Great job on fire prevention!</p>
+                    {% if user.userprofile.role == 'firefighter' %}
+                        <a href="{% url 'sensors:create_report' %}" class="btn btn-danger rounded-pill px-4 py-2 shadow-sm fw-bold">
+                            Create First Report
+                        </a>
+                    {% endif %}
                 {% endif %}
             </div>
         {% endif %}
@@ -121,7 +226,7 @@
 </div>
 
 {% if user.userprofile.role == 'firefighter' %}
-    <a href="{% url 'sensors:create_report' %}" class="btn btn-danger fab-btn d-md-none shadow-lg">
+    <a href="{% url 'sensors:create_report' %}" class="btn btn-danger fab-btn d-md-none shadow-lg position-fixed bottom-0 end-0 m-4 rounded-circle" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; z-index: 1000;">
         <i class="fa-solid fa-plus fs-3"></i>
     </a>
 {% endif %}
@@ -147,7 +252,6 @@
     }
     
     function confirmDelete(formElement) {
-        // Using your custom showPopup helper from the maintenance example
         if (typeof showPopup === "function") {
             showPopup(
                 'warning', 

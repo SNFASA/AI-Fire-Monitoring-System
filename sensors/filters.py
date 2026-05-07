@@ -34,7 +34,7 @@ class MaintenanceFilter(django_filters.FilterSet):
     maintenance_type = django_filters.CharFilter(method='filter_maintenance_type')
     frequency = django_filters.CharFilter(method='filter_frequency')
     search = django_filters.CharFilter(method='custom_search')
-    date_range = django_filters.CharFilter(method='filter_date_range')
+    
 
     class Meta:
         model = Maintenance
@@ -62,11 +62,7 @@ class MaintenanceFilter(django_filters.FilterSet):
             return queryset.filter(Q(id=value) | Q(sensor__name__icontains=value))
         return queryset.filter(sensor__name__icontains=value)
     
-    def filter_date_range(self, queryset, name, value):
-        if ',' in value:
-            start_date, end_date = value.split(',')
-            return queryset.filter(scheduled_date__range=[start_date, end_date])
-        return queryset
+    
 
 
 class ReportFilter(django_filters.FilterSet):
@@ -75,7 +71,8 @@ class ReportFilter(django_filters.FilterSet):
     # 1. Use the built-in BooleanFilter (no custom method needed!)
     is_approved = django_filters.BooleanFilter()
     
-    date_range = django_filters.CharFilter(method='filter_date_range')
+    start_date = django_filters.DateFilter(field_name="timestamp", lookup_expr='date__gte')
+    end_date = django_filters.DateFilter(field_name="timestamp", lookup_expr='date__lte')
     search = django_filters.CharFilter(method='custom_search')
 
     class Meta:
@@ -99,3 +96,5 @@ class ReportFilter(django_filters.FilterSet):
         if value.isdigit():
             return queryset.filter(Q(id=value) | Q(trigger_sensor__name__icontains=value))
         return queryset.filter(trigger_sensor__name__icontains=value)
+    
+    
