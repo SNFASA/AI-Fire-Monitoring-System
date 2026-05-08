@@ -41,7 +41,7 @@ class MobilizationCoverageTest(TestCase):
         self.url = reverse("sensors:mobilize_team", args=[self.report.id])
 
     def test_mobilize_success(self):
-        """Covers success path: FF A mobilizes Team A for Report A."""
+        """TC-3-001: Success path: FF mobilizes Team."""
         # Put FF A on duty
         DutyAssignmentFactory(
             firefighter=self.ff_a,
@@ -59,7 +59,7 @@ class MobilizationCoverageTest(TestCase):
         self.assertEqual(self.report.mobilized_team.count(), 1)
 
     def test_mobilize_unauthorized_station(self):
-        """Covers the 403 authorization check branch."""
+        """TC-3-002: 403 authorization check."""
         # FF B tries to mobilize Report A (different station)
         self.client.login(username=self.ff_b.user.username, password="password123")
         response = self.client.post(self.url)
@@ -68,7 +68,7 @@ class MobilizationCoverageTest(TestCase):
         self.assertIn("Unauthorized", response.json()["error"])
 
     def test_mobilize_no_one_on_duty(self):
-        """Covers the if not active_duties.exists() branch."""
+        """TC-3-003: No active duties."""
         # No duty assignments created for Station A
         self.client.login(username=self.ff_a.user.username, password="password123")
         response = self.client.post(self.url)

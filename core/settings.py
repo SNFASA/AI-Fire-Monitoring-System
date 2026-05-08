@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import environ
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 import os
@@ -17,17 +18,21 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env(DEBUG=(bool, False))
+
+# Read .env file
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-change-this-key-for-production-usage"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 # Authentication settings
 LOGIN_REDIRECT_URL = "sensors:home"  # Add the namespace here
 LOGIN_URL = "sensors:login"  # Recommended to namespace this too
@@ -45,6 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "channels",
+    "django.contrib.gis",
     "sensors",
     "django_extensions",
 ]
@@ -82,15 +88,19 @@ ASGI_APPLICATION = "core.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+GDAL_LIBRARY_PATH = (
+    r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"  # UPDATE THIS EXACT NAME
+)
+GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.getenv("DB_NAME", "fire_monitoring_db"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "SYED13@nabil15"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST"),
+        "PORT": env("DB_PORT"),
     }
 }
 
@@ -155,8 +165,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "envtest0413@gmail.com"  # Your real email
-EMAIL_HOST_PASSWORD = "cbbrcltwmbhngsoe"  # Paste the 16-char App Password here (NOT your normal Gmail password)ord'
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 MAIL_FROM_NAME = "AI Fire Monitoring System"
 
 JAZZMIN_SETTINGS = {
@@ -309,7 +319,22 @@ CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
 # core/settings.py (Scroll to bottom)
 
 # --- TWILIO SMS SETTINGS ---
-TWILIO_ACCOUNT_SID = "AC0946487b8bf38665232ae8c37af3bd94"  # Paste your SID here
-TWILIO_AUTH_TOKEN = "397f47ab54e8d4ab9854af9818bf2749"  # Paste your Token here
-TWILIO_WHATSAPP_FROM = "whatsapp:+14155238886"  # The Sandbox Number
-TWILIO_CONTENT_SID = "HXb5b62575e6e4ff6129ad7c8efe1f983e"  # Your Template ID
+TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN")
+TWILIO_WHATSAPP_FROM = env("TWILIO_WHATSAPP_FROM")
+TWILIO_CONTENT_SID = env("TWILIO_CONTENT_SID")
+
+
+# Celery Configuration (Points to local RabbitMQ)
+CELERY_BROKER_URL = "amqp://localhost"
+
+# The 2-Hour Schedule
+CELERY_BEAT_SCHEDULE = {
+    "fetch-nasa-data-every-2-hours": {
+        "task": "your_fire_app.tasks.update_malaysia_hotspots",
+        "schedule": 7200.0,  # 2 hours in seconds
+    },
+}
+
+MAP_KEY = env("MAP_KEY")
+REGION_BBOX = env("REGION_BBOX")

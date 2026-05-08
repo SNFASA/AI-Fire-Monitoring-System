@@ -30,7 +30,102 @@
             </a>
         {% endif %}
     </div>
+        {% if maintenance_items %}
+            <div class="mb-4">
+                <span class="badge  text-dark border rounded-pill px-3 py-2 shadow-sm">
+                    <i class="fa-solid fa-layer-group text-danger me-1"></i> {{ page_obj.paginator.count }} Total Maintenance
+                </span>
+            </div>
+        {%endif%}
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-3 p-md-4">
+            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                <i class="fa-solid fa-filter text-muted me-2"></i>
+                <h6 class="mb-0 fw-bold text-secondary">Filter Maintenances</h6>
+            </div>
 
+            <form method="get" class="row g-3">
+                
+                <!-- 1. Search Input -->
+                <div class="col-12 col-lg-3">
+                    <label class="form-label small text-muted fw-bold mb-1 d-none d-md-block">Search</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0 text-muted">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" 
+                            placeholder="Search ID or Sensor..." value="{{ request.GET.search }}">
+                    </div>
+                </div>
+                <!-- 2. Status Filter -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label class="form-label small text-muted fw-bold mb-1 d-none d-md-block">Status</label>
+                    <select name="status" class="form-select text-muted">
+                        <option value="All" {% if request.GET.status == 'All' %}selected{% endif %}>All Statuses</option>
+                        
+                        <!-- FIXED: Values now exactly match the DB strings! -->
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                        <option value="completed_with_damages" {% if request.GET.status == 'completed_with_damages' %}selected{% endif %}>Damaged</option>
+                    </select>
+                </div>
+
+                <!-- 3. Maintenance Type Filter -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label class="form-label small text-muted fw-bold mb-1 d-none d-md-block">Type</label>
+                    <select name="maintenance_type" class="form-select text-muted">
+                        <option value="All" {% if request.GET.maintenance_type == 'All' %}selected{% endif %}>All Types</option>
+                        <option value="HealthCheck" {% if request.GET.maintenance_type == 'HealthCheck' %}selected{% endif %}>Health Check</option>
+                        <option value="Connectivity" {% if request.GET.maintenance_type == 'Connectivity' %}selected{% endif %}>Connectivity</option>
+                        <option value="AlarmTest" {% if request.GET.maintenance_type == 'AlarmTest' %}selected{% endif %}>Alarm Test</option>
+                        <option value="FullAudit" {% if request.GET.maintenance_type == 'FullAudit' %}selected{% endif %}>Full Audit</option>
+                        <option value="Repair" {% if request.GET.maintenance_type == 'Repair' %}selected{% endif %}>Repair</option>
+                    </select>
+                </div>
+                
+                <!-- 4. Frequency Filter -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label class="form-label small text-muted fw-bold mb-1 d-none d-md-block">Frequency</label>
+                    <select name="frequency" class="form-select text-muted">
+                        <option value="All" {% if request.GET.frequency == 'All' %}selected{% endif %}>All Freq</option>
+                        <option value="adHoc" {% if request.GET.frequency == 'adHoc' %}selected{% endif %}>Ad Hoc</option>
+                        <option value="monthly" {% if request.GET.frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                        <option value="quarterly" {% if request.GET.frequency == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                        <option value="yearly" {% if request.GET.frequency == 'yearly' %}selected{% endif %}>Yearly</option>
+                    </select>
+                </div>
+
+                <!-- 5. Date Range -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="form-label small text-muted fw-bold mb-1 d-none d-md-block">Date Range</label>
+                    <div class="input-group">
+                        <span class="input-group-text text-muted small border-end-0">From</span>
+                        <input type="date" name="start_date" class="form-control text-muted border-start-0" 
+                            value="{{ request.GET.start_date }}" aria-label="Start Date">
+                        
+                        <span class="input-group-text text-muted small border-end-0 border-start-0">To</span>
+                        <input type="date" name="end_date" class="form-control text-muted border-start-0" 
+                            value="{{ request.GET.end_date }}" aria-label="End Date">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-12 mt-4 pt-2">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'sensors:maintenance' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                            Clear Filters
+                        </a>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+                
+            </form>
+        </div>
+    </div>
     <div class="row g-3">
         {% if maintenance_items %}
             {% for item in maintenance_items %}
@@ -98,17 +193,61 @@
                 </div>
             </div>
             {% endfor %}
+            <!-- BOOTSTRAP PAGINATION CONTROLS -->
+            {% if page_obj.has_other_pages %}
+            <div class="col-12 mt-4">
+                <nav aria-label="maintenance navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link text-danger rounded-start-pill" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.maintenance_type %}&maintenance_type={{ request.GET.maintenance_type }}{% endif %}{% if request.GET.frequency %}&frequency={{ request.GET.frequency }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link rounded-start-pill">Previous</span>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item disabled">
+                            <span class="page-link text-dark  border-danger-subtle">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link text-danger rounded-end-pill" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.maintenance_type %}&maintenance_type={{ request.GET.maintenance_type }}{% endif %}{% if request.GET.frequency %}&frequency={{ request.GET.frequency }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link rounded-end-pill">Next</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
         {% else %}
             <div class="col-12 text-center py-5 mt-4">
-                <div class="d-inline-block bg-white rounded-circle p-4 shadow-sm mb-3">
-                    <i class="fa-solid fa-clipboard-check fs-1 text-danger opacity-50"></i>
-                </div>
-                <h4 class="fw-bolder text-dark">No Records Found</h4>
-                <p class="text-muted mb-4">You're all caught up! There are no maintenance tasks at the moment.</p>
-                {% if user.userprofile.role == 'public' %}
-                    <a href="{% url 'sensors:maintenance_create' %}" class="btn btn-danger text-white rounded-pill px-4 py-2 shadow-sm fw-bold">
-                        Create First Request
+                <!-- Check if specific filter parameters exist, not just any GET request -->
+                {% if request.GET.search or request.GET.status and request.GET.status != 'All' or request.GET.maintenance_type or request.GET.frequency or request.GET.start_date or request.GET.end_date %}
+                    <div class="d-inline-block rounded-circle p-4 shadow-sm mb-3">
+                        <i class="fa-solid fa-magnifying-glass fs-1 text-secondary opacity-50"></i>
+                    </div>
+                    <h4 class="fw-bolder">No matching incidents found</h4>
+                    <p class="text-muted mb-4">Try adjusting your search terms or clearing the filters.</p>
+                    <a href="{% url 'sensors:maintenance' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                        Clear Filters
                     </a>
+                {% else %}
+                    <div class="d-inline-block rounded-circle p-4 shadow-sm mb-3">
+                        <i class="fa-solid fa-fire-extinguisher fs-1 text-danger opacity-50"></i>
+                    </div>
+                    <h4 class="fw-bolder">No Maintenance Records</h4>
+                    <p class="text-muted mb-4">The record is currently empty. Great job on fire prevention!</p>
+                    {% if user.userprofile.role == 'firefighter' %}
+                        <a href="{% url 'sensors:maintenance_create' %}" class="btn btn-danger rounded-pill px-4 py-2 shadow-sm fw-bold">
+                            Create First Maintenance Record
+                        </a>
+                    {% endif %}
                 {% endif %}
             </div>
         {% endif %}

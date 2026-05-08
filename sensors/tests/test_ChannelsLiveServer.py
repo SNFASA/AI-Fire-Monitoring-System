@@ -57,7 +57,7 @@ class ConsumerSecurityTest(TransactionTestCase):
         await communicator.disconnect()
 
     async def test_successful_connection_and_alert(self):
-        """Covers: The success path and the fire_alert method"""
+        """TC-04-007 Covers: The success path and the fire_alert method"""
 
         @database_sync_to_async
         def setup_valid_firefighter():

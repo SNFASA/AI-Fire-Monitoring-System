@@ -19,10 +19,12 @@ class RegistrationTest(TestCase):
         }
 
     def test_register_user_success(self):
+        # TC-1-001: Create new user with valid data.
         response = self.client.post(self.url, self.valid_data)
         self.assertRedirects(response, reverse("sensors:login"))
 
     def test_register_duplicate_username(self):
+        # TC-1-002: Duplicate username fails.
         UserFactory(username="taken_user")
         data = self.valid_data.copy()
         data["username"] = "taken_user"
@@ -30,7 +32,7 @@ class RegistrationTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_register_passwords_dont_match(self):
-        """FIXED: Matched the exact error string from your logs"""
+        # TC-1-003: Non-matching passwords fail.
         data = self.valid_data.copy()
         data["password2"] = "DifferentPass123!"
         response = self.client.post(self.url, data)
@@ -52,6 +54,7 @@ class LoginTest(TestCase):
         self.url = reverse("sensors:login")
 
     def test_login_success(self):
+        "TC-01-004a: Successful login with valid credentials should redirect to home."
         response = self.client.post(
             self.url, {"username": self.user.username, "password": self.password}
         )
@@ -60,7 +63,7 @@ class LoginTest(TestCase):
         self.assertRedirects(response, reverse("sensors:home"))
 
     def test_login_firefighter_redirect(self):
-        """FIXED: Ensure the role change is saved before the POST"""
+        """TC-01-004b: Login as firefighter should redirect to firefighter home."""
         self.profile.role = "firefighter"
         self.profile.save()
 
@@ -85,6 +88,7 @@ class AuthExtraTest(TestCase):
         self.assertRedirects(response, reverse("sensors:login"))
 
     def test_change_password_success(self):
+        "TC-01-005: Change password should redirect to login."
         data = {
             "old_password": self.password,
             "new_password": "new_pass_456",
@@ -97,6 +101,7 @@ class AuthExtraTest(TestCase):
         self.assertTrue(self.user.check_password("new_pass_456"))
 
     def test_change_password_wrong_old(self):
+        
         data = {
             "old_password": "wrong_old_pass",
             "new_password": "new_pass_456",

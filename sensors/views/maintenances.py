@@ -1,8 +1,11 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.core.exceptions import PermissionDenied
+from sensors.filters import MaintenanceFilter
+from django.core.paginator import Paginator
 
 # Local Imports
 from ..models import (
@@ -54,11 +57,20 @@ def maintenance_view(request):
             )
         else:
             maintenances = Maintenance.objects.none()
+    maintenances_filter = MaintenanceFilter(request.GET, queryset=maintenances)
+    paginator = Paginator(maintenances_filter.qs,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     return render(
         request,
         "sensors/maintenance.html",
-        {"maintenance_items": maintenances, "user_role": user_role},
+        {
+            "maintenance_items": page_obj, 
+            "user_role": user_role, 
+            "page_obj": page_obj, 
+            "maintenance_filter": maintenances_filter
+        },
     )
 
 
@@ -170,3 +182,19 @@ def delete_maintenance(request, maintenance_id):
     _check_maintenance_access(request, maintenance)
     maintenance.delete()
     return redirect("sensors:maintenance")
+
+@login_required
+def filter_maintenances(request):
+    queryset = Maintenance.objects.select_related('sensor').all().order_by('-scheduled_date')
+    maintenance_filter = MaintenanceFilter(request.GET, queryset=queryset)
+    data = list(maintenance_filter.qs.values(
+        'id',
+        'sensor__name',
+        'maintenance_type', 
+        'frequency', 
+        'status', 
+        'scheduled_date',
+        'actual_date',
+        
+    ))
+    return JsonResponse({"success": True, "maintenances": data})

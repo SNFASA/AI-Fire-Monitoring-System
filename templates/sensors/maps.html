@@ -161,25 +161,53 @@
                         </div>
 
                         {% if current_layout %}
-                        <div class="card-body  rounded-4 shadow-sm p-0 overflow-hidden d-flex flex-column mt-auto" style="max-height: 40vh;">
-                            <div class="p-3  border-bottom">
-                                <h6 class="fw-bolder mb-0 "><i class="fas fa-microchip text-success me-2"></i> Sensors ({{ current_layout.name }})</h6>
+                        <div class="card border-0 rounded-4 shadow-sm mt-auto">
+                            <!-- Search & Filter Header -->
+                            <div class="p-3 rounded-top-4 border-bottom">
+                                <div class="input-group shadow-sm rounded-pill border overflow-hidden mb-3">
+                                    <span class="input-group-text border-0 ps-3">
+                                        <i class="fas fa-search text-muted small"></i>
+                                    </span>
+                                    <input type="text" id="sensorSearch" class="form-control border-0 shadow-none py-2" 
+                                        placeholder="Search Name or ID..." onkeyup="triggerFilter()" style="font-size: 0.85rem;">
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-1" id="statusFilterButtons">
+                                    <button class="btn btn-xs rounded-pill status-btn active btn-dark" data-status="All" onclick="setFilterStatus('All', this)">All</button>
+                                    <button class="btn btn-xs rounded-pill status-btn btn-outline-danger" data-status="Fire" onclick="setFilterStatus('Fire', this)">Fire</button>
+                                    <button class="btn btn-xs rounded-pill status-btn btn-outline-warning" data-status="Gas Leak" onclick="setFilterStatus('Gas Leak', this)">Gas</button>
+                                    <button class="btn btn-xs rounded-pill status-btn btn-outline-warning" data-status="Warning" onclick="setFilterStatus('Warning', this)">Warn</button>
+                                    <button class="btn btn-xs rounded-pill status-btn btn-outline-success" data-status="Safe" onclick="setFilterStatus('Safe', this)">Safe</button>
+                                    <button class="btn btn-xs rounded-pill status-btn btn-outline-secondary" data-status="Offline" onclick="setFilterStatus('Offline', this)">Off</button>
+                                </div>
                             </div>
-                            <ul class="list-group list-group-flush small overflow-auto">
-                                {% for sensor in sensors %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge  rounded-circle me-3" style="width: 24px; height:24px; display:flex; align-items:center; justify-content:center;">{{ forloop.counter }}</span>
-                                        <span class="fw-bold " style="font-size: 0.95rem;">{{ sensor.name }}</span>
+
+                            <!-- Sensor List Area -->
+                            <div class=">
+                                <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.65rem;">Devices on Floor</span>
+                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;" id="matchCount">{{ sensors|length }}</span>
+                                </div>
+                                
+                                <div class="overflow-auto" style="max-height: 30vh;" id="sidebarSensorList">
+                                    <ul class="list-group list-group-flush">
+                                        {% for sensor in sensors %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3 sensor-list-item" id="list-item-{{ sensor.id }}">
+                                            <div class="d-flex align-items-center overflow-hidden">
+                                                <div class="small fw-bold text-muted me-2">#{{ forloop.counter }}</div>
+                                                <span class="fw-semibold small text-truncate">{{ sensor.name }}</span>
+                                            </div>
+                                            <span class="badge rounded-pill sensor-badge-{{ sensor.id }} {% if sensor.last_status == 'Fire' %}bg-danger{% elif sensor.last_status == 'Safe' %}bg-success{% else %}bg-warning{% endif %}" style="font-size: 0.65rem;">
+                                                {{ sensor.last_status }}
+                                            </span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <div id="noResults" class="p-4 text-center d-none">
+                                        <p class="small text-muted mb-0">No sensors found</p>
                                     </div>
-                                    {% with status=sensor.readings.last.status|default:"Safe" %}
-                                        <span class="badge rounded-pill px-3 py-2 shadow-sm {% if status == 'Fire' %}bg-danger animate-pulse{% elif status == 'Warning' %}bg-warning {% elif status == 'Offline' %}bg-secondary{% else %}bg-success{% endif %}">
-                                            {{ status }}
-                                        </span>
-                                    {% endwith %}
-                                </li>
-                                {% endfor %}
-                            </ul>
+                                </div>
+                            </div>
                         </div>
                         {% endif %}
 
@@ -324,6 +352,7 @@
 
     // Polling and layout management functions remain identical...
     function fetchMySensors() {
+        triggerFilter();
         fetch("{% url 'sensors:live_data' %}") 
         .then(res => res.json())
         .then(data => {
@@ -372,6 +401,97 @@
             if (data.success) location.reload();
             else alert(data.message);
         });
+    }
+    let activeStatusFilter = 'All';
+
+    function setFilterStatus(status, buttonElement) {
+        activeStatusFilter = status;
+        
+        document.querySelectorAll('.status-btn').forEach(btn => {
+            btn.classList.remove('active', 'btn-dark', 'btn-danger', 'btn-warning', 'btn-success', 'btn-secondary');
+            let s = btn.dataset.status;
+            if(s === 'All') btn.classList.add('btn-outline-dark');
+            else if(s === 'Fire') btn.classList.add('btn-outline-danger');
+            else if(s === 'GasLeak' || s === 'Warning') btn.classList.add('btn-outline-warning');
+            else if(s === 'Safe') btn.classList.add('btn-outline-success');
+            else if(s === 'Offline') btn.classList.add('btn-outline-secondary');
+        });
+
+        buttonElement.classList.add('active');
+        let baseClass = buttonElement.className.match(/btn-outline-[a-z\-]+/);
+        if(baseClass) {
+            buttonElement.classList.remove(baseClass[0]);
+            buttonElement.classList.add(baseClass[0].replace('outline-', ''));
+        }
+        triggerFilter();
+    }
+
+    function triggerFilter() {
+        const searchTerm = document.getElementById('sensorSearch').value;
+        const currentLayoutId = "{{ current_layout.id|default:'' }}"; 
+        
+        // Use 'status' to match the filter class, and handle 'Gas Leak'
+        let url = `/api/filters_sensor/?q=${encodeURIComponent(searchTerm)}`;
+        
+        if (activeStatusFilter !== 'All') {
+            // Send "Gas Leak" exactly as stored in DB
+            let statusQuery = activeStatusFilter === 'GasLeak' ? 'Gas Leak' : activeStatusFilter;
+            url += `&status=${encodeURIComponent(statusQuery)}`;
+        }
+        if (currentLayoutId) url += `&layout=${currentLayoutId}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if(data.sensors) {
+                    const validIds = new Set(data.sensors.map(s => s.id.toString()));
+                    document.getElementById('matchCount').innerText = validIds.size;
+
+                    data.sensors.forEach(s => {
+                        const nodeId = s.id.toString();
+                        const status = s.status; // Real-time status from backend
+                        
+                        // 1. Update Map Nodes
+                        const node = document.getElementById(`sensor-${nodeId}`);
+                        if(node) {
+                            node.style.display = 'flex'; 
+                            node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline');
+                            if(status === 'Fire') node.classList.add('bg-fire');
+                            else if(status === 'Gas Leak' || status === 'Warning') node.classList.add('bg-warn');
+                            else if(status === 'Offline') node.classList.add('bg-offline');
+                            else node.classList.add('bg-safe');
+                        }
+
+                        // 2. Update Sidebar List Items & Badges
+                        const listItem = document.getElementById(`list-item-${nodeId}`);
+                        if(listItem) {
+                            listItem.classList.replace('d-none', 'd-flex');
+                            
+                            // Find the badge inside this list item and update it
+                            const badge = listItem.querySelector('.badge');
+                            if(badge) {
+                                badge.innerText = status;
+                                badge.className = 'badge rounded-pill'; // Reset
+                                if(status === 'Fire') badge.classList.add('bg-danger');
+                                else if(status === 'Gas Leak' || status === 'Warning') badge.classList.add('bg-warning', ');
+                                else if(status === 'Offline') badge.classList.add('bg-secondary');
+                                else badge.classList.add('bg-success');
+                            }
+                        }
+                    });
+
+                    // Hide items not in the search/filter result
+                    document.querySelectorAll('.sensor-list-item').forEach(li => {
+                        const id = li.id.split('-')[2];
+                        if(!validIds.has(id)) li.classList.replace('d-flex', 'd-none');
+                    });
+                    
+                    document.querySelectorAll('.sensor-node').forEach(node => {
+                        const id = node.id.split('-')[1];
+                        if(!validIds.has(id)) node.style.display = 'none';
+                    });
+                }
+            });
     }
 </script>
 

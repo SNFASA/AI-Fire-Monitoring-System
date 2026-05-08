@@ -17,7 +17,7 @@ class ProfileTest(TestCase):
         self.url = reverse("sensors:profile")
 
     def test_profile_view_get(self):
-        """Covers the GET branch and UserProfile.objects.get_or_create"""
+        """TC-2-001: GET view with profile creation."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertIn("u_form", response.context)
@@ -25,7 +25,7 @@ class ProfileTest(TestCase):
         self.assertIn("a_form", response.context)
 
     def test_profile_update_success_with_new_address(self):
-        """Covers form.is_valid() and the logic for creating an address if missing"""
+        """TC-2-002: Update with new address."""
         # Ensure profile starts with no address to trigger that specific 'if' branch
         self.profile.address = None
         self.profile.save()
