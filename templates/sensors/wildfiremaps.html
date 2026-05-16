@@ -1,0 +1,352 @@
+{% extends "sensors/layout/master.html" %}
+{% load static %}
+
+{% block title %}
+    {% if role == 'firefighter' %}WildFire Monitoring{% else %}My House Layout{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bolder mb-0">
+            <i class="fas fa-shield-alt text-primary me-2"></i> 
+            Command Center <span class="text-muted fs-6 fw-normal ms-2 d-none d-md-inline">| {{ user_profile.station.name|default:"HQ" }}</span>
+        </h4>
+    </div>
+
+    <div id="user-map-container" class="map-wrapper shadow-sm border">   
+        <div class="map-container-wrapper" id="fullscreen-target" style="position: relative;">
+            
+            <!-- Setup Overlay (Disembunyikan secara lalai, dikawal oleh JS) -->
+            <div id="setup-overlay" class="map-lockout-overlay bg-dark bg-opacity-75 justify-content-center align-items-center position-absolute w-100 h-100" style="z-index: 2000; display: none;">
+                <div id="step-1" class="setup-step text-center p-5 bg-white rounded-4 shadow-lg" style="max-width: 450px;">
+                    <i class="fas fa-map-marked-alt fa-4x mb-4 text-primary"></i>
+                    <h3 class="fw-bolder text-dark">Station Location Required</h3>
+                    <p class="text-muted mb-4">Your station is not yet pinned on the map. This is required for coverage visualization and proximity analysis.</p>
+                    <button class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm" onclick="startStationSetup()">
+                        <i class="fas fa-location-arrow me-2"></i> Set Location Now
+                    </button>
+                </div>
+                <div id="step-2" class="setup-step text-center mt-3" style="display:none;">
+                    <div class="alert alert-primary shadow-lg border-0 fw-bold rounded-pill px-4">
+                        <i class="fas fa-crosshairs me-2 fa-spin"></i> Click on the map where <b>{{ user_profile.station.name }}</b> is located.
+                    </div>
+                    <button class="btn btn-dark rounded-pill shadow" onclick="location.reload()">Cancel</button>
+                </div>
+            </div>
+            
+            <div id="map" style="height: 70vh; width: 100%;">
+                <!-- Layer Control -->
+                <div class="map-overlay-top-left dropdown position-absolute m-3" style="z-index: 1000;">
+                    <button class="btn btn-light shadow-sm map-layer-btn" type="button" id="layerDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Change Map Style">
+                        <i class="fas fa-layer-group"></i>
+                    </button>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 mt-2" aria-labelledby="layerDropdown">
+                        <li><h6 class="dropdown-header fw-bold text-uppercase small">Map Style</h6></li>
+                        <li><button class="dropdown-item fw-bold py-2" onclick="switchStyle('streets', this)"><i class="fas fa-map text-secondary me-2"></i> Streets (Light)</button></li>
+                        <li><button class="dropdown-item fw-bold py-2" onclick="switchStyle('dark', this)"><i class="fas fa-moon me-2"></i> Dark Mode</button></li>
+                        <li><button class="dropdown-item fw-bold py-2" onclick="switchStyle('satellite', this)"><i class="fas fa-satellite text-success me-2"></i> Satellite</button></li>
+                    </ul>
+                </div>
+
+                <!-- Dynamic Counter Widget -->
+                <div class="map-overlay-top-right position-absolute m-3" style="z-index: 1000; right: 0;">
+                    <div class="status-panel d-flex gap-2">
+                        <div class="status-item status-fire badge rounded-pill px-3 py-2 fs-6 shadow-sm" style="background: #dc3545; color: white;" title="High Intensity Fires">
+                            <i class="fas fa-fire me-1"></i> <span id="high-count">0</span>
+                        </div>
+                        <div class="status-item status-warn badge rounded-pill px-3 py-2 fs-6 shadow-sm" style="background: #fd7e14; color: white;" title="Medium Intensity Hotspots">
+                            <i class="fas fa-exclamation-triangle me-1"></i> <span id="medium-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .marker-medium, .marker-high {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .marker-medium {
+        background: #fd7e14; width: 30px; height: 30px;
+        border: 2px solid #fff;
+        animation: pulse-orange 2s infinite;
+    }
+    .marker-high {
+        background: #dc3545; width: 36px; height: 36px;
+        border: 2px solid #fff;
+        animation: pulse-red 1.5s infinite;
+    }
+    @keyframes pulse-orange {
+        0% { box-shadow: 0 0 0 0 rgba(253, 126, 20, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(253, 126, 20, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(253, 126, 20, 0); }
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+        70% { box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+</style>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+    // --- 1. CONFIGURATION & HELPERS ---
+    const STYLES = { 
+        'streets': 'https://tiles.openfreemap.org/styles/liberty', 
+        'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 
+        'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
+    };
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const FALLBACK_VIEW = [101.9758, 4.2105]; // Tengah Malaysia
+
+    // --- 2. MAP INITIALIZATION ---
+    const map = new maplibregl.Map({ 
+        container: 'map', 
+        style: STYLES.dark, 
+        center: FALLBACK_VIEW, 
+        zoom: 6, 
+        pitch: 45, 
+        antialias: true 
+    });
+
+    map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+    const geolocate = new maplibregl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true
+    });
+    map.addControl(geolocate, 'bottom-right');
+    map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'bottom-right');
+
+    // --- INTEGRASI VIEW DEF WILDFIRE ---
+    map.on('load', () => {
+        // Point this to 'sensors:wildfire_api' instead of the page renderer url!
+        fetch("{% url 'sensors:wildfire_api' %}", { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.lat && data.lng) {
+                // Successful - Fly directly to the user's active fire station coordinates
+                map.flyTo({ center: [data.lng, data.lat], zoom: 12, essential: true });
+            } else {
+                // Trigger overlay lockout modal if configuration entries are invalid
+                document.getElementById('setup-overlay').style.display = 'flex';
+                geolocate.trigger(); 
+            }
+        })
+        .catch(err => {
+            console.error("Gagal menyambung ke API wildfire:", err);
+            document.getElementById('setup-overlay').style.display = 'flex';
+        });
+    });
+
+    window.switchStyle = function(styleName, btn) {
+        const layerBtnIcon = document.querySelector('#layerDropdown i');
+        layerBtnIcon.classList.add('fa-spin');
+        
+        map.setStyle(styleName === 'satellite' ? { 'version': 8, 'sources': { 'raster-tiles': { 'type': 'raster', 'tiles': [STYLES.satellite], 'tileSize': 256 } }, 'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}] } : STYLES[styleName]);
+        
+        map.once('styledata', () => {
+            layerBtnIcon.classList.remove('fa-spin');
+        });
+    };
+
+    // --- 3. LIVE WEBSOCKET HOTSPOT PROCESSING ---
+    const hotspotMarkers = {};
+    let highIntensityCount = 0;
+    let mediumIntensityCount = 0;
+
+    const stationId = "{{ user_profile.station.id|default:'1' }}";
+    const wsUrl = `ws://${window.location.host}/ws/alerts/${stationId}/`;
+    const fireSocket = new WebSocket(wsUrl);
+
+    fireSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        
+        if (data.event === 'NEW_FIRE_DETECTED') {
+            const payload = data.payload;
+            
+            if (hotspotMarkers[payload.report_id]) return;
+
+            const frp = parseFloat(payload.frp || 0);
+            const tempC = (parseFloat(payload.brightness || 0) - 273.15).toFixed(1);
+            
+            let elementClass = 'marker-medium';
+            let iconMarkup = '<i class="fas fa-exclamation-triangle"></i>';
+            if (frp >= 50.0) {
+                elementClass = 'marker-high';
+                iconMarkup = '<i class="fas fa-fire"></i>';
+                highIntensityCount++;
+                document.getElementById('high-count').innerText = highIntensityCount;
+            } else {
+                mediumIntensityCount++;
+                document.getElementById('medium-count').innerText = mediumIntensityCount;
+            }
+
+            const el = document.createElement('div');
+            el.className = elementClass;
+            el.innerHTML = iconMarkup;
+
+            const popup = new maplibregl.Popup({ offset: 15 }).setHTML(`
+                <div class="p-1" style="font-family: sans-serif;">
+                    <h6 class="fw-bold mb-1 ${frp >= 50.0 ? 'text-danger' : 'text-warning'}">
+                        ${frp >= 50.0 ? '🔥 High Threat Wildfire' : '⚠️ Thermal Anomaly'}
+                    </h6>
+                    <hr class="my-1">
+                    <p class="m-0 small"><b>Coordinates:</b> ${payload.latitude.toFixed(4)}, ${payload.longitude.toFixed(4)}</p>
+                    <p class="m-0 small"><b>Temperature:</b> ${tempC} °C</p>
+                    <p class="m-0 small"><b>Radiative Power:</b> ${frp} MW</p>
+                    <p class="m-0 small text-muted mt-1">Status: ${payload.status}</p>
+                </div>
+            `);
+
+            const newMarker = new maplibregl.Marker({ element: el })
+                .setLngLat([parseFloat(payload.longitude), parseFloat(payload.latitude)])
+                .setPopup(popup)
+                .addTo(map);
+
+            hotspotMarkers[payload.report_id] = newMarker;
+
+            map.flyTo({
+                center: [parseFloat(payload.longitude), parseFloat(payload.latitude)],
+                zoom: 11,
+                essential: true
+            });
+        }
+    };
+
+    // --- 4. STATION SETUP LOGIC ---
+    window.startStationSetup = function() {
+        document.getElementById('setup-overlay').style.background = 'transparent';
+        document.getElementById('setup-overlay').style.pointerEvents = 'none';
+        document.getElementById('step-2').style.display = 'block';
+        document.getElementById('step-1').style.display = 'none';
+        window.isSetupMode = true;
+    };
+
+    map.on('click', (e) => {
+        if (!window.isSetupMode) return;
+
+        const clickedLat = e.lngLat.lat;
+        const clickedLng = e.lngLat.lng;
+        const stationName = "{{ user_profile.station.name|escapejs|default:'Station' }}";
+
+        if (confirm(`Pin ${stationName} exactly at this location?`)) {
+            fetch("{% url 'sensors:update_station_coords' %}", {
+                method: "POST",
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': getCookie('csrftoken') 
+                },
+                body: JSON.stringify({ lat: clickedLat, lng: clickedLng })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) { location.reload(); } 
+                else { alert("Error: " + data.error); }
+            }).catch(err => { alert("Connection error. Please try again."); });
+        }
+    });
+
+    // --- 5. STATIC STATION MARKERS & COVERAGE ZONES ---
+    map.on('load', function() {
+        {% for st in all_stations %}
+        (function() {
+            const lng = parseFloat("{{ st.address.longitude }}");
+            const lat = parseFloat("{{ st.address.latitude }}");
+            
+            if (isNaN(lng) || isNaN(lat)) return; 
+
+            const name = "{{ st.name|escapejs }}";
+            const area = parseFloat("{{ st.cover_area_sqm|default:0 }}");
+            const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0; 
+
+            const el = document.createElement('div');
+            el.innerHTML = '<i class="fas fa-building-shield"></i>';
+            el.style.cssText = `
+                background: #0d6efd; width: 42px; height: 42px; border-radius: 50%; color: white; 
+                display: flex; align-items: center; justify-content: center; border: 3px solid white; 
+                box-shadow: 0 0 15px rgba(13, 110, 253, 0.6); font-size: 18px; cursor: pointer;
+            `;
+            
+            new maplibregl.Marker({ element: el })
+                .setLngLat([lng, lat])
+                .setPopup(new maplibregl.Popup({offset: 25, className: 'fw-bold'}).setText(name))
+                .addTo(map);
+
+            const sourceId = 'zone-{{ st.id }}';
+            const circleData = createGeoJSONCircle([lng, lat], radius);
+            
+            if(circleData) {
+                map.addSource(sourceId, circleData);
+                map.addLayer({
+                    'id': sourceId + '-fill',
+                    'type': 'fill',
+                    'source': sourceId,
+                    'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.12 }
+                });
+                map.addLayer({
+                    'id': sourceId + '-line',
+                    'type': 'line',
+                    'source': sourceId,
+                    'paint': { 'line-color': '#0d6efd', 'line-width': 1.5, 'line-dasharray': [2, 2] }
+                });
+            }
+        })();
+        {% endfor %}
+    });
+
+    function createGeoJSONCircle(center, radiusInKm, points = 64) {
+        if(!center || isNaN(center[0])) return null;
+        const coords = { latitude: center[1], longitude: center[0] };
+        const ret = [];
+        const distanceX = radiusInKm / (111.320 * Math.cos(coords.latitude * Math.PI / 180));
+        const distanceY = radiusInKm / 110.574;
+
+        for(let i=0; i<points; i++) {
+            let theta = (i/points)*(2*Math.PI);
+            let x = distanceX * Math.cos(theta);
+            let y = distanceY * Math.sin(theta);
+            ret.push([coords.longitude+x, coords.latitude+y]);
+        }
+        ret.push(ret[0]);
+        return { 
+            "type": "geojson", 
+            "data": { 
+                "type": "FeatureCollection", 
+                "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] 
+            } 
+        };
+    }
+</script>
+{% endblock %}

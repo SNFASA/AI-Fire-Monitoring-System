@@ -3,6 +3,7 @@ import pandas as pd
 from io import StringIO
 from django.contrib.gis.geos import Point
 from .models import SatelliteHotspot, CountryBoundary
+from .utils import process_hotspot_coverage
 from core.settings import MAP_KEY, REGION_BBOX
 
 
@@ -47,5 +48,14 @@ def fetch_and_filter_hotspots():
                     )
                 )
 
-    SatelliteHotspot.objects.bulk_create(hotspots_to_create)
-    return f"Strictly filtered and saved {len(hotspots_to_create)} hotspots inside Malaysia."
+    # 4. Save to database efficiently. 
+    # Modern Django + PostgreSQL/SQLite returns the objects WITH their new IDs attached!
+    created_hotspots = SatelliteHotspot.objects.bulk_create(hotspots_to_create)
+    alerts_triggered = 0
+    for new_hotspot in created_hotspots:
+        # Pass the newly saved hotspot into our math/websocket function
+        matched = process_hotspot_coverage(new_hotspot)
+        if matched:
+            alerts_triggered += 1
+
+    return f"Strictly filtered and saved {len(created_hotspots)} hotspots inside Malaysia. Triggered {alerts_triggered} station alerts!"

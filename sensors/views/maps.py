@@ -311,3 +311,49 @@ def update_station_coordinates(request):
             {"success": False, "error": "An internal server error occurred."},
             status=500,
         )
+@login_required
+def wildfire_map_view(request):
+    if not hasattr(request.user, "userprofile") or request.user.userprofile.role != "firefighter":
+        return render(request, "sensors/layout/unauthorized.html", {"error": "Unauthorized"})
+
+    user_profile = request.user.userprofile
+    
+    context = {
+        "user_profile": user_profile,
+        "role": user_profile.role,
+        # We fetch all stations to pass along to the script loop for blue coverage zones
+        "all_stations": user_profile.station.__class__.objects.select_related('address').all() if user_profile.station else []
+    }
+    return render(request, "sensors/wildfiremaps.html", context)
+
+
+@login_required
+@require_POST
+def wildfire_api_view(request):
+    """
+    2. API FOR MACHINE CODE (POST)
+    Returns raw JSON coordinates secretly to the JavaScript engine.
+    """
+    if not hasattr(request.user, "userprofile") or request.user.userprofile.role != "firefighter":
+        return JsonResponse({"success": False, "error": "Unauthorized"}, status=403)
+
+    user_profile = request.user.userprofile
+    station = user_profile.station
+    
+    if not station:
+        return JsonResponse({"success": False, "error": "No station assigned"}, status=400)
+        
+    if not hasattr(station, "address") or station.address is None:
+        return JsonResponse({"success": False, "error": "Station has no address record."}, status=404)
+
+    lat = station.address.latitude
+    lng = station.address.longitude
+
+    if lat is None or lng is None:
+        return JsonResponse({"success": False, "error": "GPS coordinates are missing."}, status=404)
+
+    return JsonResponse({
+        "success": True,
+        "lat": float(lat),
+        "lng": float(lng)
+    })

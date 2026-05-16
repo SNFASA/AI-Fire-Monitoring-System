@@ -3,10 +3,15 @@ import math
 from django.conf import settings
 from django.utils import timezone
 from twilio.rest import Client
-from .models import FireStation
+from .models import FireStation, Report
 from django.http import JsonResponse
 from datetime import timedelta
 from .logger import get_logs
+import math
+from django.db import transaction
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 
 
 def get_live_logs(request):
@@ -110,3 +115,71 @@ def get_sensor_status(sensor):
         return "Gas Leak"
 
     return status
+
+def process_hotspot_coverage(hotspot):
+    """
+    Checks if a newly saved SatelliteHotspot falls within any Fire Station's coverage.
+    If yes, generates a Report and triggers a WebSocket alert.
+    """
+    # Extract lat/lon from the GeoDjango PointField
+    fire_lat = hotspot.location.y
+    fire_lon = hotspot.location.x
+
+    # Optimized query to fetch stations and their linked addresses
+    stations = FireStation.objects.select_related('address').all()
+    
+    for station in stations:
+        # Safety check: skip stations without proper address coordinates
+        if not hasattr(station, 'address') or station.address.latitude is None or station.address.longitude is None:
+            continue
+
+        # Convert to radians for Haversine math
+        lat1, lon1, lat2, lon2 = map(
+            math.radians, 
+            [fire_lat, fire_lon, station.address.latitude, station.address.longitude]
+        )
+        
+        # Calculate great-circle distance
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+        c = 2 * math.asin(math.sqrt(a))
+        distance = c * 6371000  # Earth radius in meters
+        
+        # Calculate radius from square meters
+        coverage_radius = math.sqrt(station.cover_area_sqm / math.pi)
+        
+        if distance <= coverage_radius:
+            # 1. Create the Official Report
+            report = Report.objects.create(
+                station=station,
+                latitude=fire_lat,
+                longitude=fire_lon,
+                status="System Detected"
+            )
+            
+            # 2. Trigger WebSocket Alert
+            try:
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"station_{station.id}",
+                    {
+                        "type": "fire_alert",
+                        "data": {
+                            "report_id": report.id,
+                            "latitude": report.latitude,
+                            "longitude": report.longitude,
+                            "status": report.status,
+                            "station_name": station.name,
+                            # Sending temperature/intensity directly to the dashboard!
+                            "brightness": hotspot.brightness, 
+                            "frp": hotspot.frp               
+                        }
+                    }
+                )
+            except Exception as e:
+                print(f"WebSocket Error for Station {station.id}: {e}")
+                
+            return True # Successfully matched and alerted
+            
+    return False # No match found

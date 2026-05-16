@@ -127,6 +127,8 @@ urlpatterns = [
         maps.get_victim_layout,
         name="get_victim_layout",
     ),
+    path("maps/wildfire/", maps.wildfire_map_view, name="wildfire_map"),
+    path("maps/wildfire/api/", maps.wildfire_api_view, name="wildfire_api"),
     # Sensors
     # Live Data API (The Website checks this every 2 seconds)
     path("api/live-data/", sensors.get_live_data, name="live_data"),
