@@ -16,25 +16,25 @@ jobs:
 # -------------------------------
 # BUILD PROVENANCE (Security)
 # -------------------------------
-#  attest-build-provenance:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      id-token: write      # Required for OIDC token
-#      attestations: write  # Required to write the attestation
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v6      
-#      - uses: actions/setup-python@v6
-#        with:
-#          python-version: "3.12"
-#          
-#      - name: Attest Build Provenance
-#        uses: actions/attest-build-provenance@v2
-#        with:
-#          subject-name: "AI-Fire-Monitoring-System"
-#          # Since you aren't building a Docker image or a .whl file yet, 
-#          # we typically point to the source code or a specific diagram.
-#          subject-path: "manage.py"
+  attest-build-provenance:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write      # Required for OIDC token
+      attestations: write  # Required to write the attestation
+      contents: read
+    steps:
+      - uses: actions/checkout@v6      
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: "AI-Fire-Monitoring-System"
+          # Since you aren't building a Docker image or a .whl file yet, 
+          # we typically point to the source code or a specific diagram.
+          subject-path: "manage.py"
 
 # -------------------------------
 # LINT + QUALITY CHECK
@@ -158,40 +158,6 @@ jobs:
 
       - name: Complexity check
         run: radon cc . -a
-
-# -------------------------------
-# DOCUMENTATION BUILD
-# -------------------------------
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          # We need your app's dependencies so Sphinx can 'import' the code to read docstrings
-          pip install -r requirements.txt
-          pip install sphinx sphinx-rtd-theme sphinx-copybutton
-
-      - name: Build docs
-        run: |
-          # 1. Create the build directory if it doesn't exist
-          mkdir -p doc/_build
-          # 2. Run sphinx-build with the -W flag (treat warnings as errors) 
-          # and -v (verbose) to see EXACTLY why it might be skipping files
-          sphinx-build -v -b html doc doc/_build
-
-      - name: Upload Sphinx Docs
-        if: always() # Upload even if it partially failed so you can see the error logs
-        uses: actions/upload-artifact@v7
-        with:
-          name: html-documentation
-          path: doc/_build/
-
 # -------------------------------
 # LOAD TEST
 # -------------------------------
@@ -260,112 +226,13 @@ jobs:
           name: architecture-diagram
           path: ./*.png
 
-# -------------------------------
-# AI TEST GENERATION
-# -------------------------------
-  ai-tests:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
-      contents: write
-    # Added PostgreSQL service to mirror the main 'tests' job
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      # Replaced Node.js setup with Python
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Run Tests
-        id: test_step
-        continue-on-error: true 
-        # Added Django DB environment variables
-        env:
-          SECRET_KEY: test
-          DEBUG: False
-          DB_ENGINE: django.db.backends.postgresql
-          DB_NAME: test_db
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          DB_HOST: localhost
-          DB_PORT: 5432
-        run: |
-          set +e
-          echo "Running Django tests for AI analysis..."
-          # Replaced 'npm test' with Django's test runner
-          TEST_LOG=$(python manage.py test sensors.tests 2>&1)
-          EXIT_CODE=$?
-          
-          echo "results<<EOF" >> $GITHUB_OUTPUT
-          echo "$TEST_LOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "status=failed" >> $GITHUB_OUTPUT
-          else
-            echo "status=passed" >> $GITHUB_OUTPUT
-          fi
-          set -e
-
-      - name: Gemini Advanced Django Tests
-        if: steps.test_step.outputs.status == 'failed'
-        uses: Codium-ai/pr-agent@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONFIG.MODEL: "gemini/gemini-1.5-flash"
-          PR_AGENT.CONFIG.AI_PROVIDER: "google"
-          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        with:
-          args: "/test --pr_test.extra_instructions='Generate high-quality Django TestCase classes. Focus on database transaction integrity and view-level security.'"
-      
-      - name: Gemini Failure Analysis
-        if: steps.test_step.outputs.status == 'failed'
-        uses: Codium-ai/pr-agent@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
-          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        with:
-          args: "/ask Create a detailed GitHub Issue titled '🔴 Test Failure' analyzing these logs: ${{ steps.test_step.outputs.results }}"
-
-      - name: Gemini Success Summary
-        if: steps.test_step.outputs.status == 'passed'
-        uses: Codium-ai/pr-agent@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_AGENT.CONFIG.MODEL: "gemini/gemini-1.5-flash"
-          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        with:
-          args: "/describe --pr_description.extra_instructions='Tests passed! Add a summary of the test stability.'"
-          
-# -------------------------------
-# AUTOMATIC ISSUE CREATION
-# -------------------------------
+  # -------------------------------
+  # AUTOMATIC ISSUE CREATION
+  # -------------------------------
   create-issue-on-failure:
     runs-on: ubuntu-latest
     if: failure()
-    needs: [lint, security, tests, static-analysis, docs, db-diagram, architecture, load-test, ai-tests]
+    needs: [lint, security, tests, static-analysis,  db-diagram, architecture, load-test]
     
     steps:
       - name: Create GitHub Issue
@@ -389,9 +256,7 @@ jobs:
             - [ ] Check **Lint** for formatting errors (Run `black .` locally).
             - [ ] Check **Security** for the **${{ needs.security.outputs.high_count }}** High findings.
             - [ ] Check **Tests** for logic breakages in `sensors/tests`.
-            - [ ] Check **Docs** if the Sphinx build crashed.
             - [ ] Check **Build Provenance** for any issues with the attestation.
-            - [ ] Check **AI Tests** for any issues with the generated tests.
             _This issue was generated automatically by the Django Ultimate CI pipeline._
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
