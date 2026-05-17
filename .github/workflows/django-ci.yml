@@ -201,6 +201,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Add this missing step!
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
       - name: Verify locust file exists
         run: |
           if [ ! -f simulator/load_test.py ]; then

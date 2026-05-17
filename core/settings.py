@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
-import platform
 from pathlib import Path
 
 import environ
@@ -342,7 +341,6 @@ CELERY_BEAT_SCHEDULE = {
 MAP_KEY = env("MAP_KEY")
 REGION_BBOX = env("REGION_BBOX")
 # Check if the operating system is Windows
-if platform.system() == "Windows":
-    # These are only needed for local Windows development
+if os.name == 'nt':
     GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"
     GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
