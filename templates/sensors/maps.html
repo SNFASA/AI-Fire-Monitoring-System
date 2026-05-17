@@ -363,8 +363,7 @@
                         node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
                         let status = s.status ? s.status.toLowerCase() : 'safe';
                         if(status === 'fire') node.classList.add('bg-fire');
-                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');
-                        else if(status === 'offline') node.classList.add('bg-offline');
+                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');                        else if(status === 'offline') node.classList.add('bg-offline');
                         else node.classList.add('bg-safe');
                     }
                 });

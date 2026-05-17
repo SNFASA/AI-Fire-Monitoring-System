@@ -1,13 +1,20 @@
-import math, json
-from django.shortcuts import render, redirect, get_object_or_404
+import json
+import math
+from datetime import timedelta
+from django.utils import timezone as dj_timezone
 from django.contrib import messages
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone  # KEEP THIS
+from django.views.decorators.http import require_POST
+from sensors.services import fetch_and_filter_hotspots
+import pytz
 
 # Local Imports
 from ..models import (
+    SatelliteHotspot,
     Sensor,
     UserProfile,
     FireStation,
@@ -317,7 +324,6 @@ def wildfire_map_view(request):
         return render(request, "sensors/layout/unauthorized.html", {"error": "Unauthorized"})
 
     user_profile = request.user.userprofile
-    
     context = {
         "user_profile": user_profile,
         "role": user_profile.role,
@@ -325,7 +331,6 @@ def wildfire_map_view(request):
         "all_stations": user_profile.station.__class__.objects.select_related('address').all() if user_profile.station else []
     }
     return render(request, "sensors/wildfiremaps.html", context)
-
 
 @login_required
 @require_POST
@@ -349,11 +354,35 @@ def wildfire_api_view(request):
     lat = station.address.latitude
     lng = station.address.longitude
 
+    # FAIL FAST: Check coordinates before hitting the database
     if lat is None or lng is None:
         return JsonResponse({"success": False, "error": "GPS coordinates are missing."}, status=404)
+
+    # 2. Query the database for active fires (e.g., last 24 hours)
+    try:
+        body = json.loads(request.body)
+        requested_days = int(body.get('days', 5))
+    except (ValueError, json.JSONDecodeError):
+        requested_days = 5
+    time_threshold = dj_timezone.now() - timedelta(days=requested_days)
+    active_fires = SatelliteHotspot.objects.filter(acq_date__gte=time_threshold.date())
+
+    # 3. Format the hotspots for the frontend
+    hotspots_data = []
+    for fire in active_fires:
+        hotspots_data.append({
+            "report_id": fire.id,
+            "latitude": fire.location.y,  # PostGIS Point.y is latitude
+            "longitude": fire.location.x, # PostGIS Point.x is longitude
+            "frp": fire.frp,
+            "brightness": fire.brightness,
+            "satellite": fire.satellite,
+            "status": "Active"
+        })
 
     return JsonResponse({
         "success": True,
         "lat": float(lat),
-        "lng": float(lng)
+        "lng": float(lng),
+        "active_hotspots": hotspots_data
     })

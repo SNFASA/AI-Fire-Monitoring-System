@@ -17,8 +17,6 @@ def user_directory_path(instance, filename):
 # ==========================================
 # 1. ADDRESS & FIRESTATION
 # ==========================================
-
-
 class Address(models.Model):
     street = models.CharField(max_length=100)
     city = models.CharField(max_length=50)
