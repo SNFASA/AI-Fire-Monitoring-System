@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "sensors",
     "django_extensions",
-    'sorl.thumbnail',
+    "sorl.thumbnail",
 ]
 
 MIDDLEWARE = [

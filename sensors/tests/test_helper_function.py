@@ -8,6 +8,7 @@ from sensors.utils import get_sensor_status, get_live_logs
 from sensors.views.api import test_log
 from django.contrib.auth.models import User
 
+
 # Note: Test For Alert and early Warning system is in test_api.py, and Map & Layout tests are in test_maps.py and test_layout.py respectively.
 class GetSensorStatusTestCase(TestCase):
     """Tests for get_sensor_status helper function"""
