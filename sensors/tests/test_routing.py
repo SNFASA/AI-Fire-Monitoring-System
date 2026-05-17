@@ -1,6 +1,7 @@
+from channels.testing import WebsocketCommunicator
 from django.test import TestCase
 from django.urls import reverse
-from channels.testing import WebsocketCommunicator
+
 from core.asgi import application
 
 

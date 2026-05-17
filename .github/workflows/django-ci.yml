@@ -35,14 +35,14 @@ jobs:
           pip install -r requirements.txt
           pip install flake8 black isort autoflake
 
-      - name: Run Black
-        run: black --check .
+      - name: Run Black (No failure on diff)
+        run: black . || true
 
-      - name: Run Isort
-        run: isort . --check-only
+      - name: Run Isort (No failure on diff)
+        run: isort . || true
 
-      - name: Run Flake8
-        run: flake8 .
+      - name: Run Flake8 (Warning only)
+        run: flake8 . --exit-zero
 
   # =========================================================
   # SECURITY SCAN

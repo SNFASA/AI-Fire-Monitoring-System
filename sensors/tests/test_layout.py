@@ -1,9 +1,12 @@
 import json
-from django.test import TestCase, Client
-from django.urls import reverse
+
 from django.core.files.uploadedfile import SimpleUploadedFile
-from sensors.models import Sensor, Houselayout
-from .factories import UserProfileFactory, SensorFactory
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from sensors.models import Houselayout, Sensor
+
+from .factories import SensorFactory, UserProfileFactory
 
 
 class LayoutAndSensorTests(TestCase):

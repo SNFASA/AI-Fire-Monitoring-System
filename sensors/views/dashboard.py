@@ -1,18 +1,18 @@
-from django.shortcuts import render, redirect
-from django.db.models import OuterRef, Subquery, Prefetch
 from django.contrib import messages
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.db.models import OuterRef, Prefetch, Subquery
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 # Only import what the dashboard needs to show stats
 from ..models import (
-    Sensor,
+    FireStation,
     Maintenance,
     Report,
-    FireStation,
-    UserProfile,
+    Sensor,
     SensorDataLog,
+    UserProfile,
 )
 from .api import predictor
 

@@ -1,17 +1,15 @@
-import json, logging
-from django.http import JsonResponse
+import json
+import logging
+
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from sensors.filters import SensorFilter
 from django.db.models import OuterRef, Subquery
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+from sensors.filters import SensorFilter
 
 # Local Imports
-from ..models import (
-    Sensor,
-    Houselayout,
-    SensorDataLog,
-)
-
+from ..models import Houselayout, Sensor, SensorDataLog
 from ..utils import get_sensor_status
 
 logger = logging.getLogger(__name__)

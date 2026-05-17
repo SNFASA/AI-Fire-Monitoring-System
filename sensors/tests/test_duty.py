@@ -1,16 +1,17 @@
+from datetime import timedelta
 from unittest.mock import patch
 
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
-from datetime import timedelta
-from .factories import (
-    UserProfileFactory,
-    ReportFactory,
-    FireStationFactory,
-    DutyAssignmentFactory,
-)
+
 from ..models import Report
+from .factories import (
+    DutyAssignmentFactory,
+    FireStationFactory,
+    ReportFactory,
+    UserProfileFactory,
+)
 
 
 class MobilizationCoverageTest(TestCase):

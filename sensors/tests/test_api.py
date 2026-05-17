@@ -1,16 +1,18 @@
 import json
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.core.signing import TimestampSigner
-from django.utils import timezone
 from unittest.mock import patch
+
+from django.core.signing import TimestampSigner
+from django.test import Client, TestCase
+from django.urls import reverse
+from django.utils import timezone
+
+from ..models import Address, Report, User, UserProfile
 from .factories import (
-    UserProfileFactory,
-    SensorFactory,
     AddressFactory,
     FireStationFactory,
+    SensorFactory,
+    UserProfileFactory,
 )
-from ..models import Report, UserProfile, Address, User
 
 
 class AlertSystemCoverageTest(TestCase):

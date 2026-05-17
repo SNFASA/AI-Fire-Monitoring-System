@@ -1,9 +1,9 @@
 # scripts/architecture.py
-from diagrams import Diagram, Cluster
-from diagrams.programming.framework import Django
-from diagrams.programming.language import Python
+from diagrams import Cluster, Diagram
 from diagrams.generic.database import SQL
 from diagrams.generic.device import Tablet
+from diagrams.programming.framework import Django
+from diagrams.programming.language import Python
 
 with Diagram(
     "AI Fire Monitoring System Architecture",

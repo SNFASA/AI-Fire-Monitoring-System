@@ -1,6 +1,7 @@
 import django_filters
-from django.db.models import Q, OuterRef, Subquery
-from .models import Report, Sensor, SensorDataLog, Maintenance
+from django.db.models import OuterRef, Q, Subquery
+
+from .models import Maintenance, Report, Sensor, SensorDataLog
 
 
 class SensorFilter(django_filters.FilterSet):

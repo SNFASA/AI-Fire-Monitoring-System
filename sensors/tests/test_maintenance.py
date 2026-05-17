@@ -1,14 +1,15 @@
-from django.test import TestCase, Client
-from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from ..models import Maintenance, MaintenanceImage
 from .factories import (
-    UserProfileFactory,
-    SensorFactory,
+    FireStationFactory,
     MaintenanceFactory,
     MaintenanceImageFactory,
-    FireStationFactory,
+    SensorFactory,
+    UserProfileFactory,
 )
-from ..models import Maintenance, MaintenanceImage
 
 
 class MaintenanceCoverageTest(TestCase):

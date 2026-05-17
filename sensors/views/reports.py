@@ -1,20 +1,19 @@
 import os
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.views.decorators.http import require_POST
-from sensors.filters import ReportFilter
 from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
+from sensors.filters import ReportFilter
+
+from ..forms import ReportCreateForm, ReportUpdateForm
 
 # Local Imports
-from ..models import (
-    Report,
-    FireStation,
-    ReportImage,
-)
-from ..forms import ReportUpdateForm, ReportCreateForm
+from ..models import FireStation, Report, ReportImage
 
 
 # ==========================================

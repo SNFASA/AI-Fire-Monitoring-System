@@ -1,6 +1,7 @@
 from celery import shared_task
 
 from core.settings import MAP_KEY, REGION_BBOX
+
 from .services import fetch_and_filter_hotspots
 
 

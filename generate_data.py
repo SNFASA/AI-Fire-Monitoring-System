@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 # Setup
 rng = np.random.default_rng(seed=42)

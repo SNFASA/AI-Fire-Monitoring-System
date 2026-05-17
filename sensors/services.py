@@ -1,13 +1,16 @@
 import logging
-import requests
-import pandas as pd
-from io import StringIO
-from django.contrib.gis.geos import Point
-from .models import SatelliteHotspot, CountryBoundary
-from .utils import process_hotspot_coverage
-from core.settings import MAP_KEY, REGION_BBOX
 from datetime import timedelta
+from io import StringIO
+
+import pandas as pd
+import requests
+from django.contrib.gis.geos import Point
 from django.utils import timezone
+
+from core.settings import MAP_KEY, REGION_BBOX
+
+from .models import CountryBoundary, SatelliteHotspot
+from .utils import process_hotspot_coverage
 
 logger = logging.getLogger(__name__)
 

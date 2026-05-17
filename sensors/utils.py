@@ -1,16 +1,17 @@
 import json
 import math
+from datetime import timedelta
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
+from django.db import transaction
+from django.http import JsonResponse
 from django.utils import timezone
 from twilio.rest import Client
-from .models import FireStation, Report
-from django.http import JsonResponse
-from datetime import timedelta
+
 from .logger import get_logs
-import math
-from django.db import transaction
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from .models import FireStation, Report
 
 
 def get_live_logs(request):

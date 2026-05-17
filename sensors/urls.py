@@ -1,8 +1,9 @@
-from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import dashboard, auth, maintenances, reports, maps, sensors, duties, api
-from . import utils
 from django.contrib.auth.views import LoginView
+from django.urls import path
+
+from . import utils
+from .views import api, auth, dashboard, duties, maintenances, maps, reports, sensors
 
 app_name = "sensors"
 urlpatterns = [

@@ -1,12 +1,14 @@
-from django.test import TestCase, RequestFactory
-from django.utils import timezone
 from datetime import timedelta
-from django.http import JsonResponse
 from unittest.mock import patch
-from sensors.models import Sensor, SensorDataLog, UserProfile
-from sensors.utils import get_sensor_status, get_live_logs
-from sensors.views.api import test_log
+
 from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.test import RequestFactory, TestCase
+from django.utils import timezone
+
+from sensors.models import Sensor, SensorDataLog, UserProfile
+from sensors.utils import get_live_logs, get_sensor_status
+from sensors.views.api import test_log
 
 
 # Note: Test For Alert and early Warning system is in test_api.py, and Map & Layout tests are in test_maps.py and test_layout.py respectively.

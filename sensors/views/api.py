@@ -1,24 +1,27 @@
 import json
-from django.shortcuts import render, get_object_or_404
-from django.core.signing import TimestampSigner, SignatureExpired, BadSignature
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.urls import reverse
-from channels.layers import get_channel_layer
+
 from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils import timezone
-from ..utils import send_sms_broadcast, haversine
+from django.views.decorators.csrf import csrf_exempt
+
+from ml_engine.predictor import FirePredictor
+
+from ..logger import add_log
 from ..models import (
+    Address,
+    DutyAssignment,
+    FireStation,
+    Report,
     Sensor,
     SensorDataLog,
-    Report,
-    FireStation,
-    DutyAssignment,
     UserProfile,
-    Address,
 )
-from ..logger import add_log
-from ml_engine.predictor import FirePredictor
+from ..utils import haversine, send_sms_broadcast
 
 predictor = FirePredictor()
 

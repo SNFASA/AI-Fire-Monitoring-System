@@ -1,26 +1,23 @@
 import json
 import math
 from datetime import timedelta
-from django.utils import timezone as dj_timezone
+
+import pytz
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone  # KEEP THIS
+from django.utils import timezone as dj_timezone
 from django.views.decorators.http import require_POST
+
 from sensors.services import fetch_and_filter_hotspots
-import pytz
+
+from ..forms import HouseLayoutForm
 
 # Local Imports
-from ..models import (
-    SatelliteHotspot,
-    Sensor,
-    UserProfile,
-    FireStation,
-    Houselayout,
-)
-from ..forms import HouseLayoutForm
+from ..models import FireStation, Houselayout, SatelliteHotspot, Sensor, UserProfile
 from ..utils import get_sensor_status
 
 

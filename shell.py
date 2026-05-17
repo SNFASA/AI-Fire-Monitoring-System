@@ -1,13 +1,14 @@
 import math
-from django.db import transaction
-from channels.layers import get_channel_layer
+
 from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.db import transaction
 
 from sensors.models import (
-    SatelliteHotspot,
     FireStation,
-    Report,
-)  # Adjust imports if needed
+    Report,  # Adjust imports if needed
+    SatelliteHotspot,
+)
 
 hotspot = SatelliteHotspot.objects.latest("id")
 fire_lat = hotspot.location.y
