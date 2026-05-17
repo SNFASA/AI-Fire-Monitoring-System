@@ -85,7 +85,9 @@ jobs:
 
       - name: Install security tools
         run: |
-          pip install bandit jq
+          sudo apt-get update
+          sudo apt-get install -y jq
+          pip install bandit
 
       - name: Run Bandit
         run: |
