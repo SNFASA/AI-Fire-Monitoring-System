@@ -90,10 +90,10 @@ ASGI_APPLICATION = "core.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-GDAL_LIBRARY_PATH = (
-    r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"  # UPDATE THIS EXACT NAME
-)
-GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
+#GDAL_LIBRARY_PATH = (
+#    r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"  # UPDATE THIS EXACT NAME
+#)
+#GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
 
 DATABASES = {
     "default": {
