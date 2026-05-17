@@ -6,34 +6,42 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: django-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   security-events: write
   actions: read
-  issues: write 
+  issues: write
 
 jobs:
+
 # -------------------------------
 # BUILD PROVENANCE (Security)
 # -------------------------------
   attest-build-provenance:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     permissions:
-      id-token: write      # Required for OIDC token
-      attestations: write  # Required to write the attestation
+      id-token: write
+      attestations: write
       contents: read
+
     steps:
-      - uses: actions/checkout@v6      
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          
+          cache: "pip"
+
       - name: Attest Build Provenance
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: "AI-Fire-Monitoring-System"
-          # Since you aren't building a Docker image or a .whl file yet, 
-          # we typically point to the source code or a specific diagram.
           subject-path: "manage.py"
 
 # -------------------------------
@@ -41,79 +49,152 @@ jobs:
 # -------------------------------
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install wheel
           pip install -r requirements.txt
-      - name: Install tools
-        run: pip install flake8 black isort autoflake
-        
+
+      - name: Install lint tools
+        run: |
+          pip install flake8 black isort autoflake
+
       - name: Run Black Check
         run: black --check .
-        
+
+      - name: Run Isort Check
+        run: isort . --check-only
+
       - name: Run Flake8
-        # It will now automatically use your .flake8 config file
-        # We add '|| true' temporarily if you want to see the build pass while you fix the rest
-        run: flake8 . || true
+        run: flake8 .
 
 # -------------------------------
 # SECURITY SCAN
 # -------------------------------
   security:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     outputs:
       high_count: ${{ steps.bandit_stats.outputs.high }}
+
     steps:
-      - uses: actions/checkout@v6
-        
-      - name: Install Bandit
-        run: pip install bandit
-        
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          pip install bandit
+
       - name: Run Bandit Scan
         id: run_bandit
-        # We save the report to JSON so we can parse the numbers
-        run: bandit -r . -f json -o bandit_report.json || true
-        
+        run: |
+          bandit -r . -f json -o bandit_report.json
+
       - name: Parse Bandit Stats
         id: bandit_stats
         run: |
-          # This pulls the 'HIGH' count from the JSON results
           HIGH_FINDINGS=$(jq '.metrics._total.HIGH' bandit_report.json)
           echo "high=$HIGH_FINDINGS" >> $GITHUB_OUTPUT
           echo "Detected $HIGH_FINDINGS high-severity issues."
+
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit_report.json
+
+# -------------------------------
+# TRIVY FILESYSTEM SCAN
+# -------------------------------
+  trivy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
 
 # -------------------------------
 # TEST + COVERAGE
 # -------------------------------
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
     services:
       postgres:
         image: postgres:15
+
         env:
           POSTGRES_DB: test_db
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports: ["5432:5432"]
+
+        ports:
+          - 5432:5432
+
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
+          pip install wheel
           pip install -r requirements.txt
           pip install coverage
+
+      - name: Django system check
+        env:
+          SECRET_KEY: test
+          DEBUG: False
+        run: python manage.py check
+
+      - name: Check migrations
+        env:
+          SECRET_KEY: test
+          DEBUG: False
+        run: python manage.py makemigrations --check --dry-run
+
       - name: Run tests
         env:
           SECRET_KEY: test
@@ -124,81 +205,124 @@ jobs:
           DB_PASSWORD: postgres
           DB_HOST: localhost
           DB_PORT: 5432
+
         run: |
           coverage run --branch --source=sensors,core manage.py test sensors.tests
-          coverage report -m
+          coverage report --fail-under=80 -m
           coverage xml
           coverage html
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-${{ matrix.python-version }}
+          path: htmlcov/
+
+      - name: Upload Coverage XML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml-${{ matrix.python-version }}
+          path: coverage.xml
+
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: SNFASA/AI-Fire-Monitoring-System
           fail_ci_if_error: false
-      - name: Upload Coverage Artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-html
-          path: htmlcov/
 
 # -------------------------------
 # STATIC ANALYSIS
 # -------------------------------
   static-analysis:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - name: Install tools
-        run: pip install pylint radon
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install analysis tools
+        run: |
+          pip install pylint radon
 
       - name: Run pylint
-        run: pylint core sensors ml_engine || true
+        run: |
+          pylint core sensors ml_engine --fail-under=7
 
       - name: Complexity check
-        run: radon cc . -a
+        run: |
+          radon cc . -a
+          radon mi . -s
+
 # -------------------------------
 # LOAD TEST
 # -------------------------------
   load-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    continue-on-error: true
+
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
       - name: Install Locust
-        run: pip install locust zope.event
+        run: |
+          pip install locust zope.event
+
       - name: Run Load Test
         run: |
-          locust -f simulator/load_test.py --headless -u 50 -r 10 -t 30s || true
+          locust -f simulator/load_test.py \
+          --headless \
+          -u 50 \
+          -r 10 \
+          -t 30s
 
 # -------------------------------
 # DATABASE SCHEMA DIAGRAM
 # -------------------------------
   db-diagram:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y graphviz graphviz-dev
+
+          pip install wheel
           pip install -r requirements.txt
           pip install django-extensions pygraphviz
 
       - name: Generate ERD
+        env:
+          SECRET_KEY: test
+          DEBUG: False
+
         run: |
-          # We use --stale to ignore minor configuration issues if necessary
+          mkdir -p doc
           python manage.py graph_models -a -o doc/db_schema.png
 
       - name: Upload ERD Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: database-schema
           path: doc/db_schema.png
@@ -208,55 +332,88 @@ jobs:
 # -------------------------------
   architecture:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install diagrams
+          cache: "pip"
+
+      - name: Install diagram dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+
+          pip install wheel
           pip install daphne diagrams
-          sudo apt install -y graphviz
-      - name: Generate architecture
+
+      - name: Generate architecture diagram
         run: |
           python scripts/architecture.py
-      - name: Upload Architecture
-        uses: actions/upload-artifact@v7
+
+      - name: Upload Architecture Diagram
+        uses: actions/upload-artifact@v4
         with:
           name: architecture-diagram
           path: ./*.png
 
-  # -------------------------------
-  # AUTOMATIC ISSUE CREATION
-  # -------------------------------
+# -------------------------------
+# AUTOMATIC ISSUE CREATION
+# -------------------------------
   create-issue-on-failure:
     runs-on: ubuntu-latest
-    if: failure()
-    needs: [lint, security, tests, static-analysis,  db-diagram, architecture, load-test]
-    
+
+    if: always() && contains(needs.*.result, 'failure')
+
+    needs:
+      - lint
+      - security
+      - trivy
+      - tests
+      - static-analysis
+      - db-diagram
+      - architecture
+      - load-test
+
     steps:
       - name: Create GitHub Issue
         uses: imjohnbo/issue-bot@v3
+
         with:
           assignees: SNFASA
           labels: bug, automated-issue
+
           title: "CI/CD Pipeline Failed: ${{ github.run_id }}"
+
           body: |
             ## ❌ Build Failure Detected
-            
-            The latest CI/CD run for the **AI Fire Monitoring System** has failed.
-            
-            **Workflow details:**
-            - **Commit:** ${{ github.sha }}
-            - **Branch:** ${{ github.ref_name }}
-            - **Triggered by:** ${{ github.actor }}
-            - **Logs:** [View full workflow log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            
-            ### 📝 Checklist for Fixes:
-            - [ ] Check **Lint** for formatting errors (Run `black .` locally).
-            - [ ] Check **Security** for the **${{ needs.security.outputs.high_count }}** High findings.
-            - [ ] Check **Tests** for logic breakages in `sensors/tests`.
-            - [ ] Check **Build Provenance** for any issues with the attestation.
-            _This issue was generated automatically by the Django Ultimate CI pipeline._
+
+            The latest CI/CD workflow for the AI Fire Monitoring System has failed.
+
+            ### Workflow Information
+            - Commit: `${{ github.sha }}`
+            - Branch: `${{ github.ref_name }}`
+            - Triggered By: `${{ github.actor }}`
+            - Workflow Run:
+              ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ### Required Checks
+            - [ ] Review linting issues
+            - [ ] Review Bandit security findings
+            - [ ] Review Trivy vulnerability findings
+            - [ ] Review Django tests
+            - [ ] Review coverage threshold
+            - [ ] Review architecture/db diagram generation
+
+            ### Security Findings
+            High Severity Issues Detected:
+            `${{ needs.security.outputs.high_count }}`
+
+            ---
+            This issue was automatically generated by the Django Ultimate CI pipeline.
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
