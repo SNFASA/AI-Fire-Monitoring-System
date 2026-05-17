@@ -82,7 +82,8 @@ jobs:
 
     services:
       postgres:
-        image: postgis/postgis:15
+        # 👇 Change this from postgis/postgis:15 to a specific valid bundle tag
+        image: postgis/postgis:15-3.5
         env:
           POSTGRES_DB: test_db
           POSTGRES_USER: postgres
