@@ -85,7 +85,7 @@ Faker
 fastjsonschema
 filelock
 fiona
-firebase-admin
+firebase_admin
 flake8
 Flask
 Flask-Caching
@@ -244,6 +244,7 @@ python-engineio
 python-socketio
 pytokens
 pytz
+pywin32
 PyYAML
 pyzmq
 radon

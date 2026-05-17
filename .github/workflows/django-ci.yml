@@ -13,35 +13,9 @@ permissions:
   issues: write
 
 jobs:
-
-# =========================================================
-# BUILD PROVENANCE
-# =========================================================
-#  attest-build-provenance:
-#    runs-on: ubuntu-latest
-#
-#    permissions:
-#      id-token: write
-#      attestations: write
-#      contents: read
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Setup Python
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: "3.12"
-#
-#      - name: Generate Build Provenance
-#        uses: actions/attest-build-provenance@v1
-#        with:
-#          subject-path: "manage.py"
-
-# =========================================================
-# LINT + FORMAT CHECK
-# =========================================================
+  # =========================================================
+  # LINT + FORMAT CHECK
+  # =========================================================
   lint:
     runs-on: ubuntu-latest
 
@@ -59,7 +33,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 black isort autoflake pylint pylint-django
+          pip install flake8 black isort autoflake
 
       - name: Run Black
         run: black --check .
@@ -70,12 +44,11 @@ jobs:
       - name: Run Flake8
         run: flake8 .
 
-# =========================================================
-# SECURITY SCAN
-# =========================================================
+  # =========================================================
+  # SECURITY SCAN
+  # =========================================================
   security:
     runs-on: ubuntu-latest
-
     outputs:
       high_count: ${{ steps.bandit_stats.outputs.high }}
 
@@ -87,6 +60,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
+          python -m pip install --upgrade pip
           pip install bandit
 
       - name: Run Bandit
@@ -100,24 +74,21 @@ jobs:
           echo "high=$HIGH" >> $GITHUB_OUTPUT
           echo "High Severity Findings: $HIGH"
 
-# =========================================================
-# TESTS + COVERAGE
-# =========================================================
+  # =========================================================
+  # TESTS + COVERAGE (with GeoDjango Spatial Support)
+  # =========================================================
   tests:
     runs-on: ubuntu-latest
 
     services:
       postgres:
         image: postgres:15
-
         env:
           POSTGRES_DB: test_db
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-
         ports:
           - 5432:5432
-
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -126,7 +97,7 @@ jobs:
 
     env:
       SECRET_KEY: test-secret-key
-      DEBUG: False
+      DEBUG: "False"
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: test_db
       DB_USER: postgres
@@ -138,6 +109,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Spatial GIS OS Dependencies (Fixes libgdal crash)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binutils libproj-dev gdal-bin libgdal-dev gdal-data libgeos-dev
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -146,6 +122,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install coverage psycopg2-binary
 
@@ -178,12 +155,11 @@ jobs:
           name: coverage-xml
           path: coverage.xml
 
-# =========================================================
-# STATIC ANALYSIS
-# =========================================================
+  # =========================================================
+  # STATIC ANALYSIS
+  # =========================================================
   static-analysis:
     runs-on: ubuntu-latest
-
     env:
       DJANGO_SETTINGS_MODULE: core.settings
 
@@ -199,6 +175,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pylint pylint-django radon
 
@@ -214,9 +191,9 @@ jobs:
           radon cc . -a
           radon mi . -s
 
-# =========================================================
-# LOAD TEST
-# =========================================================
+  # =========================================================
+  # LOAD TEST (Locust & gevent dependency fix applied)
+  # =========================================================
   load-test:
     runs-on: ubuntu-latest
 
@@ -231,11 +208,13 @@ jobs:
             exit 1
           fi
 
-      - name: Install Locust
+      - name: Install Locust & Core Prerequisites
         run: |
-          pip install locust zope.event
+          python -m pip install --upgrade pip
+          pip install zope.event locust
+          pip install -r requirements.txt
 
-      - name: Run Load Test
+      - name: Run Headless Load Test
         run: |
           locust \
           -f simulator/load_test.py \
@@ -244,15 +223,20 @@ jobs:
           -r 10 \
           -t 30s
 
-# =========================================================
-# DATABASE ERD
-# =========================================================
+  # =========================================================
+  # DATABASE ERD (GeoDjango Spatial Support added)
+  # =========================================================
   db-diagram:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Spatial GIS OS Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binutils libproj-dev gdal-bin libgdal-dev gdal-data libgeos-dev graphviz graphviz-dev
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -261,9 +245,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y graphviz graphviz-dev
-
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install django-extensions pygraphviz
 
@@ -278,9 +260,9 @@ jobs:
           name: database-schema
           path: docs/db_schema.png
 
-# =========================================================
-# ARCHITECTURE DIAGRAM
-# =========================================================
+  # =========================================================
+  # ARCHITECTURE DIAGRAM
+  # =========================================================
   architecture:
     runs-on: ubuntu-latest
 
@@ -297,7 +279,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y graphviz
-
+          python -m pip install --upgrade pip
           pip install diagrams daphne
 
       - name: Generate Architecture Diagram
@@ -310,9 +292,9 @@ jobs:
           name: architecture-diagram
           path: "*.png"
 
-# =========================================================
-# TRIVY SECURITY SCAN
-# =========================================================
+  # =========================================================
+  # TRIVY SECURITY SCAN
+  # =========================================================
   trivy:
     runs-on: ubuntu-latest
 
@@ -329,14 +311,12 @@ jobs:
           exit-code: 0
           severity: HIGH,CRITICAL
 
-# =========================================================
-# AUTO ISSUE CREATION
-# =========================================================
+  # =========================================================
+  # AUTO ISSUE CREATION
+  # =========================================================
   create-issue-on-failure:
     runs-on: ubuntu-latest
-
     if: failure()
-
     needs:
       - lint
       - security
@@ -350,34 +330,29 @@ jobs:
     steps:
       - name: Create GitHub Issue
         uses: imjohnbo/issue-bot@v3
-
         with:
           assignees: SNFASA
           labels: bug, automated-issue
-
           title: "CI/CD Pipeline Failed - Run #${{ github.run_number }}"
-
           body: |
             ## CI/CD Pipeline Failure
 
             A workflow job failed in the AI Fire Monitoring System.
 
             ### Details
-            - Workflow: ${{ github.workflow }}
-            - Run Number: ${{ github.run_number }}
-            - Commit: ${{ github.sha }}
-            - Branch: ${{ github.ref_name }}
-            - Actor: ${{ github.actor }}
+            - **Workflow:** ${{ github.workflow }}
+            - **Run Number:** #Ref ${{ github.run_number }}
+            - **Commit:** SHA ${{ github.sha }}
+            - **Branch Target:** ${{ github.ref_name }}
+            - **Triggered By:** @${{ github.actor }}
 
             ### Security Findings
-            High Severity Issues:
-            ${{ needs.security.outputs.high_count }}
+            - **Bandit High Severity Counter:** ${{ needs.security.outputs.high_count || 0 }}
 
-            ### Logs
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            ### Action Logs Links
+            👉 Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             ---
-            Auto-generated by GitHub Actions.
-
+            *Auto-generated report by system actions pipeline dispatcher engine.*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
