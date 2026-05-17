@@ -341,6 +341,6 @@ CELERY_BEAT_SCHEDULE = {
 MAP_KEY = env("MAP_KEY")
 REGION_BBOX = env("REGION_BBOX")
 # Check if the operating system is Windows
-if os.name == 'nt':
+if not os.getenv('GITHUB_ACTIONS') and os.name == 'nt':
     GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"
     GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
