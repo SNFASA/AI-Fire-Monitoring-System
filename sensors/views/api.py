@@ -8,9 +8,9 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-
+from sensors.filters import SensorFilter
 from ml_engine.predictor import FirePredictor
-
+from django.db.models import OuterRef, Subquery
 from ..logger import add_log
 from ..models import (
     Address,
@@ -318,3 +318,37 @@ def update_location_from_link(request, signed_id):
         "sensors/update_location.html",
         {"owner": owner_profile, "token": signed_id},
     )
+def filters_sensor_view(request):
+    # 1. ALWAYS fetch the real-time status, regardless of what filter is clicked
+    latest_log = (
+        SensorDataLog.objects.filter(sensor=OuterRef("pk"))
+        .order_by("-timestamp")
+        .values("status")[:1]
+    )
+
+    # 2. Attach (annotate) the current_status to the base queryset
+    if request.user.is_authenticated:
+        # Assuming owner__user is your path to the User model. 
+        # If your Sensor model uses 'owner' as UserProfile, this is correct.
+        base_queryset = Sensor.objects.filter(
+            owner__user=request.user
+        ).annotate(current_status=Subquery(latest_log))
+    else:
+        base_queryset = Sensor.objects.annotate(current_status=Subquery(latest_log))
+
+    # 3. Apply the filters (Search term, Layout, Status)
+    sensor_filter = SensorFilter(request.GET, queryset=base_queryset)
+
+    # 4. Extract the filtered data
+    sensors_list = []
+    for sensor in sensor_filter.qs:
+        # Now 'current_status' will ALWAYS exist, even when clicking "All"
+        status = getattr(sensor, 'current_status', 'Safe') or 'Safe'
+        
+        sensors_list.append({
+            "id": sensor.id,
+            "name": sensor.name,
+            "status": status,
+        })
+
+    return JsonResponse({"sensors": sensors_list})

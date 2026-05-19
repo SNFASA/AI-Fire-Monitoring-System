@@ -13,18 +13,11 @@ class SensorFilter(django_filters.FilterSet):
         fields = ["is_active", "layout"]
 
     def filter_realtime_status(self, queryset, name, value):
-        # Subquery to get the latest status from logs
-        latest_log = (
-            SensorDataLog.objects.filter(sensor=OuterRef("pk"))
-            .order_by("-timestamp")
-            .values("status")[:1]
-        )
-
-        queryset = queryset.annotate(current_status=Subquery(latest_log))
-
-        if value == "All":
+        # If the user clicks "All", or no status is sent, return everything
+        if value == "All" or not value:
             return queryset
-        # matches "Gas Leak", "Fire", "Warning", etc.
+            
+        # Otherwise, filter by the status we annotated in the view
         return queryset.filter(current_status__iexact=value)
 
     def custom_search(self, queryset, name, value):
