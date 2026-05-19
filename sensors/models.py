@@ -175,7 +175,12 @@ class Sensor(models.Model):
 
 
 class SensorDataLog(models.Model):
-    STATUS_CHOICES = (("Safe", "Safe"), ("Fire", "Fire"), ("GasLeak", "GasLeak"))
+    STATUS_CHOICES = (
+        ("Safe", "Safe"), 
+        ("Warning", "Warning"), 
+        ("Fire", "Fire"), 
+        ("Gas Leak", "Gas Leak")
+    )
     sensor = models.ForeignKey(
         Sensor, on_delete=models.CASCADE, related_name="readings"
     )

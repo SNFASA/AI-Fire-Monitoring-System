@@ -92,7 +92,7 @@ def receive_sensor_data(request):
         )
 
         if not sensor:
-            return HttpResponse("0")
+            return JsonResponse({"error": "Sensor ID not found"}, status=404)
 
         # 3. Save Log with Timezone Support
         SensorDataLog.objects.create(
@@ -107,7 +107,8 @@ def receive_sensor_data(request):
             status=ml_result,
             timestamp=timezone.now(),
         )
-
+        sensor.last_status = ml_result
+        sensor.save(update_fields=['last_status', 'updated'])
         # 4. ALERT TRIAGE LOGIC
         if ml_result in ["Fire", "Gas Leak", "Warning"] and sensor.owner.address:
             user_address = sensor.owner.address
@@ -128,7 +129,10 @@ def receive_sensor_data(request):
                         f"Click here: {update_url}"
                     )
                     send_sms_broadcast([sensor.owner.phone_number], msg)
-                return HttpResponse("1")
+                
+                # FIX: Even if they have no GPS, we MUST ring the physical buzzer!
+                override_alarm = True if ml_result in ["Fire", "Warning", "Gas Leak"] else False
+                return JsonResponse({"fire_override": override_alarm})
 
             # --- B. DEDUPLICATION ---
             active_report = Report.objects.filter(
@@ -239,11 +243,17 @@ def receive_sensor_data(request):
                     send_sms_broadcast([sensor.owner.phone_number], gas_msg)
                 print(f"☣️ Gas Leak Notification sent for Sensor {sensor_id_raw}")
 
-        return HttpResponse("1" if ml_result != "Safe" else "0")
+        # ==========================================
+        # THE FIX: Tell the ESP32 to turn on the alarm
+        # ==========================================
+        override_alarm = True if ml_result in ["Fire", "Warning", "Gas Leak"] else False
+        
+        # Send a 200 OK success response back with the override command
+        return JsonResponse({"fire_override": override_alarm})
 
     except Exception as e:
         print(f"❌ Error in receive_sensor_data: {e}")
-        return HttpResponse("0")
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def update_location_from_link(request, signed_id):

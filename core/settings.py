@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     "sensors",
     "django_extensions",
     "sorl.thumbnail",
+    'rest_framework',
+    'rest_framework.authtoken', 
 ]
 
 MIDDLEWARE = [
@@ -344,3 +346,6 @@ REGION_BBOX = env("REGION_BBOX")
 if not os.getenv('GITHUB_ACTIONS') and os.name == 'nt':
     GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"
     GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
+    
+
+ALLOWED_HOSTS = ['192.168.0.25', 'localhost', '127.0.0.1']
