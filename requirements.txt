@@ -1,4 +1,4 @@
-affine
+﻿affine
 aiohappyeyeballs
 aiohttp
 aiohttp-retry
@@ -73,6 +73,7 @@ django-jazzmin
 django-stubs
 django-stubs-ext
 django-timezone-field
+djangorestframework
 docopt
 docutils
 duckdb
@@ -258,7 +259,6 @@ rioxarray
 roman-numerals
 rpds-py
 rsa
-rest_framework
 safetensors
 scikit-learn
 scipy
