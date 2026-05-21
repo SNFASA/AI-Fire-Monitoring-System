@@ -1,13 +1,12 @@
 import json
 import random
 import time
+import requests
 
-import paho.mqtt.client as mqtt
+# Point this directly to your local Django API
+API_URL = "http://127.0.0.1:8000/api/send-data/"
 
-BROKER = "broker.emqx.io"
-TOPIC = "fire-system/sensor-data"
-
-# IDs must match your Database IDs
+# IDs must match existing sensors in your PostgreSQL Database
 SENSORS_CONFIG = [
     {"id": 1, "location": "Kitchen"},
     {"id": 2, "location": "Bedroom1"},
@@ -26,38 +25,37 @@ SENSORS_CONFIG = [
     {"id": 79, "location": "Bedroom3"},
 ]
 
-
-class VirtualSensor:
+class VirtualESP32:
     def __init__(self, sensor_id, location):
         self.id = sensor_id
         self.location = location
         self.state = "Safe"
         self.fire_timer = 0
 
-        # Baselines
-        self.temp = 28.0
+        # Baselines matching ESP32 12-bit ADC (0-4095) normal room conditions
+        self.temp = 30.0
         self.humidity = 60.0
         self.methane = 300
         self.lpg = 300
-        self.co = 80
-        self.air_quality = 90
-        self.flame_val = 4095
+        self.co = 150
+        self.air_quality = 200
+        self.flame_val = 4095 # Active-LOW: 4095 means NO FLAME
 
     def update(self):
-        # --- STATE LOGIC ---
-        # 2% chance to start Warning
-        if self.state == "Safe" and random.randint(0, 100) > 98:
+        # --- STATE MACHINE LOGIC ---
+        if self.state == "Safe" and random.randint(0, 100) > 95:
+            # 5% chance to trigger a Gas Leak / Warning
             self.state = "Warning"
             self.fire_timer = 15
-            print(f"!!! [{self.location}] WARNING STARTED (Gas Rising) !!!")
+            print(f"⚠️ [{self.location}] GAS LEAK DETECTED (Levels Rising)...")
 
-        # Warning can turn into Fire
         elif self.state == "Warning":
             self.fire_timer -= 1
-            if random.randint(0, 100) > 80:  # Chance to ignite
+            if random.randint(0, 100) > 70:  
+                # 30% chance gas leak turns into an active fire
                 self.state = "Fire"
                 self.fire_timer = 20
-                print(f"!!! [{self.location}] FIRE STARTED !!!")
+                print(f"🔥 [{self.location}] FIRE IGNITED!")
             elif self.fire_timer <= 0:
                 self.state = "Safe"
 
@@ -65,47 +63,36 @@ class VirtualSensor:
             self.fire_timer -= 1
             if self.fire_timer <= 0:
                 self.state = "Safe"
-                print(f"--- [{self.location}] Fire Extinguished ---")
+                print(f"💧 [{self.location}] Fire Extinguished. Returning to Safe.")
 
-        # --- DATA GENERATION ---
+        # --- REALISTIC HARDWARE METRICS ---
         if self.state == "Fire":
-            # Fire Logic: Temp UP, Humidity DOWN, Gas UP
-            self.temp += random.uniform(1.5, 3.0)
-            self.humidity -= random.uniform(2.0, 4.0)  # <--- Humidity drops fast
-            self.methane = random.randint(800, 1500)
-            self.co = random.randint(100, 300)
-            self.flame_val = random.randint(200, 600)
+            # Temp > 45 triggers your AI Fire Override, Flame drops to ~400
+            self.temp = min(80.0, self.temp + random.uniform(5.0, 10.0))
+            self.humidity = max(20.0, self.humidity - random.uniform(2.0, 5.0))
+            self.methane = random.randint(1500, 3000)
+            self.lpg = random.randint(1500, 3000)
+            self.co = random.randint(1200, 2500)
+            self.flame_val = random.randint(100, 600) # LOW = Flame detected!
 
         elif self.state == "Warning":
-            # Warning Logic: Temp slight UP, Humidity slight DOWN
-            self.methane = random.randint(800, 1200)
-            self.lpg = random.randint(800, 1200)
-            self.co = random.randint(150, 250)
-            self.temp += random.uniform(0.0, 0.2)
-            self.humidity -= random.uniform(0.5, 1.0)  # <--- Humidity drops slowly
+            # Gas spikes, Temp stays normal, Flame stays high (NO FLAME)
+            self.methane = random.randint(1200, 2000)
+            self.lpg = random.randint(1200, 2000)
+            self.co = random.randint(800, 1500)
+            self.temp += random.uniform(0.1, 0.5)
             self.flame_val = min(4095, self.flame_val + 50)
 
         else:
-            # Safe Recovery Logic
-            if self.temp > 28:
-                self.temp -= 0.5
+            # Safe Recovery (Slowly return to baseline)
+            self.temp = max(30.0, self.temp - 2.0)
+            self.humidity = min(60.0, self.humidity + 2.0)
+            self.methane = max(300, self.methane - 200)
+            self.lpg = max(300, self.lpg - 200)
+            self.co = max(150, self.co - 100)
+            self.flame_val = min(4095, self.flame_val + 500)
 
-            # Recover Humidity back to 60%
-            if self.humidity < 60:
-                self.humidity += 0.5
-            elif self.humidity > 60:
-                self.humidity -= 0.1
-
-            if self.methane > 300:
-                self.methane -= 50
-            self.flame_val = min(4095, self.flame_val + 50)
-
-        # Clamp values to realistic ranges
-        self.temp = round(max(0, min(100, self.temp)), 2)
-        self.humidity = round(max(0, min(100, self.humidity)), 2)
-        self.methane = max(0, self.methane)
-        self.flame_val = max(0, self.flame_val)
-
+        # Assemble Exact Payload Your Django API Expects
         return {
             "sensor_id": self.id,
             "methane": int(self.methane),
@@ -113,31 +100,35 @@ class VirtualSensor:
             "co": int(self.co),
             "air_quality": int(self.air_quality),
             "flame_val": int(self.flame_val),
-            "dht22_temp": self.temp,
-            "humidity": self.humidity,
+            "dht22_temp": round(self.temp, 2),
+            "humidity": round(self.humidity, 2),
         }
 
+if __name__ == "__main__":
+    sensors = [VirtualESP32(c["id"], c["location"]) for c in SENSORS_CONFIG]
+    print("🚀 Booting Virtual ESP32 Swarm... (Ctrl+C to stop)")
+    
+    while True:
+        for s in sensors:
+            payload = s.update()
+            
+            try:
+                # Send data to Django just like the physical hardware!
+                response = requests.post(API_URL, json=payload, timeout=5)
+                
+                # Determine display color
+                status_txt = "SAFE"
+                if s.state == "Fire":
+                    status_txt = "FIRE"
+                elif s.state == "Warning":
+                    status_txt = "WARN"
 
-client = mqtt.Client()
-client.connect(BROKER, 1883, 60)
-sensors = [VirtualSensor(c["id"], c["location"]) for c in SENSORS_CONFIG]
+                print(
+                    f"[{s.id}] {status_txt} | Gas:{payload['methane']} | "
+                    f"Temp:{payload['dht22_temp']} | Flame:{payload['flame_val']} | "
+                    f"Server: {response.status_code}"
+                )
+            except requests.exceptions.RequestException as e:
+                print(f"[{s.id}] ❌ Connection Failed: Is Django running?")
 
-print("Simulating... (Ctrl+C to stop)")
-while True:
-    for s in sensors:
-        data = s.update()
-        client.publish(TOPIC, json.dumps(data))
-
-        status_txt = "SAFE"
-        if s.state == "Fire":
-            status_txt = "FIRE"
-        elif s.state == "Warning":
-            status_txt = "WARN"
-
-        print(
-            f"[{s.id}] {status_txt} | Gas:{data['methane']} | "
-            f"Temp:{data['dht22_temp']} | Hum:{data['humidity']}"
-        )
-        time.sleep(0.5)
-
-    time.sleep(1)
+        time.sleep(3) # Send batch every 3 seconds
