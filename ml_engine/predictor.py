@@ -91,7 +91,7 @@ class FirePredictor:
                 return "Warning"
 
             # C. Gas Heuristic
-            if methane > 800 or lpg > 800 or co > 100:
+            if methane > 800 or lpg > 800 or co > 450:
                 add_log(
                     f"☣️ DECISION: [GAS LEAK] High PPM detected (M:{methane}, L:{lpg}, C:{co})\n"
                 )
