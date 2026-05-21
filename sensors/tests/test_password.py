@@ -1,5 +1,6 @@
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
+
 from .factories import UserFactory
 
 
@@ -48,7 +49,7 @@ class ChangePasswordTest(TestCase):
         self.assertContains(response, "error", count=None)
 
     def test_password_mismatch(self):
-        
+
         data = {
             "old_password": self.old_password,
             "new_password": "PasswordA123!",

@@ -1,8 +1,9 @@
 from django import forms
-from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from .models import UserProfile, Address, Houselayout, Sensor, Maintenance, Report
+
+from .models import Address, Houselayout, Maintenance, Report, Sensor, UserProfile
 
 
 class SignUpForm(UserCreationForm):

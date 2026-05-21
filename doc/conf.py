@@ -1,5 +1,6 @@
 import os
 import sys
+
 import django
 
 # 1. Point Sphinx to your project root

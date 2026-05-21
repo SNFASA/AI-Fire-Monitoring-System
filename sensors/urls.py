@@ -1,12 +1,15 @@
-from django.urls import path
+from rest_framework.authtoken.views import obtain_auth_token
 from django.contrib.auth import views as auth_views
-from .views import dashboard, auth, maintenances, reports, maps, sensors, duties, api
-from . import utils
 from django.contrib.auth.views import LoginView
+from django.urls import path
+
+from . import utils
+from .views import api, auth, dashboard, duties, maintenances, maps, reports, sensors
 
 app_name = "sensors"
 urlpatterns = [
     # utils
+    path('api/token/', obtain_auth_token),
     path("get-live-logs/", utils.get_live_logs, name="get_live_logs"),
     path("test-log/", api.test_log, name="test_log"),
     path("api/send-data/", api.receive_sensor_data, name="receive_data"),
@@ -127,6 +130,8 @@ urlpatterns = [
         maps.get_victim_layout,
         name="get_victim_layout",
     ),
+    path("maps/wildfire/", maps.wildfire_map_view, name="wildfire_map"),
+    path("maps/wildfire/api/", maps.wildfire_api_view, name="wildfire_api"),
     # Sensors
     # Live Data API (The Website checks this every 2 seconds)
     path("api/live-data/", sensors.get_live_data, name="live_data"),
@@ -137,6 +142,7 @@ urlpatterns = [
         sensors.update_sensor_position,
         name="update_sensor_pos",
     ),
+    path('api/filters_sensor/', api.filters_sensor_view, name='filter_sensors'),
     # Duties
     path("duty/", duties.duty, name="duty"),
     path("api/mobilize/<int:report_id>/", duties.mobilize_team, name="mobilize_team"),

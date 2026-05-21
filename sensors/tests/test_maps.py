@@ -1,16 +1,18 @@
 import json
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
 from unittest.mock import patch
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from ..models import Address, Houselayout
 from .factories import (
-    UserProfileFactory,
-    SensorFactory,
     AddressFactory,
     FireStationFactory,
     HouselayoutFactory,
+    SensorFactory,
+    UserProfileFactory,
 )
-from ..models import Houselayout, Address
 
 
 class MapAndLayoutCoverageTest(TestCase):

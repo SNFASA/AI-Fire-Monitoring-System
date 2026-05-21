@@ -1,6 +1,6 @@
-from django.db import models
-from django.contrib.gis.db import models as gis_models
 from django.contrib.auth.models import User
+from django.contrib.gis.db import models as gis_models
+from django.db import models
 from django.utils import timezone
 
 # Constants
@@ -17,8 +17,6 @@ def user_directory_path(instance, filename):
 # ==========================================
 # 1. ADDRESS & FIRESTATION
 # ==========================================
-
-
 class Address(models.Model):
     street = models.CharField(max_length=100)
     city = models.CharField(max_length=50)
@@ -177,7 +175,12 @@ class Sensor(models.Model):
 
 
 class SensorDataLog(models.Model):
-    STATUS_CHOICES = (("Safe", "Safe"), ("Fire", "Fire"), ("GasLeak", "GasLeak"))
+    STATUS_CHOICES = (
+        ("Safe", "Safe"), 
+        ("Warning", "Warning"), 
+        ("Fire", "Fire"), 
+        ("Gas Leak", "Gas Leak")
+    )
     sensor = models.ForeignKey(
         Sensor, on_delete=models.CASCADE, related_name="readings"
     )

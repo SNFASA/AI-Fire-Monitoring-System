@@ -1,7 +1,9 @@
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
 from django.test import TestCase
-from ..utils import get_logs
+
 from ..logger import add_log
+from ..utils import get_logs
 
 
 class LoggerTest(TestCase):

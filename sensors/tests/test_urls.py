@@ -1,16 +1,17 @@
-from django.test import SimpleTestCase
-from django.urls import reverse, resolve
-from sensors.views import (
-    dashboard,
-    auth,
-    maintenances,
-    reports,
-    maps,
-    sensors,
-    duties,
-    api,
-)
 from django.contrib.auth import views as auth_views
+from django.test import SimpleTestCase
+from django.urls import resolve, reverse
+
+from sensors.views import (
+    api,
+    auth,
+    dashboard,
+    duties,
+    maintenances,
+    maps,
+    reports,
+    sensors,
+)
 
 
 class TestUrls(SimpleTestCase):

@@ -1,20 +1,22 @@
-import factory
-from factory.django import DjangoModelFactory
-from django.utils import timezone
 from datetime import timedelta
+
+import factory
 from django.contrib.auth.models import User
+from django.utils import timezone
+from factory.django import DjangoModelFactory
+
 from sensors.models import (
-    UserProfile,
     Address,
-    FireStation,
-    Sensor,
-    SensorDataLog,
-    Maintenance,
-    Houselayout,
     DutyAssignment,
+    FireStation,
+    Houselayout,
+    Maintenance,
+    MaintenanceImage,
     Report,
     ReportImage,
-    MaintenanceImage,
+    Sensor,
+    SensorDataLog,
+    UserProfile,
 )
 
 

@@ -1,17 +1,15 @@
-import json, logging
-from django.http import JsonResponse
+import json
+import logging
+
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from sensors.filters import SensorFilter
 from django.db.models import OuterRef, Subquery
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+from sensors.filters import SensorFilter
 
 # Local Imports
-from ..models import (
-    Sensor,
-    Houselayout,
-    SensorDataLog,
-)
-
+from ..models import Houselayout, Sensor, SensorDataLog
 from ..utils import get_sensor_status
 
 logger = logging.getLogger(__name__)
@@ -137,32 +135,37 @@ def update_sensor_position(request):
 
     return JsonResponse({"success": False}, status=400)
 
+
 @login_required
 def filters_sensor(request):
-    latest_log = SensorDataLog.objects.filter(
-        sensor=OuterRef('pk')
-    ).order_by('-timestamp').values('status')[:1]
+    latest_log = (
+        SensorDataLog.objects.filter(sensor=OuterRef("pk"))
+        .order_by("-timestamp")
+        .values("status")[:1]
+    )
 
     # Annotate sensors with their latest log status
     qs = Sensor.objects.filter(owner__user=request.user).annotate(
         current_status=Subquery(latest_log)
     )
-    
+
     sensor_filter = SensorFilter(request.GET, queryset=qs)
     sensors = sensor_filter.qs
-    
+
     data = []
     for s in sensors:
         # Determine status: if not active -> Offline, else use latest log
         status = "Offline" if not s.is_active else (s.current_status or "Safe")
-        
-        data.append({
-            'id': s.id,
-            'name': s.name,
-            'x_position': s.x_position,
-            'y_position': s.y_position,
-            'status': status, 
-            'layout_id': s.layout_id
-        })
-    
+
+        data.append(
+            {
+                "id": s.id,
+                "name": s.name,
+                "x_position": s.x_position,
+                "y_position": s.y_position,
+                "status": status,
+                "layout_id": s.layout_id,
+            }
+        )
+
     return JsonResponse({"success": True, "sensors": data})

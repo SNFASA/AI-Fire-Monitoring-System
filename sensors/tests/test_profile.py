@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.urls import reverse
-from .factories import UserFactory, UserProfileFactory, AddressFactory
+
 from sensors.models import UserProfile
+
+from .factories import AddressFactory, UserFactory, UserProfileFactory
 
 
 class ProfileTest(TestCase):

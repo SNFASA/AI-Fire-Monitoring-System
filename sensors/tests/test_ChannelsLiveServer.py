@@ -1,9 +1,11 @@
-from channels.testing import WebsocketCommunicator
-from core.asgi import application
-from django.test import TransactionTestCase
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from .factories import UserFactory, UserProfileFactory, FireStationFactory
+from channels.testing import WebsocketCommunicator
+from django.test import TransactionTestCase
+
+from core.asgi import application
+
+from .factories import FireStationFactory, UserFactory, UserProfileFactory
 
 
 class ConsumerSecurityTest(TransactionTestCase):

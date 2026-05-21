@@ -1,6 +1,7 @@
+from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.messages import get_messages
+
 from .factories import UserFactory, UserProfileFactory
 
 
@@ -101,7 +102,7 @@ class AuthExtraTest(TestCase):
         self.assertTrue(self.user.check_password("new_pass_456"))
 
     def test_change_password_wrong_old(self):
-        
+
         data = {
             "old_password": "wrong_old_pass",
             "new_password": "new_pass_456",

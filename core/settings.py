@@ -10,10 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-import environ
-from pathlib import Path
-from django.utils.translation import gettext_lazy as _
 import os
+from pathlib import Path
+
+import environ
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,7 +54,11 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "sensors",
     "django_extensions",
-    'sorl.thumbnail',
+    "sorl.thumbnail",
+    'rest_framework',
+    'rest_framework.authtoken',
+    'django_q',
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
@@ -89,10 +94,10 @@ ASGI_APPLICATION = "core.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-GDAL_LIBRARY_PATH = (
-    r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"  # UPDATE THIS EXACT NAME
-)
-GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
+#GDAL_LIBRARY_PATH = (
+#    r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"  # UPDATE THIS EXACT NAME
+#)
+#GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
 
 DATABASES = {
     "default": {
@@ -327,15 +332,33 @@ TWILIO_CONTENT_SID = env("TWILIO_CONTENT_SID")
 
 
 # Celery Configuration (Points to local RabbitMQ)
-CELERY_BROKER_URL = "amqp://localhost"
-
-# The 2-Hour Schedule
-CELERY_BEAT_SCHEDULE = {
-    "fetch-nasa-data-every-2-hours": {
-        "task": "your_fire_app.tasks.update_malaysia_hotspots",
-        "schedule": 7200.0,  # 2 hours in seconds
-    },
-}
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'django-cache'
+# Ensure Celery accepts JSON payloads
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 MAP_KEY = env("MAP_KEY")
 REGION_BBOX = env("REGION_BBOX")
+# Check if the operating system is Windows
+if not os.getenv('GITHUB_ACTIONS') and os.name == 'nt':
+    GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"
+    GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
+    
+
+ALLOWED_HOSTS = ['192.168.0.25', 'localhost', '127.0.0.1']
+
+Q_CLUSTER = {
+    'name': 'HDBMS_Cluster',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'label': 'Django Q Backend',
+    # Change this line to use the Django ORM database as the broker
+    'orm': 'default', 
+}

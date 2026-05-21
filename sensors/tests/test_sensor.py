@@ -1,9 +1,11 @@
 import json
-from django.test import TestCase, Client
-from django.urls import reverse
 from unittest.mock import patch
-from .factories import UserProfileFactory, SensorFactory, HouselayoutFactory
+
+from django.test import Client, TestCase
+from django.urls import reverse
+
 from ..models import Sensor
+from .factories import HouselayoutFactory, SensorFactory, UserProfileFactory
 
 
 class LiveSensorCoverageTest(TestCase):

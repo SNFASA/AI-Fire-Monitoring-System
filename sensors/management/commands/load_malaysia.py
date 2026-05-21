@@ -1,7 +1,9 @@
-import requests
 import json
-from django.core.management.base import BaseCommand
+
+import requests
 from django.contrib.gis.geos import GEOSGeometry
+from django.core.management.base import BaseCommand
+
 from sensors.models import CountryBoundary  # Change 'sensors' to your actual app name!
 
 

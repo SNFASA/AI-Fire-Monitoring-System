@@ -1,15 +1,17 @@
 import json
-from django.test import TestCase, Client
+
+from django.test import Client, TestCase
 from django.urls import reverse
+
+from ..models import Sensor, UserProfile
 from .factories import (
-    UserProfileFactory,
-    SensorFactory,
-    SensorDataLogFactory,
+    FireStationFactory,
     MaintenanceFactory,
     ReportFactory,
-    FireStationFactory,
+    SensorDataLogFactory,
+    SensorFactory,
+    UserProfileFactory,
 )
-from ..models import Sensor, UserProfile
 
 
 class DashboardCoverageTest(TestCase):

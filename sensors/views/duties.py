@@ -1,16 +1,12 @@
-from django.shortcuts import render
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 # Local Imports
-from ..models import (
-    UserProfile,
-    Report,
-    DutyAssignment,
-)
+from ..models import DutyAssignment, Report, UserProfile
 
 
 # ==========================================s

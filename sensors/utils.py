@@ -1,12 +1,17 @@
 import json
 import math
+from datetime import timedelta
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
+from django.db import transaction
+from django.http import JsonResponse
 from django.utils import timezone
 from twilio.rest import Client
-from .models import FireStation
-from django.http import JsonResponse
-from datetime import timedelta
+
 from .logger import get_logs
+from .models import FireStation, Report, Address
 
 
 def get_live_logs(request):
@@ -110,3 +115,95 @@ def get_sensor_status(sensor):
         return "Gas Leak"
 
     return status
+
+
+def process_hotspot_coverage(hotspot):
+    """
+    Checks if a newly saved SatelliteHotspot falls within any Fire Station's coverage.
+    If yes, generates an Address and a Report, then triggers a flat WebSocket alert.
+    """
+    # Extract lat/lon from the GeoDjango PointField
+    fire_lat = hotspot.location.y
+    fire_lon = hotspot.location.x
+
+    # Optimized query to fetch stations and their linked addresses
+    stations = FireStation.objects.select_related("address").all()
+
+    for station in stations:
+        # Safety check: skip stations without proper address coordinates
+        if (
+            not hasattr(station, "address")
+            or station.address.latitude is None
+            or station.address.longitude is None
+        ):
+            continue
+
+        # Convert to radians for Haversine math
+        lat1, lon1, lat2, lon2 = map(
+            math.radians,
+            [fire_lat, fire_lon, station.address.latitude, station.address.longitude],
+        )
+
+        # Calculate great-circle distance
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+        )
+        c = 2 * math.asin(math.sqrt(a))
+        distance = c * 6371000  # Earth radius in meters
+
+        # Calculate radius from square meters
+        coverage_radius = math.sqrt(station.cover_area_sqm / math.pi)
+
+        if distance <= coverage_radius:
+            # FIX 1: Create an Address record to securely store the fire coordinates
+            wildfire_address = Address.objects.create(
+                street="Satellite Detected Hotspot Area",
+                city="Wildfire Zone",
+                state=station.address.state,  # Inherit the state from the responding station
+                postal_code=station.address.postal_code,
+                latitude=fire_lat,
+                longitude=fire_lon
+            )
+
+            # 2. Create the Official Report using valid model fields
+            report = Report.objects.create(
+                status="System Detected",
+                address=wildfire_address,
+                station=station,
+                description=(
+                    f"Automated Satellite Wildfire Alert.\n"
+                    f"Thermal Brightness: {hotspot.brightness}K\n"
+                    f"Fire Radiative Power (FRP): {hotspot.frp} MW"
+                ),
+                fire_type="Wildfire / Bushfire"
+            )
+
+            # FIX 2: Flatten the payload to exactly match what FireAlertConsumer expects
+            try:
+                channel_layer = get_channel_layer()
+                payload = {
+                    "type": "fire_alert",
+                    "report_id": report.id,
+                    "address": f"{wildfire_address.street} ({station.address.city})",
+                    "owner_name": "SATELLITE_SYSTEM",
+                    "lat": float(fire_lat),
+                    "lng": float(fire_lon),
+                    "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                
+                # Broadcast to both the specific station group and the unified general dashboard
+                async_to_sync(channel_layer.group_send)(
+                    f"station_{station.id}", payload
+                )
+                async_to_sync(channel_layer.group_send)("station_all", payload)
+                
+                print(f"📡 [SATELLITE TASK] Dispatched alert for Report #{report.id} to Station {station.name}")
+            except Exception as e:
+                print(f"❌ WebSocket Error for Station {station.id}: {e}")
+
+            return True  # Successfully matched and alerted
+
+    return False  # No match found

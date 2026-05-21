@@ -1,17 +1,20 @@
 import os
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
 from unittest.mock import patch
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpRequest, QueryDict
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from sensors.models import Report, ReportImage
+
 from ..views.reports import handle_report_images
 from .factories import (
-    UserProfileFactory,
-    ReportFactory,
     FireStationFactory,
+    ReportFactory,
     ReportImageFactory,
+    UserProfileFactory,
 )
-from sensors.models import Report, ReportImage
 
 
 class ReportCoverageTest(TestCase):

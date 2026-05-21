@@ -230,7 +230,9 @@
                 <div id="sensorFormStep">
                     <label class="form-label fw-bold text-muted small text-uppercase mb-2">Sensor Name / Location</label>
                     <input type="text" class="form-control form-control-lg mb-4  border-0" id="newSensorName" placeholder="e.g. Kitchen Ceiling">
-                    <button type="button" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm" onclick="submitNewSensor()">Create Sensor</button>
+                    <button type="button" id="createSensorBtn" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm">
+                        Create Sensor
+                    </button>
                 </div>
                 <div id="sensorSuccessStep" style="display:none; text-align: center;">
                     <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
@@ -278,65 +280,80 @@
 
 <script>
     // --- Public User Scripts ---
-    function submitNewSensor() {
-        const name = document.getElementById('newSensorName').value;
-        const layoutId = "{{ current_layout.id }}";
-        if(!name || !layoutId) return;
-        fetch("{% url 'sensors:add_sensor' %}", {
-            method: "POST",
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ name: name, layout_id: layoutId })
-        }).then(res => res.json()).then(data => {
-            if(data.success) {
-                document.getElementById('sensorFormStep').style.display = 'none';
-                document.getElementById('sensorSuccessStep').style.display = 'block';
-                document.getElementById('newSensorIdDisplay').innerText = data.sensor_id;
-            } else { alert("Error: " + data.error); }
-        });
-    }
-
-    // Touch & Mouse Drag Logic (Upgraded to modern Pointer Events)
-    const sensorsNodes = document.querySelectorAll('.sensor-node');
-    const mapContainer = document.getElementById('user-map-container');
-
-    // State tracker for the currently dragged element
-    let activeSensor = null;
-
-    // 1. Move the Move/Up listeners OUTSIDE the loop
-    mapContainer.addEventListener('pointermove', (e) => {
-        if (!activeSensor) return;
-
-        const rect = mapContainer.getBoundingClientRect();
-        
-        // Calculate percentage coordinates
-        let x = ((e.clientX - rect.left) / rect.width) * 100;
-        let y = ((e.clientY - rect.top) / rect.height) * 100;
-
-        // Constrain to bounds (0-95%)
-        x = Math.max(0, Math.min(x, 95)); 
-        y = Math.max(0, Math.min(y, 95));
-
-        activeSensor.style.left = `${x}%`; 
-        activeSensor.style.top = `${y}%`;
-    });
-
-    // Use 'window' or 'document' for pointerup to ensure 
-    // the release triggers even if the cursor leaves the container
-    window.addEventListener('pointerup', (e) => {
-        if (activeSensor) {
-            activeSensor.releasePointerCapture(e.pointerId);
-            savePosition(activeSensor); 
-            activeSensor = null; // Clear state
+    document.addEventListener('DOMContentLoaded', function() {
+    
+        // Attach the event listener to the button
+        const createBtn = document.getElementById('createSensorBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', submitNewSensor);
         }
-    });
 
-    // 2. The loop now only handles the initial 'down' event
-    sensorsNodes.forEach(sensor => {
-        sensor.addEventListener('pointerdown', (e) => {
-            activeSensor = sensor; 
-            sensor.setPointerCapture(e.pointerId); 
-            e.preventDefault(); 
-        });
+        function submitNewSensor() {
+            const name = document.getElementById('newSensorName').value;
+            const layoutId = "{{ current_layout.id }}";
+            
+            if(!name || !layoutId) return;
+            
+            fetch("{% url 'sensors:add_sensor' %}", {
+                method: "POST",
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': '{{ csrf_token }}' 
+                },
+                body: JSON.stringify({ name: name, layout_id: layoutId })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to add sensor");
+                return res.json();
+            })
+            .then(data => {
+                if(data.success) {
+                    document.getElementById('sensorFormStep').style.display = 'none';
+                    document.getElementById('sensorSuccessStep').style.display = 'block';
+                    document.getElementById('newSensorIdDisplay').innerText = data.sensor_id;
+                } else { 
+                    alert("Error: " + data.error); 
+                }
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+                alert("A network error occurred.");
+            });
+        }
+
+        // Touch & Mouse Drag Logic
+        const sensorsNodes = document.querySelectorAll('.sensor-node');
+        const mapContainer = document.getElementById('user-map-container');
+        let activeSensor = null;
+
+        if (mapContainer) {
+            mapContainer.addEventListener('pointermove', (e) => {
+                if (!activeSensor) return;
+                const rect = mapContainer.getBoundingClientRect();
+                let x = ((e.clientX - rect.left) / rect.width) * 100;
+                let y = ((e.clientY - rect.top) / rect.height) * 100;
+                x = Math.max(0, Math.min(x, 95)); 
+                y = Math.max(0, Math.min(y, 95));
+                activeSensor.style.left = `${x}%`; 
+                activeSensor.style.top = `${y}%`;
+            });
+
+            window.addEventListener('pointerup', (e) => {
+                if (activeSensor) {
+                    activeSensor.releasePointerCapture(e.pointerId);
+                    savePosition(activeSensor); 
+                    activeSensor = null;
+                }
+            });
+
+            sensorsNodes.forEach(sensor => {
+                sensor.addEventListener('pointerdown', (e) => {
+                    activeSensor = sensor; 
+                    sensor.setPointerCapture(e.pointerId); 
+                    e.preventDefault(); 
+                });
+            });
+        }
     });
     
     function savePosition(sensor) {
@@ -347,14 +364,17 @@
             method: "POST",
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
             body: JSON.stringify({sensor_id: id, x: xVal, y: yVal})
-        });
+        }).catch(err => console.error("Error saving position:", err));
     }
 
-    // Polling and layout management functions remain identical...
+    // Polling and layout management functions
     function fetchMySensors() {
         triggerFilter();
         fetch("{% url 'sensors:live_data' %}") 
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Live data fetch failed");
+            return res.json();
+        })
         .then(data => {
             if(data.sensors) {
                 data.sensors.forEach(s => {
@@ -363,27 +383,28 @@
                         node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
                         let status = s.status ? s.status.toLowerCase() : 'safe';
                         if(status === 'fire') node.classList.add('bg-fire');
-                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');
+                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');                        
                         else if(status === 'offline') node.classList.add('bg-offline');
                         else node.classList.add('bg-safe');
                     }
                 });
             }
-        });
+        })
+        .catch(err => console.error(err));
     }
+    
     setInterval(fetchMySensors, 2000);
 
-        function confirmDeleteLayout(formElement) {
-            showPopup(
-                'warning', 
-                'Delete layout?', 
-                'Are you sure you want to delete this layout?<br>This action cannot be undone.',
-                function() {
-                    formElement.submit();
-                }
-            );
-        }
-    // Edit/Delete JS remains the same...
+    function confirmDeleteLayout(formElement) {
+        showPopup(
+            'warning', 
+            'Delete layout?', 
+            'Are you sure you want to delete this layout?<br>This action cannot be undone.',
+            function() {
+                formElement.submit();
+            }
+        );
+    }
 
     function openEditModal(id, name, imageUrl) {
         document.getElementById('edit_layout_id').value = id;
@@ -391,17 +412,21 @@
         document.getElementById('edit_layout_preview').src = imageUrl;
         new bootstrap.Modal(document.getElementById('editLayoutModal')).show();
     }
+    
     function submitEditLayout() {
         const formData = new FormData(document.getElementById('editLayoutForm'));
         fetch("{% url 'sensors:edit_layout_ajax' %}", {
             method: 'POST',
             headers: { 'X-CSRFToken': '{{ csrf_token }}' },
             body: formData
-        }).then(res => res.json()).then(data => {
+        })
+        .then(res => res.json())
+        .then(data => {
             if (data.success) location.reload();
             else alert(data.message);
         });
     }
+
     let activeStatusFilter = 'All';
 
     function setFilterStatus(status, buttonElement) {
@@ -441,7 +466,13 @@
         if (currentLayoutId) url += `&layout=${currentLayoutId}`;
 
         fetch(url)
-            .then(res => res.json())
+            .then(res => {
+                // THIS IS THE CRITICAL SAFETY CHECK
+                if (!res.ok) {
+                    throw new Error(`Server Error: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
                 if(data.sensors) {
                     const validIds = new Set(data.sensors.map(s => s.id.toString()));
@@ -473,7 +504,7 @@
                                 badge.innerText = status;
                                 badge.className = 'badge rounded-pill'; // Reset
                                 if(status === 'Fire') badge.classList.add('bg-danger');
-                                else if(status === 'Gas Leak' || status === 'Warning') badge.classList.add('bg-warning', ');
+                                else if(status === 'Gas Leak' || status === 'Warning') badge.classList.add('bg-warning');
                                 else if(status === 'Offline') badge.classList.add('bg-secondary');
                                 else badge.classList.add('bg-success');
                             }
@@ -491,6 +522,11 @@
                         if(!validIds.has(id)) node.style.display = 'none';
                     });
                 }
+            })
+            .catch(err => {
+                // Now, if Django returns a 500 error, it will just log it here 
+                // instead of crashing your browser tab with the '<' error.
+                console.warn("Filter skipped:", err.message);
             });
     }
 </script>

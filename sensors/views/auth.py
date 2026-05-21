@@ -1,16 +1,10 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import logout
-from ..models import (
-    UserProfile,
-)
-from ..forms import (
-    SignUpForm,
-    UserUpdateForm,
-    ProfileUpdateForm,
-    AddressUpdateForm,
-)
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
+
+from ..forms import AddressUpdateForm, ProfileUpdateForm, SignUpForm, UserUpdateForm
+from ..models import UserProfile
 
 
 # ==========================================

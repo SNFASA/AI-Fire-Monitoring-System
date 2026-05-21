@@ -1,20 +1,19 @@
 import os
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.views.decorators.http import require_POST
-from sensors.filters import ReportFilter
 from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
+from sensors.filters import ReportFilter
+
+from ..forms import ReportCreateForm, ReportUpdateForm
 
 # Local Imports
-from ..models import (
-    Report,
-    FireStation,
-    ReportImage,
-)
-from ..forms import ReportUpdateForm, ReportCreateForm
+from ..models import FireStation, Report, ReportImage
 
 
 # ==========================================
@@ -30,7 +29,7 @@ def reports_view(request):
         base_queryset = (
             Report.objects.filter(trigger_sensor__owner=request.user.userprofile)
             .select_related("address", "station", "trigger_sensor")
-            .prefetch_related("images", "in_charge") 
+            .prefetch_related("images", "in_charge")
             .order_by("-timestamp")
         )
     else:
@@ -50,15 +49,15 @@ def reports_view(request):
 
     # 3. Pagination: Apply pagination to the FILTERED results (.qs)
     # We use 10 reports per page, you can change this number
-    paginator = Paginator(report_filter.qs, 10) 
-    page_number = request.GET.get('page')
+    paginator = Paginator(report_filter.qs, 10)
+    page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
     # 4. Context: Send the filter, the paginated objects, and the role to the template
     context = {
         "filter": report_filter,
-        "reports": page_obj,  
-        "page_obj": page_obj, 
+        "reports": page_obj,
+        "page_obj": page_obj,
         "user_role": user_role,
     }
 
@@ -265,28 +264,33 @@ def handle_report_images(request, report_instance):
 
         images_to_delete.delete()
 
+
 @login_required
 def filter_reports(request):
     # Base queryset optimized with select_related
-    queryset = Report.objects.select_related(
-        'station', 'address', 'trigger_sensor'
-    ).all().order_by('-timestamp')
-    
+    queryset = (
+        Report.objects.select_related("station", "address", "trigger_sensor")
+        .all()
+        .order_by("-timestamp")
+    )
+
     # Apply the filters
     report_filter = ReportFilter(request.GET, queryset=queryset)
-    
+
     # Extract exactly the data needed for the JsonResponse
-    data = list(report_filter.qs.values(
-        'id', 
-        'fire_type', 
-        'cause', 
-        'description', 
-        'status', 
-        'is_approved',
-        'timestamp', 
-        'station__name', 
-        'address__full_address', # Ensure Address model has 'full_address' property/field
-        'trigger_sensor__name'
-    ))
-    
+    data = list(
+        report_filter.qs.values(
+            "id",
+            "fire_type",
+            "cause",
+            "description",
+            "status",
+            "is_approved",
+            "timestamp",
+            "station__name",
+            "address__full_address",  # Ensure Address model has 'full_address' property/field
+            "trigger_sensor__name",
+        )
+    )
+
     return JsonResponse({"success": True, "reports": data})

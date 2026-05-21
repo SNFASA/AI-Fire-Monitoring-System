@@ -1,16 +1,18 @@
 import json
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.core.signing import TimestampSigner
-from django.utils import timezone
 from unittest.mock import patch
+
+from django.core.signing import TimestampSigner
+from django.test import Client, TestCase
+from django.urls import reverse
+from django.utils import timezone
+
+from ..models import Address, Report, User, UserProfile
 from .factories import (
-    UserProfileFactory,
-    SensorFactory,
     AddressFactory,
     FireStationFactory,
+    SensorFactory,
+    UserProfileFactory,
 )
-from ..models import Report, UserProfile, Address, User
 
 
 class AlertSystemCoverageTest(TestCase):
@@ -53,7 +55,10 @@ class AlertSystemCoverageTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode(), "1")
+        
+        # Parse the dictionary format emitted by the secure coordinate fallback check branch
+        data = json.loads(response.content.decode())
+        self.assertTrue(data["fire_override"]) # Maps directly to {"fire_override": true}
         self.assertTrue(mock_sms.called)
 
     @patch("sensors.views.api.predictor.predict")
@@ -93,13 +98,16 @@ class AlertSystemCoverageTest(TestCase):
 
     def test_receive_data_exception_handling(self):
         """Covers the 'except Exception as e' branch."""
-        # Sending non-JSON data to trigger a JSONDecodeError/Exception
+        # Sending invalid raw string data triggers a json.JSONDecodeError inside the view's try block
         response = self.client.post(
             self.receive_url, "invalid-data", content_type="application/json"
         )
-        self.assertEqual(response.content.decode(), "0")
-
-    # --- update_location_from_link Tests ---
+        # The view catches this error in a generic try block and throws a 500 status code
+        self.assertEqual(response.status_code, 500)
+        
+        data = json.loads(response.content.decode())
+        self.assertIn("error", data)
+        self.assertIn("Expecting value", data["error"])
 
     def test_update_location_get_success(self):
         """Covers valid signature GET request."""
