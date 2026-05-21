@@ -8,8 +8,10 @@ amqp
 aniso8601
 annotated-doc
 annotated-types
+ansicon
 anyio
 anywidget
+arrow
 asgiref
 astroid
 asttokens
@@ -25,6 +27,7 @@ bidict
 billiard
 black
 bleach
+blessed
 blinker
 boolean.py
 bqplot
@@ -70,9 +73,12 @@ django-environ
 django-extensions
 django-filter
 django-jazzmin
+django-picklefield
+django-q2
 django-stubs
 django-stubs-ext
 django-timezone-field
+django_celery_results
 djangorestframework
 docopt
 docutils
@@ -145,6 +151,7 @@ isort
 itsdangerous
 jedi
 Jinja2
+jinxed
 joblib
 jsonschema
 jsonschema-specifications
