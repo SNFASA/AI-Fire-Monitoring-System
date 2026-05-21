@@ -94,7 +94,6 @@ class AlertSystemTest(TestCase):
     @patch("sensors.views.api.predictor.predict")
     def test_safe_scenario(self, mock_predict):
         mock_predict.return_value = "Safe"
-        # Even safe scenarios should send full logs to avoid database integrity errors
         payload = {
             "sensor_id": self.sensor.id,
             "methane": 100,
@@ -109,7 +108,9 @@ class AlertSystemTest(TestCase):
             self.url, json.dumps(payload), content_type="application/json"
         )
 
-        self.assertEqual(response.content.decode(), "0")
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content.decode())
+        self.assertFalse(data["fire_override"]) # Maps directly to {"fire_override": false}
         self.assertEqual(Report.objects.count(), 0)
 
     @patch("sensors.utils.haversine")
@@ -175,7 +176,12 @@ class AlertSystemTest(TestCase):
         response = self.client.post(
             self.url, json.dumps(payload), content_type="application/json"
         )
-        self.assertEqual(response.content.decode(), "0")
+        # The view returns a 404 status code for missing sensors
+        self.assertEqual(response.status_code, 404)
+        
+        # Parse the structural JSON payload response
+        data = json.loads(response.content.decode())
+        self.assertEqual(data["error"], "Sensor ID not found")
 
     def test_invalid_method_get(self):
         response = self.client.get(self.url)
