@@ -56,7 +56,9 @@ INSTALLED_APPS = [
     "django_extensions",
     "sorl.thumbnail",
     'rest_framework',
-    'rest_framework.authtoken', 
+    'rest_framework.authtoken',
+    'django_q',
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
@@ -330,15 +332,13 @@ TWILIO_CONTENT_SID = env("TWILIO_CONTENT_SID")
 
 
 # Celery Configuration (Points to local RabbitMQ)
-CELERY_BROKER_URL = "amqp://localhost"
-
-# The 2-Hour Schedule
-CELERY_BEAT_SCHEDULE = {
-    "fetch-nasa-data-every-2-hours": {
-        "task": "your_fire_app.tasks.update_malaysia_hotspots",
-        "schedule": 7200.0,  # 2 hours in seconds
-    },
-}
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'django-cache'
+# Ensure Celery accepts JSON payloads
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 MAP_KEY = env("MAP_KEY")
 REGION_BBOX = env("REGION_BBOX")
@@ -349,3 +349,16 @@ if not os.getenv('GITHUB_ACTIONS') and os.name == 'nt':
     
 
 ALLOWED_HOSTS = ['192.168.0.25', 'localhost', '127.0.0.1']
+
+Q_CLUSTER = {
+    'name': 'HDBMS_Cluster',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'label': 'Django Q Backend',
+    # Change this line to use the Django ORM database as the broker
+    'orm': 'default', 
+}

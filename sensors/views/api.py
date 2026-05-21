@@ -209,6 +209,7 @@ def receive_sensor_data(request):
                         "report_id": new_report.id,
                         "address": f"{user_address.street}, {user_address.city}",
                         "owner_name": sensor.owner.user.username,
+                        "owner_phone": sensor.owner.phone_number,
                         "lat": float(user_address.latitude),
                         "lng": float(user_address.longitude),
                         "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),

@@ -20428,3 +20428,654 @@
    ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
 
 [DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
+
+[DATA] Sensor 80: Safe

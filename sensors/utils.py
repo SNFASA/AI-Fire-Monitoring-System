@@ -11,7 +11,7 @@ from django.utils import timezone
 from twilio.rest import Client
 
 from .logger import get_logs
-from .models import FireStation, Report
+from .models import FireStation, Report, Address
 
 
 def get_live_logs(request):
@@ -120,7 +120,7 @@ def get_sensor_status(sensor):
 def process_hotspot_coverage(hotspot):
     """
     Checks if a newly saved SatelliteHotspot falls within any Fire Station's coverage.
-    If yes, generates a Report and triggers a WebSocket alert.
+    If yes, generates an Address and a Report, then triggers a flat WebSocket alert.
     """
     # Extract lat/lon from the GeoDjango PointField
     fire_lat = hotspot.location.y
@@ -158,35 +158,51 @@ def process_hotspot_coverage(hotspot):
         coverage_radius = math.sqrt(station.cover_area_sqm / math.pi)
 
         if distance <= coverage_radius:
-            # 1. Create the Official Report
-            report = Report.objects.create(
-                station=station,
+            # FIX 1: Create an Address record to securely store the fire coordinates
+            wildfire_address = Address.objects.create(
+                street="Satellite Detected Hotspot Area",
+                city="Wildfire Zone",
+                state=station.address.state,  # Inherit the state from the responding station
+                postal_code=station.address.postal_code,
                 latitude=fire_lat,
-                longitude=fire_lon,
-                status="System Detected",
+                longitude=fire_lon
             )
 
-            # 2. Trigger WebSocket Alert
+            # 2. Create the Official Report using valid model fields
+            report = Report.objects.create(
+                status="System Detected",
+                address=wildfire_address,
+                station=station,
+                description=(
+                    f"Automated Satellite Wildfire Alert.\n"
+                    f"Thermal Brightness: {hotspot.brightness}K\n"
+                    f"Fire Radiative Power (FRP): {hotspot.frp} MW"
+                ),
+                fire_type="Wildfire / Bushfire"
+            )
+
+            # FIX 2: Flatten the payload to exactly match what FireAlertConsumer expects
             try:
                 channel_layer = get_channel_layer()
+                payload = {
+                    "type": "fire_alert",
+                    "report_id": report.id,
+                    "address": f"{wildfire_address.street} ({station.address.city})",
+                    "owner_name": "SATELLITE_SYSTEM",
+                    "lat": float(fire_lat),
+                    "lng": float(fire_lon),
+                    "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                
+                # Broadcast to both the specific station group and the unified general dashboard
                 async_to_sync(channel_layer.group_send)(
-                    f"station_{station.id}",
-                    {
-                        "type": "fire_alert",
-                        "data": {
-                            "report_id": report.id,
-                            "latitude": report.latitude,
-                            "longitude": report.longitude,
-                            "status": report.status,
-                            "station_name": station.name,
-                            # Sending temperature/intensity directly to the dashboard!
-                            "brightness": hotspot.brightness,
-                            "frp": hotspot.frp,
-                        },
-                    },
+                    f"station_{station.id}", payload
                 )
+                async_to_sync(channel_layer.group_send)("station_all", payload)
+                
+                print(f"📡 [SATELLITE TASK] Dispatched alert for Report #{report.id} to Station {station.name}")
             except Exception as e:
-                print(f"WebSocket Error for Station {station.id}: {e}")
+                print(f"❌ WebSocket Error for Station {station.id}: {e}")
 
             return True  # Successfully matched and alerted
 

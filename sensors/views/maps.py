@@ -328,10 +328,26 @@ def wildfire_map_view(request):
         )
 
     user_profile = request.user.userprofile
+    
+    # Defensive defaults for the template contract
+    station_lat = None
+    station_lng = None
+    missing_station_gps = True
+
+    # Safely unpack station coordinates if assigned
+    if user_profile.station and hasattr(user_profile.station, "address"):
+        addr = user_profile.station.address
+        if addr and addr.latitude is not None and addr.longitude is not None:
+            station_lat = float(addr.latitude)
+            station_lng = float(addr.longitude)
+            missing_station_gps = False  # Coordinate validation passed, suppress setup overlay
+
     context = {
         "user_profile": user_profile,
         "role": user_profile.role,
-        # We fetch all stations to pass along to the script loop for blue coverage zones
+        "station_lat": station_lat,
+        "station_lng": station_lng,
+        "missing_station_gps": missing_station_gps,
         "all_stations": (
             user_profile.station.__class__.objects.select_related("address").all()
             if user_profile.station

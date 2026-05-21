@@ -373,9 +373,29 @@
 
     fireSocket.onmessage = function(e) {
         const packet = JSON.parse(e.data);
-        if (packet.event === 'NEW_FIRE_DETECTED') {
-            addHotspotToGeoJSON(packet.payload, true);
-            map.flyTo({ center: [parseFloat(packet.payload.longitude), parseFloat(packet.payload.latitude)], zoom: 11, essential: true });
+        
+        // Aligns to server contract types ('fire_alert')
+        if (packet.type === 'fire_alert') {
+            
+            // Transform backend keys ('lat', 'lng') into what your GeoJSON formatter expects
+            const unifiedPayload = {
+                report_id: packet.report_id,
+                latitude: parseFloat(packet.lat),
+                longitude: parseFloat(packet.lng),
+                address: packet.address,
+                owner_name: packet.owner_name,
+                timestamp: packet.timestamp
+            };
+
+            // Add to map layer
+            addHotspotToGeoJSON(unifiedPayload, true);
+            
+            // Center view on the new satellite-spotted event coordinates
+            map.flyTo({ 
+                center: [unifiedPayload.longitude, unifiedPayload.latitude], 
+                zoom: 11, 
+                essential: true 
+            });
         }
     };
 
