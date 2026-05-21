@@ -333,8 +333,8 @@
         }).catch(err => {
             console.error("Error fetching telemetry:", err);
             // Optionally show user feedback, e.g., a toast or badge
-        });    }
-
+        });
+    }
     function updateTimeFilter() {
         const selectedDays = document.getElementById('timeFilter').value;
         fetchHotspots(selectedDays);
