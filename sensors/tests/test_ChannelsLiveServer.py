@@ -77,7 +77,6 @@ class ConsumerSecurityTest(TransactionTestCase):
         connected, _ = await communicator.connect()
         self.assertTrue(connected)
 
-        # FIX: Simulate the Django View sending an alert to the Group
         channel_layer = get_channel_layer()
         await channel_layer.group_send(
             f"station_{station_id}",  # The group name you defined in the consumer

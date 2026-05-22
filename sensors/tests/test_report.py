@@ -26,7 +26,6 @@ class ReportCoverageTest(TestCase):
         self.report = ReportFactory(station=self.station)
 
         # 2. Setup Users
-        # FIX 2: Override Django's post_save signal by explicitly setting fields and calling .save()
         self.ff = UserProfileFactory()
         self.ff.role = "firefighter"
         self.ff.station = self.station
@@ -63,7 +62,6 @@ class ReportCoverageTest(TestCase):
         }
         response = self.client.post(self.detail_url, data)
 
-        # FIX 3: View redirects back to the detail page upon successful update, not the main list!
         self.assertRedirects(response, self.detail_url)
 
         self.report.refresh_from_db()
@@ -83,15 +81,12 @@ class ReportCoverageTest(TestCase):
             "description": "New Emergency",
             "images": [image],
         }
-
         # Bypass strict form validation for this specific test
         with patch("sensors.forms.ReportCreateForm.is_valid", return_value=True):
             response = self.client.post(reverse("sensors:create_report"), data)
 
         new_report = Report.objects.last()
         self.assertEqual(new_report.description, "New Emergency")
-
-    # --- Deletion & Disk Cleanup Tests ---
 
     @patch("os.path.isfile")
     @patch("os.remove")
@@ -121,7 +116,6 @@ class ReportCoverageTest(TestCase):
         qdict_post.setlist("delete_images", [str(img_obj.id)])
         request.POST = qdict_post
 
-        # FIX: Use QueryDict for FILES instead of a standard Python dict {}
         request.FILES = QueryDict(mutable=True)
 
         # Call the function directly

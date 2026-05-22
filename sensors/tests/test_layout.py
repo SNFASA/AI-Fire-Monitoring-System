@@ -82,24 +82,24 @@ class LayoutAndSensorTests(TestCase):
         sensor.refresh_from_db()
         self.assertEqual(sensor.x_position, 55.5)
 
-    def test_cannot_update_others_sensor(self):
-        """TC-004: Security Check - Ensure user cannot move another user's sensor"""
-        victim_sensor = SensorFactory(owner=self.profile, x_position=10)
-
-        # Create Hacker
-        hacker_profile = UserProfileFactory(user__username="hacker")
-
-        self.client.logout()
-        self.client.login(username="hacker", password="password123")
-
-        payload = {"sensor_id": victim_sensor.id, "x": 0, "y": 0}
-
-        response = self.client.post(
-            self.update_pos_url,
-            data=json.dumps(payload),
-            content_type="application/json",
-        )
-
-        self.assertFalse(response.json()["success"])
-        victim_sensor.refresh_from_db()
-        self.assertEqual(victim_sensor.x_position, 10)
+def test_cannot_update_others_sensor(self):
+    """TC-004: Security Check - Ensure user cannot move another user's sensor"""
+    payload = {
+        "sensor_id": self.other_user_sensor.id,
+        "x": 45.5,
+        "y": 60.2
+    }
+    
+    response = self.client.post(
+        self.url, 
+        json.dumps(payload), 
+        content_type="application/json"
+    )
+    
+    # Verify the status code matches the Forbidden protocol parameter
+    self.assertEqual(response.status_code, 403)
+    
+    # Parse the secure structural dictionary response cleanly
+    data = response.json()
+    self.assertFalse(data["success"])
+    self.assertIn("Access denied", data["message"])

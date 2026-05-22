@@ -22,7 +22,6 @@ class AlertSystemTest(TestCase):
         # 1. Create explicit Address with float coordinates
         self.owner_addr = AddressFactory(latitude=3.1390, longitude=101.6869)
 
-        # 2. CRITICAL FIX: Explicitly assign address to bypass post_save signal interference
         self.owner_profile = UserProfileFactory()
         self.owner_profile.role = "public"
         self.owner_profile.address = self.owner_addr
@@ -191,10 +190,6 @@ class AlertSystemTest(TestCase):
 @patch("sensors.views.api.send_sms_broadcast")
 @patch("sensors.views.api.predictor.predict")
 def test_missing_coordinates_sends_signed_link(self, mock_predict, mock_sms):
-    """
-    TC-04-009 Tests the 'if user_address.latitude is None' branch.
-    Ensures a signed URL is generated and sent via SMS.
-    """
     mock_predict.return_value = "Fire"
 
     # 1. Clear coordinates for this test
@@ -235,9 +230,6 @@ def test_missing_coordinates_sends_signed_link(self, mock_predict, mock_sms):
 @patch("sensors.views.api.predictor.predict")
 @patch("sensors.views.api.async_to_sync")
 def test_gas_leak_alert_scenario(self, mock_async, mock_predict, mock_hav):
-    """
-    TC-04-008 Tests the 'ml_result in ["Fire", "Gas Leak"]' branch for Gas Leaks.
-    """
     mock_predict.return_value = "Gas Leak"
     mock_hav.return_value = 0.5
     mock_async.side_effect = lambda func: lambda *args, **kwargs: None
@@ -262,9 +254,6 @@ def test_gas_leak_alert_scenario(self, mock_async, mock_predict, mock_hav):
 
 
 def test_malformed_json_handling(self):
-    """
-    Tests the 'except Exception' or 'json.JSONDecodeError' branch.
-    """
     invalid_json = "{ 'sensor_id': 75, status: broken }"  # Missing quotes
     response = self.client.post(self.url, invalid_json, content_type="application/json")
 

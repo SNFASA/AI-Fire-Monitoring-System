@@ -324,6 +324,7 @@ urllib3
 uvicorn
 vine
 virtualenv
+vulture
 wandb
 wcwidth
 webencodings

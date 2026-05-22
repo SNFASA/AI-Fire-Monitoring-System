@@ -43,8 +43,6 @@ class MapAndLayoutCoverageTest(TestCase):
         self.layout = HouselayoutFactory(user=self.public_user.user, name="Floor 1")
         self.sensor = SensorFactory(owner=self.public_user, layout=self.layout)
 
-    # --- firefighter_map_data Tests ---
-
     def test_map_data_auth_and_filtering(self):
         """Covers role check and coordinate filtering logic."""
         # Unauth check
@@ -74,8 +72,6 @@ class MapAndLayoutCoverageTest(TestCase):
 
         response = self.client.get(reverse("sensors:map_data"))
         self.assertEqual(response.json()["houses"][0]["status"], "Fire")
-
-    # --- maps View Tests ---
 
     def test_maps_public_layout_selection(self):
         """Covers public role layout selection logic."""
@@ -131,8 +127,6 @@ class MapAndLayoutCoverageTest(TestCase):
         # 2. Not Found branch
         response = self.client.post(url, {"layout_id": 999})
         self.assertEqual(response.status_code, 404)
-
-    # --- Station Coordinates ---
 
     def test_update_station_coordinates_branches(self):
         """Covers JSONDecodeError and missing coordinate branches."""
