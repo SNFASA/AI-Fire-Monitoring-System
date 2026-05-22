@@ -21079,3 +21079,28 @@
    ✅ DECISION: [SAFE] Confidence low (0.0%) (RandomForestClassifier)
 
 [DATA] Sensor 80: Safe
+[DATA] Sensor 80: Fire
+[DATA] Sensor 5: Fire
+[DATA] Sensor 8: Fire
+[DATA] Sensor 9: Gas Leak
+[DATA] Sensor 11: Fire
+[DATA] Sensor 12: Safe
+⚠️ WARNING: Sensor Malfunction/Disconnected. Skipping AI.
+
+[DATA] Sensor 99999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 8: Fire
+[DATA] Sensor 9: Gas Leak
+[DATA] Sensor 11: Fire
+[DATA] Sensor 12: Safe
+⚠️ WARNING: Sensor Malfunction/Disconnected. Skipping AI.
+
+[DATA] Sensor 99999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 8: Fire
+[DATA] Sensor 9: Gas Leak
+[DATA] Sensor 11: Fire
+[DATA] Sensor 12: Safe
+⚠️ WARNING: Sensor Malfunction/Disconnected. Skipping AI.
+
+[DATA] Sensor 99999: Safe

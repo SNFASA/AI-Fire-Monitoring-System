@@ -3,14 +3,16 @@ import json
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+from django.db.models import OuterRef, Subquery
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from sensors.filters import SensorFilter
+
 from ml_engine.predictor import FirePredictor
-from django.db.models import OuterRef, Subquery
+from sensors.filters import SensorFilter
+
 from ..logger import add_log
 from ..models import (
     Address,
@@ -108,7 +110,7 @@ def receive_sensor_data(request):
             timestamp=timezone.now(),
         )
         sensor.last_status = ml_result
-        sensor.save(update_fields=['last_status', 'updated'])
+        sensor.save(update_fields=["last_status", "updated"])
         # 4. ALERT TRIAGE LOGIC
         if ml_result in ["Fire", "Gas Leak", "Warning"] and sensor.owner.address:
             user_address = sensor.owner.address
@@ -129,9 +131,11 @@ def receive_sensor_data(request):
                         f"Click here: {update_url}"
                     )
                     send_sms_broadcast([sensor.owner.phone_number], msg)
-                
+
                 # FIX: Even if they have no GPS, we MUST ring the physical buzzer!
-                override_alarm = True if ml_result in ["Fire", "Warning", "Gas Leak"] else False
+                override_alarm = (
+                    True if ml_result in ["Fire", "Warning", "Gas Leak"] else False
+                )
                 return JsonResponse({"fire_override": override_alarm})
 
             # --- B. DEDUPLICATION ---
@@ -244,11 +248,8 @@ def receive_sensor_data(request):
                     send_sms_broadcast([sensor.owner.phone_number], gas_msg)
                 print(f"☣️ Gas Leak Notification sent for Sensor {sensor_id_raw}")
 
-        # ==========================================
-        # THE FIX: Tell the ESP32 to turn on the alarm
-        # ==========================================
         override_alarm = True if ml_result in ["Fire", "Warning", "Gas Leak"] else False
-        
+
         # Send a 200 OK success response back with the override command
         return JsonResponse({"fire_override": override_alarm})
 
@@ -329,6 +330,8 @@ def update_location_from_link(request, signed_id):
         "sensors/update_location.html",
         {"owner": owner_profile, "token": signed_id},
     )
+
+
 def filters_sensor_view(request):
     # 1. ALWAYS fetch the real-time status, regardless of what filter is clicked
     latest_log = (
@@ -339,11 +342,11 @@ def filters_sensor_view(request):
 
     # 2. Attach (annotate) the current_status to the base queryset
     if request.user.is_authenticated:
-        # Assuming owner__user is your path to the User model. 
+        # Assuming owner__user is your path to the User model.
         # If your Sensor model uses 'owner' as UserProfile, this is correct.
-        base_queryset = Sensor.objects.filter(
-            owner__user=request.user
-        ).annotate(current_status=Subquery(latest_log))
+        base_queryset = Sensor.objects.filter(owner__user=request.user).annotate(
+            current_status=Subquery(latest_log)
+        )
     else:
         base_queryset = Sensor.objects.annotate(current_status=Subquery(latest_log))
 
@@ -354,12 +357,14 @@ def filters_sensor_view(request):
     sensors_list = []
     for sensor in sensor_filter.qs:
         # Now 'current_status' will ALWAYS exist, even when clicking "All"
-        status = getattr(sensor, 'current_status', 'Safe') or 'Safe'
-        
-        sensors_list.append({
-            "id": sensor.id,
-            "name": sensor.name,
-            "status": status,
-        })
+        status = getattr(sensor, "current_status", "Safe") or "Safe"
+
+        sensors_list.append(
+            {
+                "id": sensor.id,
+                "name": sensor.name,
+                "status": status,
+            }
+        )
 
     return JsonResponse({"sensors": sensors_list})

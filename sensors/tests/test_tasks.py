@@ -1,12 +1,15 @@
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
-from unittest.mock import patch, MagicMock
-from django.test import TransactionTestCase # <-- CHANGE THIS IMPORT
 from django.contrib.gis.geos import Point
+from django.test import TransactionTestCase  # <-- CHANGE THIS IMPORT
+
 from sensors.models import CountryBoundary, SatelliteHotspot
 from sensors.tasks import update_malaysia_hotspots
 
+
 # Change the base class to TransactionTestCase
-class AutomatedTaskLifecycleTests(TransactionTestCase): 
+class AutomatedTaskLifecycleTests(TransactionTestCase):
 
     def setUp(self):
         # Create a mock bounding polygon geometry mapping out Malaysia region boundaries
@@ -18,7 +21,7 @@ class AutomatedTaskLifecycleTests(TransactionTestCase):
     def test_nasa_api_network_failure_exception(self, mock_get):
         """Covers request exception handling pathways when NASA servers drop connection."""
         mock_get.side_effect = Exception("Connection Timeout")
-        
+
         # The task should catch the error internally via loggers and return a safe message string
         result = update_malaysia_hotspots()
         self.assertIn("Failed due to error", result)
@@ -31,8 +34,8 @@ class AutomatedTaskLifecycleTests(TransactionTestCase):
 
         mock_response.text = (
             "latitude,longitude,acq_date,acq_time,confidence,frp,instrument\n"
-            "1.5,103.0,2026-05-22,0200,90,25.5,VIIR\n"   # Inside
-            "5.0,115.0,2026-05-22,1430,40,12.0,VIIR\n"   # Outside
+            "1.5,103.0,2026-05-22,0200,90,25.5,VIIR\n"  # Inside
+            "5.0,115.0,2026-05-22,1430,40,12.0,VIIR\n"  # Outside
         )
         mock_response.status_code = 200
         mock_get.return_value = mock_response

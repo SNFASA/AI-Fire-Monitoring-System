@@ -16,8 +16,6 @@ from ..models import (
 )
 from .api import predictor
 
-# Initialize AI Engine
-
 
 @login_required(login_url="login")
 def dashboard_view(request):

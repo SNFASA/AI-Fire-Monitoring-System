@@ -16,7 +16,7 @@ class SensorFilter(django_filters.FilterSet):
         # If the user clicks "All", or no status is sent, return everything
         if value == "All" or not value:
             return queryset
-            
+
         # Otherwise, filter by the status we annotated in the view
         return queryset.filter(current_status__iexact=value)
 

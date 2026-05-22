@@ -82,23 +82,18 @@ class LayoutAndSensorTests(TestCase):
         sensor.refresh_from_db()
         self.assertEqual(sensor.x_position, 55.5)
 
+
 def test_cannot_update_others_sensor(self):
     """TC-004: Security Check - Ensure user cannot move another user's sensor"""
-    payload = {
-        "sensor_id": self.other_user_sensor.id,
-        "x": 45.5,
-        "y": 60.2
-    }
-    
+    payload = {"sensor_id": self.other_user_sensor.id, "x": 45.5, "y": 60.2}
+
     response = self.client.post(
-        self.url, 
-        json.dumps(payload), 
-        content_type="application/json"
+        self.url, json.dumps(payload), content_type="application/json"
     )
-    
+
     # Verify the status code matches the Forbidden protocol parameter
     self.assertEqual(response.status_code, 403)
-    
+
     # Parse the secure structural dictionary response cleanly
     data = response.json()
     self.assertFalse(data["success"])

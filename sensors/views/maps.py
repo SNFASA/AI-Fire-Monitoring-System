@@ -37,7 +37,6 @@ def firefighter_map_data(request):
     users = UserProfile.objects.filter(role="public").select_related("address")
 
     for profile in users:
-        # CRITICAL FIX: Ignore if Lat/Lng is None to prevent map crash
         if (
             profile.address
             and profile.address.latitude is not None
@@ -209,20 +208,13 @@ def get_victim_layout(request, user_id):
 def delete_layout_ajax(request, layout_id):
     if request.method == "POST":
         try:
-            # Note: I changed 'owner' to 'user'.
-            # If your models.py uses 'owner', change this back to owner=request.user
             layout = get_object_or_404(Houselayout, id=layout_id, user=request.user)
 
             layout.delete()
-
-            # Since we are using an HTML form now, we don't need the JSON stuff.
-            # We just send a success message and redirect!
             messages.success(request, "Layout has been successfully deleted.")
             return redirect("sensors:maps")
 
         except Exception as e:
-            # THIS IS CRITICAL: If it fails, look at your terminal!
-            # It will print the exact reason it crashed.
             print(f"🚨 ERROR DELETING LAYOUT: {e}")
 
             messages.error(
@@ -328,7 +320,7 @@ def wildfire_map_view(request):
         )
 
     user_profile = request.user.userprofile
-    
+
     # Defensive defaults for the template contract
     station_lat = None
     station_lng = None
@@ -340,7 +332,9 @@ def wildfire_map_view(request):
         if addr and addr.latitude is not None and addr.longitude is not None:
             station_lat = float(addr.latitude)
             station_lng = float(addr.longitude)
-            missing_station_gps = False  # Coordinate validation passed, suppress setup overlay
+            missing_station_gps = (
+                False  # Coordinate validation passed, suppress setup overlay
+            )
 
     context = {
         "user_profile": user_profile,
@@ -385,8 +379,6 @@ def wildfire_api_view(request):
 
     lat = station.address.latitude
     lng = station.address.longitude
-
-    # FAIL FAST: Check coordinates before hitting the database
     if lat is None or lng is None:
         return JsonResponse(
             {"success": False, "error": "GPS coordinates are missing."}, status=404

@@ -109,7 +109,9 @@ class AlertSystemTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content.decode())
-        self.assertFalse(data["fire_override"]) # Maps directly to {"fire_override": false}
+        self.assertFalse(
+            data["fire_override"]
+        )  # Maps directly to {"fire_override": false}
         self.assertEqual(Report.objects.count(), 0)
 
     @patch("sensors.utils.haversine")
@@ -177,7 +179,7 @@ class AlertSystemTest(TestCase):
         )
         # The view returns a 404 status code for missing sensors
         self.assertEqual(response.status_code, 404)
-        
+
         # Parse the structural JSON payload response
         data = json.loads(response.content.decode())
         self.assertEqual(data["error"], "Sensor ID not found")
