@@ -1,5 +1,6 @@
 import json
 from unittest.mock import patch
+from urllib import response
 
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -105,9 +106,7 @@ class LiveSensorCoverageTest(TestCase):
             self.move_url, json.dumps(payload), content_type="application/json"
         )
         self.assertEqual(response.json()["success"], False)
-        self.assertEqual(
-            response.json()["message"], "Sensor not found or access denied"
-        )
+        self.assertIn("Access denied: Unauthorized sensor modification.", response.content.decode())
 
     def test_invalid_json_payload(self):
         """Covers JSONDecodeError branch."""

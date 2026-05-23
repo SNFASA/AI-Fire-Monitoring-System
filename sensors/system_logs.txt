@@ -21104,3 +21104,36 @@
 ⚠️ WARNING: Sensor Malfunction/Disconnected. Skipping AI.
 
 [DATA] Sensor 99999: Safe
+[DATA] Sensor 80: Fire
+[DATA] Sensor 1: Fire
+[DATA] Sensor 2: Fire
+⚠️ WARNING: Sensor Malfunction/Disconnected. Skipping AI.
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 6: Safe
+[DATA] Sensor 11: Fire
+[DATA] Sensor 14: Fire
+[DATA] Sensor 15: Gas Leak
+[DATA] Sensor 17: Fire
+[DATA] Sensor 18: Safe
+⚠️ WARNING: Sensor Malfunction/Disconnected. Skipping AI.
+
+[DATA] Sensor 99999: Safe
+[DATA] Sensor 80: Fire
+[DATA] Sensor 1: Fire
+[DATA] Sensor 2: Fire
+⚠️ WARNING: Sensor Malfunction/Disconnected. Skipping AI.
+
+[DATA] Sensor 999999: Safe
+[DATA] Sensor 5: Fire
+[DATA] Sensor 6: Safe
+[DATA] Sensor 11: Fire
+[DATA] Sensor 14: Fire
+[DATA] Sensor 15: Gas Leak
+[DATA] Sensor 17: Fire
+[DATA] Sensor 18: Safe
+⚠️ WARNING: Sensor Malfunction/Disconnected. Skipping AI.
+
+[DATA] Sensor 99999: Safe
+[DATA] Sensor 80: Fire
