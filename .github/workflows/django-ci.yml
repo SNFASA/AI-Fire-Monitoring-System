@@ -263,7 +263,7 @@ jobs:
           python manage.py graph_models -a -o docs/db_schema.png
 
       - name: Upload ERD
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: database-schema
           path: docs/db_schema.png
@@ -295,7 +295,7 @@ jobs:
           python scripts/architecture.py
 
       - name: Upload Architecture
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: architecture-diagram
           path: "*.png"
