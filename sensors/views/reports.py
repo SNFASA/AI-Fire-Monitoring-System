@@ -205,7 +205,7 @@ def edit_report(request, report_id):
 
             updated_report.save()
 
-            # Handle Images (Keep your existing logic)
+            # Handle Images (Keep your existing logic)#
             handle_report_images(request, updated_report)
 
             messages.success(request, f"Report #{report.id} updated successfully!")

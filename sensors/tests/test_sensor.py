@@ -154,7 +154,6 @@ class LiveSensorCoverageTest(TestCase):
         response = self.client.get(reverse("sensors:filter_sensors") + "?status=All")
         
         sensor_data = next(s for s in response.json()["sensors"] if s["id"] == self.sensor_a.id)
-        
         # Accept 'Offline' (if it hits sensors.py logic) or 'Safe' (if it hits api.py logic) 
         # This guarantees 100% branch execution coverage either way without failing the build.
         self.assertIn(sensor_data["status"], ["Offline", "Safe"])
