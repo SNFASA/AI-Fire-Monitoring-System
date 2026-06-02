@@ -145,18 +145,17 @@ class LiveSensorCoverageTest(TestCase):
     
     def test_filters_sensor_offline_status(self):
         """Covers the 'Offline' status branch."""
-        # Create a fresh, explicitly inactive sensor
-        offline_sensor = SensorFactory(
-            owner=self.user_a, 
-            name="BrokenSensor", 
-            is_active=False
-        )
+        # Force the existing sensor to be inactive
+        self.sensor_a.is_active = False
+        self.sensor_a.save()
         
         self.client.login(username=self.user_a.user.username, password="password123")
+        
+        # Send 'All' to ensure the filter doesn't exclude our inactive sensor
         response = self.client.get(reverse("sensors:filter_sensors") + "?status=All")
         
-        # Search the response for our explicitly inactive sensor
-        sensor_data = next(s for s in response.json()["sensors"] if s["id"] == offline_sensor.id)
+        # Search the response for our modified sensor
+        sensor_data = next(s for s in response.json()["sensors"] if s["id"] == self.sensor_a.id)
         self.assertEqual(sensor_data["status"], "Offline")
     
     @patch("sensors.models.Sensor.objects.create", side_effect=Exception("DB Error"))

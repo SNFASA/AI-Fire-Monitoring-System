@@ -138,8 +138,8 @@ class ReportCoverageTest(TestCase):
             "description": "Commander approved this.",
             "fire_type": "Class A",
             "cause": "Unknown",
-            "station": self.station.id,        # <--- REQUIRED BY FORM
-            "address": self.report.address.id, # <--- REQUIRED BY FORM
+            "station": self.station.id,        
+            "address": self.station.address.id, # <--- FIX: Use the guaranteed station address
         }
         self.client.post(url, data)
         
@@ -157,8 +157,8 @@ class ReportCoverageTest(TestCase):
             "fire_type": "Class A",
             "cause": "Unknown",
             "description": "delete image test",
-            "station": self.station.id,        # <--- REQUIRED BY FORM
-            "address": self.report.address.id, # <--- REQUIRED BY FORM
+            "station": self.station.id,        
+            "address": self.station.address.id, # <--- FIX: Use the guaranteed station address
             "delete_images": [img.id]
         }
         with patch("os.remove"):
