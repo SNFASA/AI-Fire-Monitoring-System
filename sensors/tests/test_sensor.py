@@ -200,17 +200,18 @@ class LiveSensorCoverageTest(TestCase):
 
     @patch("sensors.models.Sensor.save", side_effect=Exception("Simulated DB Crash"))
     @patch("sensors.models.Sensor.save", side_effect=Exception("Simulated DB Crash"))
-    def test_update_position_unexpected_error(self, mock_save):
+    def test_update_position_unexpected_error(self, *args, **kwargs):
         """Covers unhandled exception bubbling in update_sensor_pos."""
         self.client.login(username=self.user_a.user.username, password="password123")
         
         payload = {"sensor_id": self.sensor_a.id, "x": 50, "y": 75}
         
-        # FIX: Tell the test runner to EXPECT the crash
-        with self.assertRaises(Exception) as context:
-            self.client.post(
-                self.move_url, json.dumps(payload), content_type="application/json"
-            )
+        # FIX: Use a context manager instead of a decorator to avoid signature crashes
+        with patch("sensors.models.Sensor.save", side_effect=Exception("Simulated DB Crash")):
+            with self.assertRaises(Exception) as context:
+                self.client.post(
+                    self.move_url, json.dumps(payload), content_type="application/json"
+                )
             
         self.assertTrue("Simulated DB Crash" in str(context.exception))
 
