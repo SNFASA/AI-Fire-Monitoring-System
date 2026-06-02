@@ -139,6 +139,7 @@ jobs:
 
       - name: Run Tests
         run: |
+          python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --output-dir=test-reports
           coverage run --branch manage.py test
           coverage report -m
           coverage xml
@@ -149,6 +150,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: SNFASA/AI-Fire-Monitoring-System
+          files: ./test-reports/*.xml
           fail_ci_if_error: false
       - name: Upload Coverage Artifact
         uses: actions/upload-artifact@v7
