@@ -139,8 +139,11 @@ jobs:
         run: python manage.py migrate
 
       - name: Run Tests
+        env:
+          TEST_RUNNER: xmlrunner.extra.djangotestrunner.XMLTestRunner
+          TEST_OUTPUT_DIR: test-reports
         run: |
-          python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --output-dir=test-reports
+          python manage.py test --testrunner=$TEST_RUNNER
           coverage run --branch manage.py test
           coverage report -m
           coverage xml
