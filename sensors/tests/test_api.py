@@ -17,6 +17,7 @@ from .factories import (
     FireStationFactory,
     SensorFactory,
     UserProfileFactory,
+    DutyAssignment,
 )
 
 
@@ -321,7 +322,7 @@ class ComprehensiveApiViewsTests(TestCase):
     ):
         """Covers the fallback logic: No active staff found, so pick the nearest station anyway."""
         # Ensure station exists but has NO active duty assignments
-        DutyAssignmentFactory.objects.all().delete()
+        DutyAssignment.objects.all().delete()
         
         payload = {"sensor_id": self.sensor.id}
         response = self.client.post(

@@ -132,13 +132,14 @@ class ReportCoverageTest(TestCase):
         self.client.force_login(self.ff.user)
         
         url = reverse("sensors:edit_report", args=[self.report.id])
-        # Provide ALL required fields for the form to pass validation!
         data = {
             "status": "Confirmed",
             "is_approved": "on",
             "description": "Commander approved this.",
             "fire_type": "Class A",
             "cause": "Unknown",
+            "station": self.station.id,        # <--- REQUIRED BY FORM
+            "address": self.report.address.id, # <--- REQUIRED BY FORM
         }
         self.client.post(url, data)
         
@@ -151,12 +152,13 @@ class ReportCoverageTest(TestCase):
         self.client.force_login(self.ff.user)
         
         url = reverse("sensors:edit_report", args=[self.report.id])
-        # Provide ALL required fields for the form to pass validation!
         data = {
             "status": "System Detected",
             "fire_type": "Class A",
             "cause": "Unknown",
             "description": "delete image test",
+            "station": self.station.id,        # <--- REQUIRED BY FORM
+            "address": self.report.address.id, # <--- REQUIRED BY FORM
             "delete_images": [img.id]
         }
         with patch("os.remove"):
