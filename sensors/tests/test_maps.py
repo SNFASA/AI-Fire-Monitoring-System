@@ -218,6 +218,11 @@ class MapAndLayoutCoverageTest(TestCase):
         """Covers the UserProfile.DoesNotExist branch in maps view."""
         from django.contrib.auth.models import User
         ghost = User.objects.create_user("ghost3", password="password123")
+        
+        # FIX: Explicitly delete the auto-generated profile!
+        if hasattr(ghost, 'userprofile'):
+            ghost.userprofile.delete()
+            
         self.client.login(username="ghost3", password="password123")
         
         response = self.client.get(reverse("sensors:maps"))
@@ -246,7 +251,10 @@ class MapAndLayoutCoverageTest(TestCase):
     def test_upload_layout_post_success(self):
         """Covers successful POST branch in upload_layout."""
         self.client.login(username=self.public_user.user.username, password="password123")
-        img = SimpleUploadedFile("layout.jpg", b"data", content_type="image/jpeg")
+        
+        # FIX: A mathematically valid 1x1 pixel transparent GIF
+        tiny_gif = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+        img = SimpleUploadedFile("layout.gif", tiny_gif, content_type="image/gif")
         
         response = self.client.post(reverse("sensors:upload_layout"), {"name": "Floor 2", "image": img})
         self.assertRedirects(response, reverse("sensors:maps"))
