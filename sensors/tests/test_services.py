@@ -129,3 +129,30 @@ class NasaFirmsServicesTests(TransactionTestCase):
 
         result = fetch_and_filter_hotspots()
         self.assertEqual(result, "NASA connected successfully, but no new hotspots to add.")
+
+    @patch("sensors.services.requests.get")
+    def test_empty_dataframe_continue_branch(self, mock_get):
+        """
+        Covers the 'if df.empty: continue' branch by mocking the NASA API
+        to return only CSV headers with no actual data rows.
+        """
+        # Create a mock response with ONLY headers, meaning zero rows of data
+        mock_response = MagicMock()
+        mock_response.text = "latitude,longitude,acq_date,acq_time,confidence,frp,instrument,bright_ti4\n"
+        mock_response.status_code = 200
+        
+        # Apply the mock to requests.get
+        mock_get.return_value = mock_response
+
+        # Execute the function
+        result = fetch_and_filter_hotspots()
+
+        # Because all 4 NASA sources returned empty DataFrames and hit the 'continue' statement,
+        # the list of hotspots_to_create remains empty, returning the fallback string.
+        self.assertEqual(
+            result, 
+            "NASA connected successfully, but no new hotspots to add."
+        )
+        
+        # Verify no hotspots were created in the database
+        self.assertEqual(SatelliteHotspot.objects.count(), 0)

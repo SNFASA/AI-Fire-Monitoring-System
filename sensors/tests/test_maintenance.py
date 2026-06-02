@@ -185,3 +185,70 @@ class MaintenanceCoverageTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["success"])
         self.assertIn("maintenances", response.json())
+    
+    def test_maintenance_view_public_role(self):
+        """Covers the 'if user_role == "public":' branch in maintenance_view."""
+        self.client.login(username=self.owner.user.username, password="password123")
+        response = self.client.get(reverse("sensors:maintenance"))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["user_role"], "public")
+        # Ensure the public user sees their own task
+        self.assertIn(self.task, response.context["maintenance_items"])
+    
+    def test_create_maintenance_get(self):
+        """Covers the 'else' (GET request) branch in create_maintenance."""
+        self.client.login(username=self.owner.user.username, password="password123")
+        response = self.client.get(reverse("sensors:maintenance_create"))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "sensors/maintenance_create.html")
+
+    def test_create_maintenance_post_success(self):
+        """Covers the 'if form.is_valid():' branch and the image upload loop."""
+        self.client.login(username=self.owner.user.username, password="password123")
+        img = SimpleUploadedFile("evidence.jpg", b"file_content", content_type="image/jpeg")
+        
+        data = {
+            "sensor": self.sensor.id,
+            "maintenance_type": "Repair",
+            "frequency": "adHoc",
+            "details": "New maintenance task",
+            "status": "Pending",
+            "images": [img]  # Triggers the 'for img in request.FILES.getlist("images")' loop
+        }
+        response = self.client.post(reverse("sensors:maintenance_create"), data)
+        self.assertRedirects(response, reverse("sensors:maintenance"))
+        
+        # Verify the new task and its image were saved to the database
+        new_task = Maintenance.objects.filter(details="New maintenance task").first()
+        self.assertIsNotNone(new_task)
+        self.assertEqual(new_task.images.count(), 1)
+
+    def test_create_maintenance_post_invalid(self):
+        """Covers the invalid form branch in create_maintenance."""
+        self.client.login(username=self.owner.user.username, password="password123")
+        
+        # Submitting an empty dictionary will fail form validation
+        response = self.client.post(reverse("sensors:maintenance_create"), {})
+        
+        self.assertEqual(response.status_code, 200)  # Re-renders the page instead of redirecting
+        self.assertIn("form", response.context)
+    
+    def test_edit_maintenance_userprofile_does_not_exist(self):
+        """Covers the 'except UserProfile.DoesNotExist' branch in edit_maintenance."""
+        from django.contrib.auth.models import User
+        
+        # 1. Create a user and forcefully delete their profile to trigger the Exception
+        ghost_user = User.objects.create_user(username="ghost", password="password123")
+        if hasattr(ghost_user, 'userprofile'):
+            ghost_user.userprofile.delete()
+            
+        self.client.force_login(ghost_user)
+        
+        # 2. Access the edit view
+        # The view will catch the exception, set user_role = "public".
+        # Because this ghost user does not own the sensor, it immediately raises PermissionDenied.
+        response = self.client.get(self.edit_url)
+        
+        self.assertEqual(response.status_code, 403)

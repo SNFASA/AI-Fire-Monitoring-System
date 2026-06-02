@@ -202,3 +202,162 @@ class MapAndLayoutCoverageTest(TestCase):
         with patch.object(Houselayout, 'delete', side_effect=Exception("DB Failure")):
             response = self.client.post(reverse("sensors:delete_layout_ajax", args=[self.layout.id]))
             self.assertRedirects(response, reverse("sensors:maps"))
+    
+    # ==========================================
+    # 1. MAP DATA & MAPS VIEW
+    # ==========================================
+
+    @patch("sensors.views.maps.get_sensor_status", return_value="Offline")
+    def test_map_status_offline_priority(self, mock_status):
+        """Covers the branch where all sensors are safe but one is offline."""
+        self.client.login(username=self.ff.user.username, password="password123")
+        response = self.client.get(reverse("sensors:map_data"))
+        self.assertEqual(response.json()["houses"][0]["status"], "Offline")
+
+    def test_maps_view_no_profile(self):
+        """Covers the UserProfile.DoesNotExist branch in maps view."""
+        from django.contrib.auth.models import User
+        ghost = User.objects.create_user("ghost3", password="password123")
+        self.client.login(username="ghost3", password="password123")
+        
+        response = self.client.get(reverse("sensors:maps"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["role"], "unknown")
+
+    def test_maps_public_default_layout(self):
+        """Covers the 'else user_layouts.first()' logic in maps view."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        # Do not pass a layout_id
+        response = self.client.get(reverse("sensors:maps"))
+        self.assertEqual(response.context["current_layout"].id, self.layout.id)
+
+
+    # ==========================================
+    # 2. UPLOAD LAYOUT (Completely Missing)
+    # ==========================================
+
+    def test_upload_layout_get(self):
+        """Covers the GET branch of upload_layout."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        response = self.client.get(reverse("sensors:upload_layout"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "sensors/upload_layout.html")
+
+    def test_upload_layout_post_success(self):
+        """Covers successful POST branch in upload_layout."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        img = SimpleUploadedFile("layout.jpg", b"data", content_type="image/jpeg")
+        
+        response = self.client.post(reverse("sensors:upload_layout"), {"name": "Floor 2", "image": img})
+        self.assertRedirects(response, reverse("sensors:maps"))
+
+    def test_upload_layout_post_invalid(self):
+        """Covers invalid form branch in upload_layout."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        # Missing image will cause form to be invalid
+        response = self.client.post(reverse("sensors:upload_layout"), {"name": "Floor 3"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("form", response.context)
+
+
+    # ==========================================
+    # 3. AJAX LAYOUT MANAGEMENT
+    # ==========================================
+
+    def test_get_victim_layout_unauthorized(self):
+        """Covers public user trying to fetch victim layout."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        response = self.client.get(reverse("sensors:get_victim_layout", args=[self.public_user.user.id]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_layout_ajax_success(self):
+        """Covers the successful deletion path."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        response = self.client.post(reverse("sensors:delete_layout_ajax", args=[self.layout.id]))
+        self.assertRedirects(response, reverse("sensors:maps"))
+        self.assertEqual(Houselayout.objects.count(), 0)
+
+    def test_edit_layout_ajax_missing_id(self):
+        """Covers 'if not layout_id' branch."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        response = self.client.post(reverse("sensors:edit_layout_ajax"), {})
+        self.assertEqual(response.status_code, 400)
+
+    def test_edit_layout_ajax_invalid_id(self):
+        """Covers ValueError/TypeError branch."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        response = self.client.post(reverse("sensors:edit_layout_ajax"), {"layout_id": "invalid_string"})
+        self.assertEqual(response.status_code, 400)
+
+
+    # ==========================================
+    # 4. STATION COORDINATES
+    # ==========================================
+
+    def test_update_station_coords_unauthorized(self):
+        """Covers the 403 Unauthorized branch (Public User)."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        response = self.client.post(reverse("sensors:update_station_coords"), json.dumps({"lat": 1, "lng": 1}), content_type="application/json")
+        self.assertEqual(response.status_code, 403)
+
+    @patch("sensors.models.Address.save", side_effect=Exception("DB Error"))
+    def test_update_station_coords_exception(self, mock_save):
+        """Covers the generic 500 exception block."""
+        self.client.login(username=self.ff.user.username, password="password123")
+        response = self.client.post(reverse("sensors:update_station_coords"), json.dumps({"lat": 1, "lng": 1}), content_type="application/json")
+        self.assertEqual(response.status_code, 500)
+
+
+    # ==========================================
+    # 5. WILDFIRE MAPS & API
+    # ==========================================
+
+    def test_wildfire_map_view_success(self):
+        """Covers the successful rendering path of wildfire maps."""
+        self.client.login(username=self.ff.user.username, password="password123")
+        response = self.client.get(reverse("sensors:wildfire_map"))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["missing_station_gps"])
+
+    def test_wildfire_api_no_address(self):
+        """Covers station.address is None."""
+        self.client.login(username=self.ff.user.username, password="password123")
+        with patch("sensors.models.FireStation.address", new_callable=PropertyMock) as mock_address:
+            mock_address.return_value = None
+            response = self.client.post(reverse("sensors:wildfire_api"))
+            self.assertEqual(response.status_code, 404)
+
+    def test_wildfire_api_missing_coords(self):
+        """Covers lat/lng is None."""
+        self.station_addr.latitude = None
+        self.station_addr.save()
+        self.client.login(username=self.ff.user.username, password="password123")
+        response = self.client.post(reverse("sensors:wildfire_api"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_wildfire_api_success_and_json_error(self):
+        """Covers the JSONDecodeError fallback and the actual success loop."""
+        self.client.login(username=self.ff.user.username, password="password123")
+        
+        # 1. Create a dummy hotspot for the loop
+        from sensors.models import SatelliteHotspot
+        from django.contrib.gis.geos import Point
+        from django.utils import timezone
+        SatelliteHotspot.objects.create(
+            location=Point(101.0, 3.0),
+            brightness=300,
+            acq_date=timezone.now().date(),
+            acq_time="1200",
+            satellite="TEST",
+            confidence="h",
+            frp=10.0
+        )
+
+        # 2. Valid JSON payload
+        response = self.client.post(reverse("sensors:wildfire_api"), json.dumps({"days": 2}), content_type="application/json")
+        self.assertEqual(response.json()["success"], True)
+        self.assertEqual(len(response.json()["active_hotspots"]), 1)
+
+        # 3. Invalid JSON (Triggers `except (ValueError, json.JSONDecodeError)`)
+        response = self.client.post(reverse("sensors:wildfire_api"), "invalid_json_string", content_type="application/json")
+        self.assertEqual(response.json()["success"], True)

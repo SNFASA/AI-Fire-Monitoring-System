@@ -333,3 +333,126 @@ class ComprehensiveApiViewsTests(TestCase):
         # Should still create a report for the nearest station
         self.assertEqual(Report.objects.count(), 1)
         self.assertEqual(Report.objects.first().station, self.station)
+    @patch("sensors.views.api.predictor.predict", return_value="Fire")
+    @patch("sensors.views.api.send_sms_broadcast")
+    def test_receive_data_missing_coords_no_phone(self, mock_sms, mock_predict):
+        """Covers: if sensor.owner.phone_number == False (Missing Coords Branch)"""
+        # Strip coords AND phone number
+        self.user_profile.address.latitude = None
+        self.user_profile.address.longitude = None
+        self.user_profile.address.save()
+        self.user_profile.phone_number = ""
+        self.user_profile.save()
+
+        payload = {"sensor_id": self.sensor.id}
+        response = self.client.post(
+            self.receive_url, json.dumps(payload), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["fire_override"])
+        # Ensure SMS was NOT sent because phone number is missing
+        self.assertFalse(mock_sms.called)
+
+    @patch("sensors.views.api.predictor.predict", return_value="Fire")
+    def test_receive_data_station_missing_coords(self, mock_predict):
+        """Covers: if station.address.latitude and station.address.longitude == False"""
+        # Create a bad station with missing coordinates
+        bad_address = AddressFactory(latitude=None, longitude=None)
+        FireStationFactory(address=bad_address)
+
+        payload = {"sensor_id": self.sensor.id}
+        response = self.client.post(
+            self.receive_url, json.dumps(payload), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        # The bad station should simply be skipped during distance calculation
+        self.assertTrue(response.json()["fire_override"])
+
+    @patch("sensors.views.api.predictor.predict", return_value="Fire")
+    def test_receive_data_fire_no_stations_exist(self, mock_predict):
+        """Covers: if target_station == False"""
+        # Wipe out all fire stations so none can be found
+        from sensors.models import FireStation
+        FireStation.objects.all().delete()
+
+        payload = {"sensor_id": self.sensor.id}
+        response = self.client.post(
+            self.receive_url, json.dumps(payload), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        # Ensure no report was generated since target_station was None
+        self.assertEqual(Report.objects.count(), 0)
+
+    @patch("sensors.views.api.async_to_sync")
+    @patch("sensors.views.api.get_channel_layer")
+    @patch("sensors.views.api.send_sms_broadcast")
+    @patch("sensors.views.api.haversine", return_value=1.5)
+    @patch("sensors.views.api.predictor.predict", return_value="Fire")
+    def test_receive_data_fire_dispatch_staff_no_phone(
+        self, mock_predict, mock_hav, mock_sms, mock_channels, mock_async
+    ):
+        """Covers: if staff_phones == False"""
+        # Remove phone number from the on-duty staff
+        self.ff_profile.phone_number = ""
+        self.ff_profile.station = self.station
+        self.ff_profile.save()
+
+        from datetime import timedelta
+        DutyAssignment.objects.create(
+            firefighter=self.ff_profile,
+            is_active=True,
+            start_time=timezone.now() - timedelta(days=1),
+            end_time=timezone.now() + timedelta(days=1),
+        )
+
+        payload = {"sensor_id": self.sensor.id}
+        self.client.post(
+            self.receive_url, json.dumps(payload), content_type="application/json"
+        )
+
+        # The owner still has a phone, so it should be called exactly ONCE (for the owner)
+        # If staff_phones had triggered, it would have been called TWICE.
+        self.assertEqual(mock_sms.call_count, 1)
+
+    @patch("sensors.views.api.send_sms_broadcast")
+    @patch("sensors.views.api.predictor.predict", return_value="Gas Leak")
+    def test_receive_data_gas_leak_no_phone(self, mock_predict, mock_sms):
+        """Covers: if sensor.owner.phone_number == False (Gas Leak Branch)"""
+        self.user_profile.phone_number = ""
+        self.user_profile.save()
+
+        payload = {"sensor_id": self.sensor.id}
+        response = self.client.post(
+            self.receive_url, json.dumps(payload), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        # Ensure Gas Leak SMS was skipped
+        self.assertFalse(mock_sms.called)
+
+    def test_create_address_when_none_exists_fallback(self):
+        """Covers: if owner_profile.address == False (in update_location_from_link)"""
+        # Ensure the user has no address assigned
+        self.user_profile.address = None
+        self.user_profile.save()
+
+        token = self.signer.sign(str(self.user_profile.id))
+        url = reverse(self.update_url_name, args=[token])
+
+        # Testing with missing street data to hit the fallback defaults
+        payload = {"lat": 1.0, "lng": 103.0, "street": "", "city": ""}
+        response = self.client.post(
+            url, json.dumps(payload), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user_profile.refresh_from_db()
+
+        # Verifies the 'else' branch created the address
+        self.assertEqual(float(self.user_profile.address.latitude), 1.0)
+        self.assertEqual(
+            self.user_profile.address.street, "Emergency Location (GPS Pin)"
+        )

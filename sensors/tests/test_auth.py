@@ -175,3 +175,47 @@ class ProfileViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         # Form should be re-rendered with errors
         self.assertIn("u_form", response.context)
+    
+    def test_register_get(self):
+        """Covers the GET request branch and 'form = SignUpForm()'."""
+        # Explicitly use the register URL so it works regardless of which class it is in!
+        url = reverse("sensors:register")
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("form", response.context)
+        self.assertTemplateUsed(response, "sensors/auth/register.html")
+    
+    def test_change_password_get(self):
+        """Covers the GET request branch in change_password."""
+        response = self.client.get(reverse("sensors:change_password"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "sensors/change_password.html")
+    
+    def test_profile_update_existing_address(self):
+        """Covers the branch where the user ALREADY has an address."""
+        # 1. Give the user an address before the POST request
+        from .factories import AddressFactory
+        existing_address = AddressFactory(street="Old Street")
+        self.profile.address = existing_address
+        self.profile.save()
+
+        # 2. Submit the form to update it
+        data = {
+            "username": self.profile.user.username, 
+            "email": self.profile.user.email,       
+            "first_name": "Nabil",
+            "last_name": "Afifi",
+            "phone_number": "0123456789",           
+            "street": "New Street",  # Updating the street
+            "city": "Parit Raja",
+            "state": "Johor",
+            "postal_code": "86400",
+        }
+        response = self.client.post(self.url, data)
+        self.assertRedirects(response, self.url)
+        
+        # 3. Verify it updated the existing address instead of creating a new one
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.address.id, existing_address.id)
+        self.assertEqual(self.profile.address.street, "New Street")

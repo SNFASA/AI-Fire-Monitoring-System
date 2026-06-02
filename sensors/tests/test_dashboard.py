@@ -150,3 +150,29 @@ class DashboardCoverageTest(TestCase):
         url = reverse("sensors:delete_sensor_ajax", args=[99999])
         response = self.client.post(url)
         self.assertEqual(response.status_code, 404)
+    
+    def test_delete_sensor_get_request(self):
+        """Covers the if request.method != "POST" branch in delete_sensor."""
+        self.client.login(username=self.public_user.username, password="password123")
+        
+        url = reverse("sensors:delete_sensor", args=[self.public_sensor.id])
+        # Send a GET request instead of a POST request
+        response = self.client.get(url)
+        
+        # It should simply redirect to dashboard without deleting the sensor
+        self.assertRedirects(response, reverse("sensors:dashboard"))
+        # Verify the sensor still exists
+        self.assertTrue(Sensor.objects.filter(id=self.public_sensor.id).exists())
+    
+    def test_get_dashboard_sensor_data_firefighter_role(self):
+        """Covers the 'else' branch in get_dashboard_sensor_data where user is not 'public'."""
+        self.client.login(username=self.staff_user.username, password="password123")
+        
+        # Firefighter should see ALL sensors (public_sensor and other_sensor)
+        response = self.client.get(reverse("sensors:dashboard_data"))
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        
+        # Verify they can see at least 2 sensors (the ones created in setUp)
+        self.assertGreaterEqual(len(data["sensors"]), 2)

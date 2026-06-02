@@ -194,3 +194,5 @@ class ReportCoverageTest(TestCase):
         self.client.force_login(self.public_user.user)
         response = self.client.get(reverse("sensors:report_detail", args=[self.report.id]))
         self.assertEqual(response.status_code, 403)
+    
+    
