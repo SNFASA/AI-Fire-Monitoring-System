@@ -123,3 +123,65 @@ class MaintenanceCoverageTest(TestCase):
 
         self.assertRedirects(response, reverse("sensors:maintenance"))
         self.assertFalse(Maintenance.objects.filter(id=self.task.id).exists())
+
+    def test_maintenance_view_firefighter_no_station(self):
+        """Covers the else branch where firefighter has no assigned station."""
+        # Create a firefighter with NO station
+        self.ff.station = None
+        self.ff.save()
+        
+        self.client.force_login(self.ff.user)
+        response = self.client.get(reverse("sensors:maintenance"))
+        
+        self.assertEqual(len(response.context["maintenance_items"]), 0)
+    
+    def test_edit_maintenance_public_owner_path(self):
+        """Covers the 'public' user edit logic."""
+        self.client.login(username=self.owner.user.username, password="password123")
+        
+        data = {
+            "sensor": self.sensor.id,
+            "maintenance_type": "Repair",
+            "scheduled_date": "2026-06-01",
+            "details": "Update details",
+            "status": "Pending",
+        }
+        response = self.client.post(self.edit_url, data)
+        
+        self.task.refresh_from_db()
+        self.assertEqual(self.task.maintenance_type, "Repair")
+        self.assertRedirects(response, reverse("sensors:maintenance_detail", args=[self.task.id]))
+    
+    def test_edit_maintenance_permission_denied(self):
+        """Covers the PermissionDenied error in edit_maintenance."""
+        self.client.login(username=self.hacker.user.username, password="password123")
+        # Attempt to edit owner's task
+        response = self.client.post(self.edit_url, {})
+        self.assertEqual(response.status_code, 403)
+    
+    def test_edit_maintenance_firefighter_actual_date_null(self):
+        """Covers the 'request.POST.get("actual_date") or None' logic."""
+        # Ensure task currently has no in_charge
+        self.task.in_charge = None
+        self.task.save()
+        
+        self.client.login(username=self.ff.user.username, password="password123")
+        data = {
+            "status": "In Progress",
+            "actual_date": "", # Should become None
+            "technician_notes": "Note"
+        }
+        self.client.post(self.edit_url, data)
+        
+        self.task.refresh_from_db()
+        self.assertIsNone(self.task.actual_date)
+        self.assertEqual(self.task.in_charge, self.ff.user)
+    
+    def test_filter_maintenances_api(self):
+        """Covers filter_maintenances JsonResponse logic."""
+        self.client.login(username=self.owner.user.username, password="password123")
+        response = self.client.get(reverse("sensors:filter_maintenances"))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+        self.assertIn("maintenances", response.json())

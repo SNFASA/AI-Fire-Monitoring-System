@@ -83,3 +83,49 @@ class NasaFirmsServicesTests(TransactionTestCase):
 
         # FIX 2: The database count should REMAIN 1, proving secondary runs were completely ignored
         self.assertEqual(SatelliteHotspot.objects.count(), 1)
+    
+    @patch("sensors.services.pd.read_csv")
+    @patch("sensors.services.requests.get")
+    def test_csv_parsing_error(self, mock_get, mock_pd):
+        """Covers the Exception branch during CSV parsing."""
+        mock_response = MagicMock()
+        mock_response.text = "invalid,csv,data"
+        mock_get.return_value = mock_response
+        
+        # Force Pandas to throw an error
+        mock_pd.side_effect = Exception("Parsing error")
+
+        result = fetch_and_filter_hotspots()
+        # It should skip the current source and return the success message (since no hotspots created)
+        self.assertEqual(result, "NASA connected successfully, but no new hotspots to add.")
+    
+    @patch("sensors.services.requests.get")
+    def test_brightness_fallback_logic(self, mock_get):
+        """Covers the fallback logic when bright_ti4 is NaN."""
+        mock_response = MagicMock()
+        # Provide row where bright_ti4 is NaN
+        mock_response.text = (
+            "latitude,longitude,acq_date,acq_time,confidence,frp,instrument,bright_ti4,brightness\n"
+            "2.0,102.0,2026-05-23,0400,high,30.5,VIIR,,320.0\n" 
+        )
+        mock_get.return_value = mock_response
+
+        fetch_and_filter_hotspots()
+        
+        # Verify the saved object used the 'brightness' field (320.0) instead of missing bright_ti4
+        hotspot = SatelliteHotspot.objects.first()
+        self.assertEqual(hotspot.brightness, 320.0)
+
+    @patch("sensors.services.pd.read_csv")
+    @patch("sensors.services.requests.get")
+    def test_empty_dataframe(self, mock_get, mock_pd):
+        """Covers the 'if df.empty' branch."""
+        mock_response = MagicMock()
+        mock_get.return_value = mock_response
+        
+        # Return an empty DataFrame
+        import pandas as pd
+        mock_pd.return_value = pd.DataFrame()
+
+        result = fetch_and_filter_hotspots()
+        self.assertEqual(result, "NASA connected successfully, but no new hotspots to add.")

@@ -23,7 +23,14 @@ class RegistrationTest(TestCase):
         # TC-1-001: Create new user with valid data.
         response = self.client.post(self.url, self.valid_data)
         self.assertRedirects(response, reverse("sensors:login"))
-
+    def test_register_post_invalid(self):
+        """Covers the 'Registration failed' branch in register view."""
+        # Sending empty data to trigger form.is_valid() = False
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, 200)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(str(messages[0]), "Registration failed.")
+        
     def test_register_duplicate_username(self):
         # TC-1-002: Duplicate username fails.
         UserFactory(username="taken_user")
@@ -111,3 +118,54 @@ class AuthExtraTest(TestCase):
         response = self.client.post(reverse("sensors:change_password"), data)
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "Incorrect current password.")
+    def test_logout_get_redirect(self):
+        """Covers the GET request branch in logout_view (should redirect to home)."""
+        response = self.client.get(reverse("sensors:logout"))
+        self.assertRedirects(response, reverse("sensors:home"))
+
+    def test_change_password_mismatch(self):
+        """Covers the new_password != confirm_password branch."""
+        data = {
+            "old_password": self.password,
+            "new_password": "new_pass",
+            "confirm_password": "different_pass",
+        }
+        response = self.client.post(reverse("sensors:change_password"), data)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(str(messages[0]), "Passwords do not match.")
+        
+class ProfileViewTest(TestCase):
+    def setUp(self):
+        self.profile = UserProfileFactory(address=None) # Start without an address
+        self.client.force_login(self.profile.user)
+        self.url = reverse("sensors:profile")
+
+    def test_profile_get(self):
+        """Covers the GET request for profile."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_profile_update_success(self):
+        """Covers the POST request: Saving three forms at once + address creation."""
+        data = {
+            "first_name": "Nabil",
+            "bio": "CS Student",
+            "street": "Jalan UTHM",
+            "city": "Parit Raja",
+            "state": "Johor",
+            "postal_code": "86400",
+        }
+        response = self.client.post(self.url, data)
+        self.assertRedirects(response, self.url)
+        
+        self.profile.refresh_from_db()
+        self.assertIsNotNone(self.profile.address)
+        self.assertEqual(self.profile.address.street, "Jalan UTHM")
+
+    def test_profile_update_invalid(self):
+        """Covers the invalid form branch."""
+        # Sending invalid data (e.g., missing required fields)
+        response = self.client.post(self.url, {"first_name": ""})
+        self.assertEqual(response.status_code, 200)
+        # Form should be re-rendered with errors
+        self.assertIn("u_form", response.context)

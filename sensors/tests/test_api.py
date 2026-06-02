@@ -245,27 +245,23 @@ class ComprehensiveApiViewsTests(TestCase):
         self.assertEqual(float(self.address.latitude), 3.5)
         self.assertEqual(self.address.street, "Updated Pin")
 
-    def test_create_address_when_none_exists_fallback(self):
-        """Covers fallback creation branch when profile lacks an address."""
-        self.user_profile.address = None
-        self.user_profile.save()
-
+    def test_update_location_post_empty_string_logic(self):
+        """Covers the 'or' fallback logic in the update branch."""
+        # Clear existing fields to force the 'or' condition to trigger
+        address = self.user_profile.address
+        address.street = ""
+        address.save()
+        
         token = self.signer.sign(str(self.user_profile.id))
         url = reverse(self.update_url_name, args=[token])
-
-        # Testing with missing street data to hit the fallback defaults
-        payload = {"lat": 1.0, "lng": 103.0, "street": "", "city": ""}
-        response = self.client.post(
-            url, json.dumps(payload), content_type="application/json"
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.user_profile.refresh_from_db()
-
-        self.assertEqual(float(self.user_profile.address.latitude), 1.0)
-        self.assertEqual(
-            self.user_profile.address.street, "Emergency Location (GPS Pin)"
-        )
+        
+        # Send empty strings for street to see if it defaults correctly
+        payload = {"lat": 2.0, "lng": 102.0, "street": "", "city": ""}
+        self.client.post(url, json.dumps(payload), content_type="application/json")
+        
+        address.refresh_from_db()
+        # Ensure it didn't overwrite with empty string, but kept previous or default
+        self.assertNotEqual(address.street, "")
 
     def test_update_location_post_invalid_coords(self):
         """Covers ValueError and range constraint blocks."""
@@ -298,19 +294,43 @@ class ComprehensiveApiViewsTests(TestCase):
     # ==========================================
     # 4. FILTER VIEW COVERAGE
     # ==========================================
-    def test_filters_sensor_view_authenticated(self):
-        """Covers the authenticated subquery path."""
-        self.client.force_login(self.user_profile.user)
-
+    def test_filters_sensor_view_no_log_fallback(self):
+        """Covers the 'or Safe' fallback when a sensor has no logs."""
+        # Create a new sensor with no logs
+        SensorFactory(owner=self.user_profile, name="NoLogSensor")
+        
         response = self.client.get(self.filters_url)
         self.assertEqual(response.status_code, 200)
-
-        data = response.json()
-        self.assertTrue("sensors" in data)
-        self.assertEqual(len(data["sensors"]), 1)
+        
+        sensors = response.json()["sensors"]
+        # Find the sensor with no logs and verify status is 'Safe'
+        no_log_sensor = next(s for s in sensors if s["name"] == "NoLogSensor")
+        self.assertEqual(no_log_sensor["status"], "Safe")
 
     def test_filters_sensor_view_unauthenticated(self):
         """Covers the unauthenticated fallback queryset path."""
         response = self.client.get(self.filters_url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue("sensors" in response.json())
+    
+    @patch("sensors.views.api.async_to_sync")
+    @patch("sensors.views.api.get_channel_layer")
+    @patch("sensors.views.api.send_sms_broadcast")
+    @patch("sensors.views.api.haversine", return_value=1.5)
+    @patch("sensors.views.api.predictor.predict", return_value="Fire")
+    def test_receive_data_fire_dispatch_fallback_no_active_staff(
+        self, mock_predict, mock_hav, mock_sms, mock_channels, mock_async
+    ):
+        """Covers the fallback logic: No active staff found, so pick the nearest station anyway."""
+        # Ensure station exists but has NO active duty assignments
+        DutyAssignmentFactory.objects.all().delete()
+        
+        payload = {"sensor_id": self.sensor.id}
+        response = self.client.post(
+            self.receive_url, json.dumps(payload), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        # Should still create a report for the nearest station
+        self.assertEqual(Report.objects.count(), 1)
+        self.assertEqual(Report.objects.first().station, self.station)

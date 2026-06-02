@@ -131,3 +131,48 @@ class FilterSystemTests(TestCase):
         f = ReportFilter(data={"search": "501"}, queryset=qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertIn(self.report_fire, f.qs)
+
+    def test_maintenance_all_fallbacks(self):
+        """Covers the 'All' fallback logic in maintenance filter methods."""
+        qs = Maintenance.objects.all()
+        # Test type "All"
+        f1 = MaintenanceFilter(data={"maintenance_type": "all"}, queryset=qs)
+        self.assertEqual(f1.qs.count(), 2)
+        
+        # Test frequency "All"
+        f2 = MaintenanceFilter(data={"frequency": "all"}, queryset=qs)
+        self.assertEqual(f2.qs.count(), 2)
+
+    def test_maintenance_date_range(self):
+        """Covers date range filters (start_date/end_date)."""
+        qs = Maintenance.objects.all()
+        today = timezone.now().date()
+        
+        # Start date filter
+        f = MaintenanceFilter(data={"start_date": str(today)}, queryset=qs)
+        self.assertEqual(f.qs.count(), 2)
+    
+    def test_report_filter_date_range_csv(self):
+        """Covers the comma-separated date range splitting logic."""
+        qs = Report.objects.all()
+        start = timezone.now().date().strftime("%Y-%m-%d")
+        end = timezone.now().date().strftime("%Y-%m-%d")
+        
+        f = ReportFilter(data={"date_range": f"{start},{end}"}, queryset=qs)
+        # Note: Your filter method is named 'filter_date_range' 
+        # but check if it's connected to a filter field in ReportFilter!
+        # If not, you may need to add: date_range = django_filters.CharFilter(method="filter_date_range")
+        self.assertEqual(f.qs.count(), 2)
+    
+    def test_report_filter_date_range_invalid(self):
+        """Covers the else branch of filter_date_range."""
+        qs = Report.objects.all()
+        f = ReportFilter(data={"date_range": "2026-01-01"}, queryset=qs)
+        # Should return all because no comma was found
+        self.assertEqual(f.qs.count(), 2)
+    
+    def test_sensor_custom_search_no_results(self):
+        """Covers the empty queryset branch for searches."""
+        qs = Sensor.objects.all()
+        f = SensorFilter(data={"q": "NonExistentName"}, queryset=qs)
+        self.assertEqual(f.qs.count(), 0)

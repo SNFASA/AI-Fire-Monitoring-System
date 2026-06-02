@@ -149,3 +149,56 @@ class MapAndLayoutCoverageTest(TestCase):
             url, json.dumps({"lat": 4.0, "lng": 102.0}), content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)
+
+    @patch("sensors.views.maps.get_sensor_status")
+    def test_map_status_gas_leak_priority(self, mock_status):
+        """Covers the gas leak logic in the map loop."""
+        # Setup: Return gas leak
+        mock_status.return_value = "gas leak"
+        self.client.login(username=self.ff.user.username, password="password123")
+
+        response = self.client.get(reverse("sensors:map_data"))
+        self.assertEqual(response.json()["houses"][0]["status"], "gas leak")
+    
+    def test_wildfire_map_unauthorized(self):
+        """Covers the unauthorized view branch."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        response = self.client.get(reverse("sensors:wildfire_map"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "sensors/layout/unauthorized.html")
+    
+    def test_update_station_coords_no_address(self):
+        """Covers the case where a station is assigned but has no address object."""
+        self.station.address = None
+        self.station.save()
+        
+        self.client.login(username=self.ff.user.username, password="password123")
+        url = reverse("sensors:update_station_coords")
+        
+        response = self.client.post(url, json.dumps({"lat": 1, "lng": 1}), content_type="application/json")
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("no address record", response.json()["error"])
+    
+    def test_wildfire_api_branches(self):
+        """Covers various error branches in wildfire_api_view."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        
+        # 1. Unauthorized
+        response = self.client.post(reverse("sensors:wildfire_api"))
+        self.assertEqual(response.status_code, 403)
+        
+        # 2. No station assigned
+        self.ff.station = None
+        self.ff.save()
+        self.client.login(username=self.ff.user.username, password="password123")
+        response = self.client.post(reverse("sensors:wildfire_api"))
+        self.assertEqual(response.status_code, 400)
+    
+    def test_delete_layout_ajax_exception(self):
+        """Triggers the generic Exception block."""
+        self.client.login(username=self.public_user.user.username, password="password123")
+        
+        # Manually corrupt the object to trigger Exception during delete
+        with patch.object(Houselayout, 'delete', side_effect=Exception("DB Failure")):
+            response = self.client.post(reverse("sensors:delete_layout_ajax", args=[self.layout.id]))
+            self.assertRedirects(response, reverse("sensors:maps"))
