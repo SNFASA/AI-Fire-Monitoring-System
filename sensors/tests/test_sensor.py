@@ -1,6 +1,6 @@
 import json
 from unittest.mock import patch
-from urllib import response
+from django.db import transaction
 
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -133,12 +133,14 @@ class LiveSensorCoverageTest(TestCase):
         
         # Test sending non-integers for coordinates (ValueError)
         payload = {"sensor_id": self.sensor_a.id, "x": "abc", "y": "def"}
-        response = self.client.post(self.move_url, json.dumps(payload), content_type="application/json")
+        with transaction.atomic():
+            response = self.client.post(self.move_url, json.dumps(payload), content_type="application/json")
         self.assertFalse(response.json()["success"])
         
         # Test missing keys (KeyError)
         payload = {"sensor_id": self.sensor_a.id}
-        response = self.client.post(self.move_url, json.dumps(payload), content_type="application/json")
+        with transaction.atomic():
+            response = self.client.post(self.move_url, json.dumps(payload), content_type="application/json")
         self.assertFalse(response.json()["success"])
     
     def test_filters_sensor_offline_status(self):

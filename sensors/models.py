@@ -270,11 +270,9 @@ class Maintenance(models.Model):
         return f"Maintenance #{self.id} - {self.maintenance_type} for Sensor: {self.sensor.name} - Status: {self.status}"
 
     def save(self, *args, **kwargs):
+        # 1. Logic to set frequency if it's empty
         if not self.frequency:
-            if (
-                self.maintenance_type == "HealthCheck"
-                or self.maintenance_type == "Connectivity"
-            ):
+            if self.maintenance_type in ["HealthCheck", "Connectivity"]:
                 self.frequency = "monthly"
             elif self.maintenance_type == "AlarmTest":
                 self.frequency = "quarterly"
@@ -282,6 +280,8 @@ class Maintenance(models.Model):
                 self.frequency = "yearly"
             else:
                 self.frequency = "adHoc"
+        
+        # 2. Call super().save() properly
         super().save(*args, **kwargs)
 
 

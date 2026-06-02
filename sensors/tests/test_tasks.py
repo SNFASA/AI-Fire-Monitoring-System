@@ -48,14 +48,11 @@ class AutomatedTaskLifecycleTests(TransactionTestCase):
         self.assertEqual(SatelliteHotspot.objects.count(), 1)
 
     @patch("sensors.services.fetch_and_filter_hotspots")
+    # In test_tasks.py
     def test_update_malaysia_hotspots_success_message(self, mock_fetch):
-        """Covers the successful return path of the task."""
-        # Setup mock return
-        mock_fetch.return_value = "Successfully fetched and saved 5 new NASA hotspots!"
-        
+        mock_fetch.return_value = "Successfully fetched and saved 2 new NASA hotspots! Triggered 0 station alerts."
         result = update_malaysia_hotspots()
-        
-        self.assertEqual(result, "Successfully fetched and saved 5 new NASA hotspots!")
+        self.assertEqual(result, "Successfully fetched and saved 2 new NASA hotspots! Triggered 0 station alerts.")
     
     @patch("sensors.tasks.fetch_and_filter_hotspots")
     def test_update_malaysia_hotspots_task_crashes(self, mock_fetch):

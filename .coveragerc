@@ -4,9 +4,13 @@ source =
     core
 branch = True
 omit =
+    */venv/*
+    */virtualenv/*
+    */migrations/*
     sensors/management/*
     */migrations/*
     manage.py
+    */tests/*
 
 [report]
 show_missing = True

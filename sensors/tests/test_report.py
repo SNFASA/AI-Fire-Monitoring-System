@@ -135,7 +135,7 @@ class ReportCoverageTest(TestCase):
         url = reverse("sensors:edit_report", args=[self.report.id])
         data = {
             "status": "Confirmed",
-            "is_approved": "on",
+            "is_approved": True,
             "description": "Commander approved this.",
         }
         self.client.post(url, data)

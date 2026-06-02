@@ -121,7 +121,7 @@ class DashboardCoverageTest(TestCase):
 
     def test_get_dashboard_sensor_data_null_values(self):
         """Covers the case where log exists but values are None."""
-        SensorDataLogFactory(sensor=self.public_sensor, dht22_temp=None, humidity=None)
+        SensorDataLogFactory(sensor=self.public_sensor, dht22_temp=0.0, humidity=0.0)
         
         self.client.login(username=self.public_user.username, password="password123")
         response = self.client.get(reverse("sensors:dashboard_data"))

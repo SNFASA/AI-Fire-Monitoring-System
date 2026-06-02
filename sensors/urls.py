@@ -102,6 +102,7 @@ urlpatterns = [
         maintenances.delete_maintenance,
         name="delete_maintenance",
     ),
+    path("maintenance/filter/", maintenances.filter_maintenances, name="filter_maintenances"),
     # Reports
     path("reports/", reports.reports_view, name="reports"),
     path("reports/<int:report_id>/", reports.report_detail, name="report_detail"),
