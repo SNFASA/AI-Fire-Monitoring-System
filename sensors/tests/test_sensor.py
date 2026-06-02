@@ -150,7 +150,9 @@ class LiveSensorCoverageTest(TestCase):
         self.sensor_a.save()
         
         self.client.login(username=self.user_a.user.username, password="password123")
-        response = self.client.get(reverse("sensors:filter_sensors"))
+        
+        # Send 'All' to ensure the filter doesn't exclude our inactive sensor
+        response = self.client.get(reverse("sensors:filter_sensors") + "?status=All")
         
         sensor_data = next(s for s in response.json()["sensors"] if s["id"] == self.sensor_a.id)
         self.assertEqual(sensor_data["status"], "Offline")

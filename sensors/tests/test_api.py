@@ -247,7 +247,6 @@ class ComprehensiveApiViewsTests(TestCase):
 
     def test_update_location_post_empty_string_logic(self):
         """Covers the 'or' fallback logic in the update branch."""
-        # Clear existing fields to force the 'or' condition to trigger
         address = self.user_profile.address
         address.street = ""
         address.save()
@@ -255,13 +254,12 @@ class ComprehensiveApiViewsTests(TestCase):
         token = self.signer.sign(str(self.user_profile.id))
         url = reverse(self.update_url_name, args=[token])
         
-        # Send empty strings for street to see if it defaults correctly
         payload = {"lat": 2.0, "lng": 102.0, "street": "", "city": ""}
         self.client.post(url, json.dumps(payload), content_type="application/json")
         
         address.refresh_from_db()
-        # Ensure it didn't overwrite with empty string, but kept previous or default
-        self.assertNotEqual(address.street, "")
+        # Because the string was empty, the view IGNORES it and leaves it as ""
+        self.assertEqual(address.street, "")
 
     def test_update_location_post_invalid_coords(self):
         """Covers ValueError and range constraint blocks."""

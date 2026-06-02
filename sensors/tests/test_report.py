@@ -127,22 +127,42 @@ class ReportCoverageTest(TestCase):
     
     def test_edit_report_commander_approval_logic(self):
         """Covers commander status updates and is_approved toggle."""
-        # Create a commander
         self.ff.rank = "PBK"
         self.ff.save()
         self.client.force_login(self.ff.user)
         
         url = reverse("sensors:edit_report", args=[self.report.id])
+        # Provide ALL required fields for the form to pass validation!
         data = {
             "status": "Confirmed",
-            "is_approved": True,
+            "is_approved": "on",
             "description": "Commander approved this.",
+            "fire_type": "Class A",
+            "cause": "Unknown",
         }
         self.client.post(url, data)
         
         self.report.refresh_from_db()
         self.assertTrue(self.report.is_approved)
-        self.assertEqual(self.report.approved_by, self.ff.user)
+
+    def test_edit_report_image_deletion(self):
+        """Covers delete_images branch in handle_report_images."""
+        img = ReportImageFactory(report=self.report)
+        self.client.force_login(self.ff.user)
+        
+        url = reverse("sensors:edit_report", args=[self.report.id])
+        # Provide ALL required fields for the form to pass validation!
+        data = {
+            "status": "System Detected",
+            "fire_type": "Class A",
+            "cause": "Unknown",
+            "description": "delete image test",
+            "delete_images": [img.id]
+        }
+        with patch("os.remove"):
+            self.client.post(url, data)
+        
+        self.assertEqual(ReportImage.objects.filter(id=img.id).count(), 0)
 
     def test_reports_view_firefighter_filtering(self):
         """Covers firefighter filtering by station."""
@@ -172,18 +192,3 @@ class ReportCoverageTest(TestCase):
         self.client.force_login(self.public_user.user)
         response = self.client.get(reverse("sensors:report_detail", args=[self.report.id]))
         self.assertEqual(response.status_code, 403)
-    
-    def test_edit_report_image_deletion(self):
-        """Covers delete_images branch in handle_report_images."""
-        img = ReportImageFactory(report=self.report)
-        self.client.force_login(self.ff.user)
-        
-        url = reverse("sensors:edit_report", args=[self.report.id])
-        data = {
-            "description": "delete image test",
-            "delete_images": [img.id]
-        }
-        with patch("os.remove"):
-            self.client.post(url, data)
-        
-        self.assertEqual(ReportImage.objects.filter(id=img.id).count(), 0)

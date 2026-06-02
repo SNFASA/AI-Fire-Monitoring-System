@@ -148,14 +148,20 @@ class ProfileViewTest(TestCase):
     def test_profile_update_success(self):
         """Covers the POST request: Saving three forms at once + address creation."""
         data = {
+            "username": self.profile.user.username, # Required by User form
+            "email": self.profile.user.email,       # Required by User form
             "first_name": "Nabil",
-            "bio": "CS Student",
+            "last_name": "Afifi",
+            "phone_number": "0123456789",           # Required by Profile form
             "street": "Jalan UTHM",
             "city": "Parit Raja",
             "state": "Johor",
             "postal_code": "86400",
         }
         response = self.client.post(self.url, data)
+        
+        # If this fails, it means one of your forms is STILL invalid.
+        # To debug in the future, you can print: print(response.context['u_form'].errors)
         self.assertRedirects(response, self.url)
         
         self.profile.refresh_from_db()
