@@ -1,15 +1,16 @@
 from django.contrib import admin
 from django.utils.html import format_html
+
 from .models import (
     Address,
+    DutyAssignment,
     FireStation,
-    UserProfile,
-    Sensor,
-    SensorDataLog,
     Maintenance,
     MaintenanceImage,
     Report,
-    DutyAssignment,
+    Sensor,
+    SensorDataLog,
+    UserProfile,
 )
 
 # Register your models here.

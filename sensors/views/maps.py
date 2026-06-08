@@ -20,7 +20,6 @@ from ..forms import HouseLayoutForm
 from ..models import FireStation, Houselayout, SatelliteHotspot, Sensor, UserProfile
 from ..utils import get_sensor_status
 
-
 # ==========================================
 # 3. MAP DATA
 # ==========================================
@@ -48,14 +47,21 @@ def firefighter_map_data(request):
 
             for s in sensors:
                 s_status = get_sensor_status(s)
+                
+                # Priority 1: Fire overrides everything
                 if s_status == "Fire":
                     house_status = "Fire"
                     break
-                elif s_status == "gas leak" and house_status != "Fire":
-                    house_status = "gas leak"
+                    
+                # Priority 2: Gas Leak or Warning
+                elif s_status in ["Gas Leak", "Warning"] and house_status != "Fire":
+                    house_status = s_status
+                    
+                # Priority 3: Offline tracking
                 elif s_status == "Offline":
                     has_offline = True
 
+            # If no active emergencies are found, but a sensor is dead, mark house as Offline
             if house_status == "Safe" and has_offline and sensors.exists():
                 house_status = "Offline"
 
@@ -65,7 +71,7 @@ def firefighter_map_data(request):
                     "owner": profile.user.username,
                     "lat": profile.address.latitude,
                     "lng": profile.address.longitude,
-                    "status": house_status,
+                    "status": house_status, # This will now accurately pass "Warning" or "Gas Leak"
                 }
             )
 

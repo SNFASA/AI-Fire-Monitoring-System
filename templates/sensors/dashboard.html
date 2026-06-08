@@ -98,7 +98,7 @@
                                     
                                     <div class="d-flex align-items-center">
                                         <div class="text-end me-3">
-                                            <div class="fw-bold text-dark fs-6" id="temp-{{ sensor.id }}">
+                                            <div class="fw-bold fs-6" id="temp-{{ sensor.id }}">
                                                 {% if sensor.readings.first %}
                                                     {{ sensor.readings.first.dht22_temp|floatformat:1 }}°C
                                                 {% else %}
@@ -185,7 +185,7 @@
                             <li class="list-group-item px-4 py-3 border-light">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <h6 class="mb-1 fw-bold text-dark">{{ report.fire_type }}</h6>
+                                        <h6 class="mb-1 fw-bold">{{ report.fire_type }}</h6>
                                         <small class="text-muted"><i class="fas fa-map-marker-alt text-danger opacity-75 me-1"></i> {{ report.address }}</small>
                                     </div>
                                     <small class="text-muted fw-bold">{{ report.timestamp|date:"M d" }}</small>

@@ -114,7 +114,11 @@ def get_sensor_status(sensor):
     if status.replace(" ", "").lower() == "gasleak":
         return "Gas Leak"
 
-    return status
+    time_threshold = timezone.now() - timedelta(minutes=5)
+    if sensor.updated < time_threshold:
+        return "Offline"
+     
+    return status, sensor.last_status
 
 
 def process_hotspot_coverage(hotspot):

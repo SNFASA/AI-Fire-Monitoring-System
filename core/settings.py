@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "django_q",
     "django_celery_results",
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -339,6 +340,7 @@ CELERY_CACHE_BACKEND = "django-cache"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 MAP_KEY = env("MAP_KEY")
 REGION_BBOX = env("REGION_BBOX")
@@ -348,7 +350,7 @@ if not os.getenv("GITHUB_ACTIONS") and os.name == "nt":
     GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
 
 
-ALLOWED_HOSTS = ["192.168.0.25", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["192.168.0.3", "localhost", "127.0.0.1"]
 
 Q_CLUSTER = {
     "name": "HDBMS_Cluster",

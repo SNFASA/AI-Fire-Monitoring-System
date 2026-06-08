@@ -24,22 +24,43 @@ def dashboard_view(request):
     except UserProfile.DoesNotExist:
         user_profile = UserProfile.objects.create(user=request.user)
 
-    sensors = (
-        Sensor.objects.filter(owner=user_profile)
-        if user_profile.role == "public"
-        else Sensor.objects.all()
-    )
+    # 1. Filter Sensors based on role
+    if user_profile.role == "public":
+        sensors = Sensor.objects.filter(owner=user_profile)
+    else:
+        sensors = Sensor.objects.all()
+
+    # 2. Filter Maintenance based on role
+    if user_profile.role == "public":
+        # Get maintenance records only for sensors owned by this public user
+        base_maintenance_qs = Maintenance.objects.filter(sensor__in=sensors)
+        
+    elif user_profile.role == "firefighter":
+        # Get maintenance records only for this firefighter's assigned station
+        if user_profile.station:
+            base_maintenance_qs = Maintenance.objects.filter(nearest_fire_station=user_profile.station)
+        else:
+            # Safe fallback if a firefighter has no station assigned yet
+            base_maintenance_qs = Maintenance.objects.none()
+            
+    else:
+        # Fallback for any other unexpected roles
+        base_maintenance_qs = Maintenance.objects.none()
 
     context = {
         "sensors_count": sensors.count(),
         "sensors": sensors,
         "ml_model_name": predictor.get_active_model_info(),
-        "maintenance_pending": Maintenance.objects.filter(status="Pending").count(),
-        "maintenance_items": Maintenance.objects.all().order_by("-timestamp"),
+        
+        # FIX: Use __iexact to catch both "Pending" and "pending"
+        "maintenance_pending": base_maintenance_qs.filter(status__iexact="pending").count(),
+        "maintenance_items": base_maintenance_qs.order_by("-timestamp"),
+        
         "reports_count": Report.objects.count(),
         "recent_reports": Report.objects.all().order_by("-timestamp"),
         "stations_count": FireStation.objects.count(),
     }
+    
     return render(request, "sensors/dashboard.html", context)
 
 

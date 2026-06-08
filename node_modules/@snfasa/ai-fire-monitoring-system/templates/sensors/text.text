@@ -4,7 +4,7 @@ predictor = FirePredictor()
 # ==========================================
 def get_sensor_status(sensor):
     """
-    Returns: 'Fire', 'Gas Leak', 'Safe', or 'Offline'
+    Returns: 'Fire', 'gas leak', 'Safe', or 'Offline'
     """
     # 1. Check for recent data
     last_log = sensor.readings.order_by('-timestamp').first()
@@ -18,10 +18,10 @@ def get_sensor_status(sensor):
         return "Offline"
         
     # 3. Return actual AI status
-    # Normalize 'GasLeak' to 'Gas Leak' for consistency
+    # Normalize 'GasLeak' to 'gas leak' for consistency
     status = last_log.status
     if status == 'GasLeak': 
-        return 'Gas Leak'
+        return 'gas leak'
     return status
 
 #========================================
@@ -165,8 +165,8 @@ def firefighter_map_data(request):
                 if s_status == 'Fire':
                     house_status = 'Fire'
                     break # Fire takes priority
-                elif s_status == 'Gas Leak' and house_status != 'Fire':
-                    house_status = 'Gas Leak'
+                elif s_status == 'gas leak' and house_status != 'Fire':
+                    house_status = 'gas leak'
                 elif s_status == 'Offline':
                     has_offline = True
 
