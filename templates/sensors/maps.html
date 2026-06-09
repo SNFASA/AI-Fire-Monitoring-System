@@ -12,34 +12,32 @@
 
 <style>
     /* --- Animations --- */
-    @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
-    @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
+    @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.8); } 70% { box-shadow: 0 0 0 12px rgba(239, 83, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); } }
+    @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(255, 183, 77, 0.8); } 70% { box-shadow: 0 0 0 12px rgba(255, 183, 77, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 183, 77, 0); } }
     
     /* --- Map Layout --- */
     .map-wrapper, .map-container-wrapper { width: 100%; height: 85vh; position: relative; border-radius: 16px; overflow: hidden; background: #f4f6f9; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
     #map { width: 100%; height: 100%; }
     .maplibregl-popup-content { color: #000 !important; font-weight: bold; font-size: 14px; border: 2px solid #0d6efd; border-radius: 12px; padding: 10px 15px; }
+    
+    /* --- Stops markers from drifting when zooming --- */
     .maplibregl-marker {
         transition: none !important; 
     }
-    .sensor-node {
-        transform: translate(-50%, -50%);
-    }
-    .sensor-node:active { 
-        transform: translate(-50%, -50%) scale(1.2); 
-    }
+
     /* --- Public User Sensor Nodes --- */
     .sensor-node { 
         width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; 
         display: flex; flex-direction: column; align-items: center; justify-content: center; 
         color: white; font-weight: 900; position: absolute; z-index: 1000; cursor: grab; 
         box-shadow: 0 4px 8px rgba(0,0,0,0.5); transition: transform 0.1s; 
-        touch-action: none; /* CRITICAL: Prevents mobile scrolling while dragging */
+        transform: translate(-50%, -50%); /* Centers the node precisely */
+        touch-action: none; 
     }
-    .sensor-node:active { transform: scale(1.2); cursor: grabbing; }
+    .sensor-node:active { transform: translate(-50%, -50%) scale(1.2); cursor: grabbing; }
     .sensor-label { position: absolute; top: 42px; white-space: nowrap; font-size: 11px; color: white; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-weight: bold; pointer-events: none; text-transform: uppercase; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 6px; }
     
-    /* --- Status Colors --- */
+    /* --- Status Colors (Public) --- */
     .bg-safe { background: #198754; box-shadow: 0 0 10px #198754; } 
     .bg-fire { background: #dc3545; animation: pulse-red 1s infinite; }
     .bg-warn { background: #ffc107; color: black; animation: pulse-yellow 1s infinite; }
@@ -57,54 +55,45 @@
     .status-fire { background-color: #dc3545; animation: pulse-red 1.5s infinite; }
     .status-warn { background-color: #ffc107; color: black; animation: pulse-yellow 1.5s infinite; }
     
-    /* --- Firefighter Map Markers --- */
-    /* --- 3D Building Marker Base --- */
-    .building-marker {
+    /* ======================================================== */
+    /* --- SMART FIRE/HOTSPOT MARKERS (WILDFIRE AESTHETIC) --- */
+    /* ======================================================== */
+    .smart-marker {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
         display: flex;
         justify-content: center;
-        align-items: flex-end;
-        cursor: pointer;
-        /* Drops a soft shadow on the map */
-        filter: drop-shadow(0px 8px 4px rgba(0, 0, 0, 0.4));
+        align-items: center;
+        color: white;
+        font-size: 14px;
         transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    
-    .building-marker:hover {
-        transform: translateY(-8px) scale(1.15);
-    }
-
-    /* The FontAwesome Building Icon */
-    .building-marker i {
-        font-size: 32px;
-        /* This is the magic! It creates a 3D block underneath the icon */
-        text-shadow: 
-            -1px 1px 0px var(--bldg-dark),
-            -2px 2px 0px var(--bldg-dark),
-            -3px 3px 0px var(--bldg-dark),
-            -4px 4px 0px var(--bldg-dark);
-    }
-
-    /* --- Status Colors (Maps variables for the 3D shadow) --- */
-    .bldg-fire { 
-        color: #ff4d4d; 
-        --bldg-dark: #a10000; /* Dark red for the 3D side */
-        animation: pulse-red 1s infinite; 
+    .smart-marker:hover {
+        transform: scale(1.2);
     }
     
-    .bldg-warn { 
-        color: #ffc107; 
-        --bldg-dark: #b08200; /* Dark yellow/gold */
-        animation: pulse-yellow 1s infinite; 
+    .smart-fire { 
+        background-color: #ef5350; 
+        border: 2px solid #b71c1c; 
+        animation: pulse-red 1.5s infinite; 
     }
-    
-    .bldg-safe { 
-        color: #20c997; 
-        --bldg-dark: #10664c; /* Dark teal/green */
+    .smart-warn { 
+        background-color: #ffb74d; 
+        border: 2px solid #e65100; 
+        color: black;
+        animation: pulse-yellow 1.5s infinite; 
     }
-    
-    .bldg-offline { 
-        color: #adb5bd; 
-        --bldg-dark: #495057; /* Dark gray */
+    .smart-safe { 
+        background-color: #20c997; 
+        border: 2px solid #0ca678; 
+        box-shadow: 0 0 8px rgba(32, 201, 151, 0.5);
+    }
+    .smart-offline { 
+        background-color: #ced4da; 
+        border: 2px solid #6c757d; 
+        box-shadow: 0 0 6px rgba(108, 117, 125, 0.3);
         opacity: 0.8; 
     }
     
@@ -121,6 +110,20 @@
     
     /* Offcanvas Bottom Sheet Styling */
     .offcanvas-bottom { border-top-left-radius: 20px; border-top-right-radius: 20px; max-height: 80vh; }
+    
+    .floor-plan-container {  
+        position: relative;
+        min-width: 800px;      
+        min-height: 600px;     
+        width: 100%;
+        overflow-x: auto;      
+        flex-shrink: 0;        
+    }
+    .floor-plan-wrapper {
+        overflow-x: auto;
+        overflow-y: auto;
+        width: 100%;
+    }
 </style>
     {% if messages %}
         {% for message in messages %}
@@ -130,6 +133,7 @@
             </div>
         {% endfor %}
     {% endif %}
+
 {% if role == 'public' %}
 <div class="container-fluid mt-3 mb-4">
     <div class="row g-4">
@@ -203,7 +207,7 @@
                                     <button class="btn  border-0 text-secondary" onclick="openEditModal('{{ l.id }}', '{{ l.name|escapejs }}', '{{ l.image.url }}')" title="Edit"><i class="fas fa-pen"></i></button>
                                     <form action="/delete-layout/{{ l.id }}/" method="POST" class="m-0 d-inline">
                                         {% csrf_token %}
-                                        <button type="button" class="btn text-danger" onclick="confirmDeleteLayout(this.form)" title="Delete">
+                                        <button type="button" class="btn btn-light border text-danger" onclick="confirmDeleteLayout(this.form)" title="Delete">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
@@ -216,7 +220,6 @@
 
                         {% if current_layout %}
                         <div class="card border-0 rounded-4 shadow-sm mt-auto">
-                            <!-- Search & Filter Header -->
                             <div class="p-3 rounded-top-4 border-bottom">
                                 <div class="input-group shadow-sm rounded-pill border overflow-hidden mb-3">
                                     <span class="input-group-text border-0 ps-3">
@@ -236,8 +239,7 @@
                                 </div>
                             </div>
 
-                            <!-- Sensor List Area -->
-                            <div class=">
+                            <div>
                                 <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
                                     <span class="text-uppercase text-muted fw-bold" style="font-size: 0.65rem;">Devices on Floor</span>
                                     <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;" id="matchCount">{{ sensors|length }}</span>
@@ -284,9 +286,7 @@
                 <div id="sensorFormStep">
                     <label class="form-label fw-bold text-muted small text-uppercase mb-2">Sensor Name / Location</label>
                     <input type="text" class="form-control form-control-lg mb-4  border-0" id="newSensorName" placeholder="e.g. Kitchen Ceiling">
-                    <button type="button" id="createSensorBtn" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm">
-                        Create Sensor
-                    </button>
+                    <button type="button" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm" onclick="submitNewSensor()">Create Sensor</button>
                 </div>
                 <div id="sensorSuccessStep" style="display:none; text-align: center;">
                     <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
@@ -334,81 +334,59 @@
 
 <script>
     // --- Public User Scripts ---
-    document.addEventListener('DOMContentLoaded', function() {
-    
-        // Attach the event listener to the button
-        const createBtn = document.getElementById('createSensorBtn');
-        if (createBtn) {
-            createBtn.addEventListener('click', submitNewSensor);
-        }
+    function submitNewSensor() {
+        const name = document.getElementById('newSensorName').value;
+        const layoutId = "{{ current_layout.id }}";
+        if(!name || !layoutId) return;
+        fetch("{% url 'sensors:add_sensor' %}", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ name: name, layout_id: layoutId })
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                document.getElementById('sensorFormStep').style.display = 'none';
+                document.getElementById('sensorSuccessStep').style.display = 'block';
+                document.getElementById('newSensorIdDisplay').innerText = data.sensor_id;
+            } else { alert("Error: " + data.error); }
+        });
+    }
 
-        function submitNewSensor() {
-            const name = document.getElementById('newSensorName').value;
-            const layoutId = "{{ current_layout.id }}";
+    // Touch & Mouse Drag Logic
+    const sensorsNodes = document.querySelectorAll('.sensor-node');
+    const mapContainer = document.getElementById('user-map-container');
+    let activeSensor = null;
+
+    if (mapContainer) {
+        mapContainer.addEventListener('pointermove', (e) => {
+            if (!activeSensor) return;
+            const rect = mapContainer.getBoundingClientRect();
             
-            if(!name || !layoutId) return;
-            
-            fetch("{% url 'sensors:add_sensor' %}", {
-                method: "POST",
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'X-CSRFToken': '{{ csrf_token }}' 
-                },
-                body: JSON.stringify({ name: name, layout_id: layoutId })
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to add sensor");
-                return res.json();
-            })
-            .then(data => {
-                if(data.success) {
-                    document.getElementById('sensorFormStep').style.display = 'none';
-                    document.getElementById('sensorSuccessStep').style.display = 'block';
-                    document.getElementById('newSensorIdDisplay').innerText = data.sensor_id;
-                } else { 
-                    alert("Error: " + data.error); 
-                }
-            })
-            .catch(err => {
-                console.error("Fetch error:", err);
-                alert("A network error occurred.");
-            });
-        }
+            let x = ((e.clientX - rect.left) / rect.width) * 100;
+            let y = ((e.clientY - rect.top) / rect.height) * 100;
 
-        // Touch & Mouse Drag Logic
-        const sensorsNodes = document.querySelectorAll('.sensor-node');
-        const mapContainer = document.getElementById('user-map-container');
-        let activeSensor = null;
+            x = Math.max(0, Math.min(x, 95)); 
+            y = Math.max(0, Math.min(y, 95));
 
-        if (mapContainer) {
-            mapContainer.addEventListener('pointermove', (e) => {
-                if (!activeSensor) return;
-                const rect = mapContainer.getBoundingClientRect();
-                let x = ((e.clientX - rect.left) / rect.width) * 100;
-                let y = ((e.clientY - rect.top) / rect.height) * 100;
-                x = Math.max(0, Math.min(x, 95)); 
-                y = Math.max(0, Math.min(y, 95));
-                activeSensor.style.left = `${x}%`; 
-                activeSensor.style.top = `${y}%`;
-            });
+            activeSensor.style.left = `${x}%`; 
+            activeSensor.style.top = `${y}%`;
+        });
 
-            window.addEventListener('pointerup', (e) => {
-                if (activeSensor) {
-                    activeSensor.releasePointerCapture(e.pointerId);
-                    savePosition(activeSensor); 
-                    activeSensor = null;
-                }
-            });
+        window.addEventListener('pointerup', (e) => {
+            if (activeSensor) {
+                activeSensor.releasePointerCapture(e.pointerId);
+                savePosition(activeSensor); 
+                activeSensor = null;
+            }
+        });
 
-            sensorsNodes.forEach(sensor => {
-                sensor.addEventListener('pointerdown', (e) => {
-                    activeSensor = sensor; 
-                    sensor.setPointerCapture(e.pointerId); 
-                    e.preventDefault(); 
-                });
+        sensorsNodes.forEach(sensor => {
+            sensor.addEventListener('pointerdown', (e) => {
+                activeSensor = sensor; 
+                sensor.setPointerCapture(e.pointerId); 
+                e.preventDefault(); 
             });
-        }
-    });
+        });
+    }
     
     function savePosition(sensor) {
         let id = sensor.id.split('-')[1];
@@ -418,17 +396,14 @@
             method: "POST",
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
             body: JSON.stringify({sensor_id: id, x: xVal, y: yVal})
-        }).catch(err => console.error("Error saving position:", err));
+        });
     }
 
     // Polling and layout management functions
     function fetchMySensors() {
         triggerFilter();
         fetch("{% url 'sensors:live_data' %}") 
-        .then(res => {
-            if (!res.ok) throw new Error("Live data fetch failed");
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
             if(data.sensors) {
                 data.sensors.forEach(s => {
@@ -437,16 +412,13 @@
                         node.classList.remove('bg-safe', 'bg-fire', 'bg-warn', 'bg-offline', 'animate-pulse');
                         let status = s.status ? s.status.toLowerCase() : 'safe';
                         if(status === 'fire') node.classList.add('bg-fire');
-                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');                        
-                        else if(status === 'offline') node.classList.add('bg-offline');
+                        else if(status === 'gas leak' || status === 'warning') node.classList.add('bg-warn');                        else if(status === 'offline') node.classList.add('bg-offline');
                         else node.classList.add('bg-safe');
                     }
                 });
             }
-        })
-        .catch(err => console.error(err));
+        });
     }
-    
     setInterval(fetchMySensors, 2000);
 
     function confirmDeleteLayout(formElement) {
@@ -466,16 +438,14 @@
         document.getElementById('edit_layout_preview').src = imageUrl;
         new bootstrap.Modal(document.getElementById('editLayoutModal')).show();
     }
-    
+
     function submitEditLayout() {
         const formData = new FormData(document.getElementById('editLayoutForm'));
         fetch("{% url 'sensors:edit_layout_ajax' %}", {
             method: 'POST',
             headers: { 'X-CSRFToken': '{{ csrf_token }}' },
             body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
+        }).then(res => res.json()).then(data => {
             if (data.success) location.reload();
             else alert(data.message);
         });
@@ -509,24 +479,15 @@
         const searchTerm = document.getElementById('sensorSearch').value;
         const currentLayoutId = "{{ current_layout.id|default:'' }}"; 
         
-        // Use 'status' to match the filter class, and handle 'Gas Leak'
         let url = `/api/filters_sensor/?q=${encodeURIComponent(searchTerm)}`;
-        
         if (activeStatusFilter !== 'All') {
-            // Send "Gas Leak" exactly as stored in DB
             let statusQuery = activeStatusFilter === 'GasLeak' ? 'Gas Leak' : activeStatusFilter;
             url += `&status=${encodeURIComponent(statusQuery)}`;
         }
         if (currentLayoutId) url += `&layout=${currentLayoutId}`;
 
         fetch(url)
-            .then(res => {
-                // THIS IS THE CRITICAL SAFETY CHECK
-                if (!res.ok) {
-                    throw new Error(`Server Error: ${res.status}`);
-                }
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 if(data.sensors) {
                     const validIds = new Set(data.sensors.map(s => s.id.toString()));
@@ -534,9 +495,8 @@
 
                     data.sensors.forEach(s => {
                         const nodeId = s.id.toString();
-                        const status = s.status; // Real-time status from backend
+                        const status = s.status; 
                         
-                        // 1. Update Map Nodes
                         const node = document.getElementById(`sensor-${nodeId}`);
                         if(node) {
                             node.style.display = 'flex'; 
@@ -547,16 +507,13 @@
                             else node.classList.add('bg-safe');
                         }
 
-                        // 2. Update Sidebar List Items & Badges
                         const listItem = document.getElementById(`list-item-${nodeId}`);
                         if(listItem) {
                             listItem.classList.replace('d-none', 'd-flex');
-                            
-                            // Find the badge inside this list item and update it
                             const badge = listItem.querySelector('.badge');
                             if(badge) {
                                 badge.innerText = status;
-                                badge.className = 'badge rounded-pill'; // Reset
+                                badge.className = 'badge rounded-pill'; 
                                 if(status === 'Fire') badge.classList.add('bg-danger');
                                 else if(status === 'Gas Leak' || status === 'Warning') badge.classList.add('bg-warning');
                                 else if(status === 'Offline') badge.classList.add('bg-secondary');
@@ -565,7 +522,6 @@
                         }
                     });
 
-                    // Hide items not in the search/filter result
                     document.querySelectorAll('.sensor-list-item').forEach(li => {
                         const id = li.id.split('-')[2];
                         if(!validIds.has(id)) li.classList.replace('d-flex', 'd-none');
@@ -576,11 +532,6 @@
                         if(!validIds.has(id)) node.style.display = 'none';
                     });
                 }
-            })
-            .catch(err => {
-                // Now, if Django returns a 500 error, it will just log it here 
-                // instead of crashing your browser tab with the '<' error.
-                console.warn("Filter skipped:", err.message);
             });
     }
 </script>
@@ -692,54 +643,13 @@
         container: 'map', 
         style: STYLES.streets, 
         center: centerCoords, 
-        zoom: (rawLat && rawLng) ? 15 : 6, // Zoomed out slightly until GPS locates them
+        zoom: (rawLat && rawLng) ? 15 : 6, 
         pitch: 60, 
         antialias: true 
     });
-    map.on('load', () => {
-        // 1. Add an empty GeoJSON source for our houses
-        map.addSource('live-houses', {
-            'type': 'geojson',
-            'data': { 'type': 'FeatureCollection', 'features': [] }
-        });
 
-        // 2. Add the 3D Extrusion Layer
-        map.addLayer({
-            'id': '3d-house-extrusions',
-            'type': 'fill-extrusion',
-            'source': 'live-houses',
-            'paint': {
-                // Color mapping based on the 'status' property
-                'fill-extrusion-color': [
-                    'match',
-                    ['get', 'status'],
-                    'fire', '#dc3545',       // Red
-                    'warning', '#ffc107',    // Yellow
-                    'gas leak', '#ffc107',   // Yellow
-                    'offline', '#6c757d',    // Gray
-                    /* default (Safe) */ '#198754' // Green
-                ],
-                // Make the building 15 meters tall
-                'fill-extrusion-height': 15,
-                // Raise the base off the ground (0 means sits on the map)
-                'fill-extrusion-base': 0,
-                // Slight transparency looks modern
-                'fill-extrusion-opacity': 0.85
-            }
-        });
-    });
-    map.on('click', '3d-house-extrusions', (e) => {
-        // Get the ID of the house that was clicked
-        const houseId = e.features[0].properties.id;
-        openLayoutModal(houseId);
-    });
-
-    // Change the cursor to a pointer when hovering over buildings
-    map.on('mouseenter', '3d-house-extrusions', () => { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', '3d-house-extrusions', () => { map.getCanvas().style.cursor = ''; });
     map.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
-    // Add Native GPS "Current Location" Button
     const geolocate = new maplibregl.GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
         trackUserLocation: true,
@@ -748,14 +658,12 @@
     map.addControl(geolocate, 'bottom-right');
     map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'bottom-right');
 
-    // Automatically trigger GPS detection when the map loads IF the station isn't set yet
     map.on('load', () => {
         if (!rawLat || !rawLng) {
             geolocate.trigger();
         }
     });
 
-    // Layer Switcher
     window.switchStyle = function(styleName, btn) {
         const layerBtnIcon = document.querySelector('#layerDropdown i');
         layerBtnIcon.classList.add('fa-spin');
@@ -849,7 +757,6 @@
                     blueprintWrapper.className = 'blueprint-wrapper';
                     blueprintWrapper.style.cssText = 'height:100%; width:100%; background-color: #1a1a1a; position: relative; overflow: hidden;';
 
-                    // CRITICAL FIX: object-fit: fill ensures the image scales perfectly so pins don't float
                     const img = document.createElement('img');
                     img.src = safeSrc(layout.image_url);
                     img.className = 'blueprint-image';
@@ -857,15 +764,22 @@
                     blueprintWrapper.appendChild(img);
 
                     layout.sensors.forEach((s, i) => {
-                        const cssClass = (s.status || "").toLowerCase() === 'fire' ? 'bg-fire' :
-                                         ((s.status || "").toLowerCase() === 'warning' || (s.status || "").toLowerCase() === 'gas leak' ? 'bg-warn' : 'bg-safe');
+                        // FIX: Safely convert whatever the database sends into a lowercase string
+                        // We check both 'status' and 'last_status' just in case your API uses a different field name.
+                        const safeStatus = String(s.status || s.last_status || "").toLowerCase();
+                        
+                        const cssClass = safeStatus === 'fire' ? 'bg-fire' :
+                                         (safeStatus === 'warning' || safeStatus === 'gas leak' ? 'bg-warn' : 'bg-safe');
+                        
                         const sensorNode = document.createElement('div');
                         sensorNode.className = `sensor-node ${cssClass}`;
                         sensorNode.style.cssText = `left:${safePercent(s.x)}%; top:${safePercent(s.y)}%; position:absolute; pointer-events: none;`;
                         sensorNode.textContent = String(i + 1);
+                        
                         const label = document.createElement('div');
                         label.className = 'sensor-label';
                         label.textContent = s.name;
+                        
                         sensorNode.appendChild(label);
                         blueprintWrapper.appendChild(sensorNode);
                     });
@@ -883,61 +797,70 @@
             modalRefreshInterval = null;
         }
     });
-    function createBuildingFootprint(lng, lat, size = 0.00015) {
-        return [[
-            [lng - size, lat - size],
-            [lng + size, lat - size],
-            [lng + size, lat + size],
-            [lng - size, lat + size],
-            [lng - size, lat - size] // Close the square
-        ]];
-    }
+
     // --- 4. MAP DATA POLLING ---
     const markers = {};
+    
     function fetchMapData() {
         if (window.isSetupMode) return;
+        
         fetch("{% url 'sensors:map_data' %}")
         .then(res => res.json())
         .then(data => {
             if(data.houses) { 
                 let fireCount = 0; 
                 let warnCount = 0;
+                
                 data.houses.forEach(house => {
+                    let parsedLat = parseFloat(house.lat);
+                    let parsedLng = parseFloat(house.lng);
                     if (house.lat === null || house.lng === null) return;
-
+                    if (isNaN(parsedLat) || isNaN(parsedLng)) return;
                     let st = (house.status || "").toLowerCase();
                     if (st === 'fire') { fireCount++; } 
                     else if (st === 'warning' || st === 'gas leak') { warnCount++; }
 
-                    let statusClass = st === 'fire' ? 'bldg-fire' : 
-                                     (st === 'warning' || st === 'gas leak' ? 'bldg-warn' : 
-                                     (st === 'offline' ? 'bldg-offline' : 'bldg-safe'));
+                    // Determine the correct CSS class based on status
+                    let statusClass = (st === 'fire') ? 'smart-fire' : 
+                                      (st === 'warning' || st === 'gas leak') ? 'smart-warn' : 
+                                      (st === 'offline') ? 'smart-offline' : 
+                                       'smart-safe'; // Default fallback for 'safe' or any unknown status // Default to 'safe' if status is unrecognized
                     
-                    // The HTML for the icon (can also try fa-city or fa-warehouse!)
-                    let icon = '<i class="fas fa-building"></i>';
+                    // Determine the correct FontAwesome icon
+                    let iconHTML = st === 'fire' ? '<i class="fas fa-fire"></i>' : 
+                               (st === 'warning' || st === 'gas leak' ? '<i class="fas fa-exclamation-triangle"></i>' : '');
                     
                     if(!markers[house.id]) {
+                        // Create New Marker
                         const el = document.createElement('div');
-                        // Add the base class AND the status class
-                        el.className = `building-marker ${statusClass}`; 
-                        el.innerHTML = icon;
+                        
+                        // Add base class AND status class
+                        el.className = `smart-marker ${statusClass}`; 
+                        el.innerHTML = iconHTML;
                         el.onclick = () => openLayoutModal(house.id);
                         
                         markers[house.id] = new maplibregl.Marker({ element: el })
-                            .setLngLat([house.lng, house.lat])
+                            .setLngLat([parsedLng, parsedLat])
                             .addTo(map);
                     } else {
+                        // Update Existing Marker
                         const el = markers[house.id].getElement();
-                        el.classList.remove('bldg-safe', 'bldg-fire', 'bldg-warn', 'bldg-offline');
+                        
+                        // Safely remove ALL old status classes so MapLibre's hidden positioning class isn't deleted
+                        el.classList.remove('smart-safe', 'smart-fire', 'smart-warn', 'smart-offline');
+                        
+                        // Add the new status class and update icon
                         el.classList.add(statusClass);
-                        el.innerHTML = icon;
+                        el.innerHTML = iconHTML; 
                     }
                 });
+                
                 document.getElementById('fire-count').innerText = fireCount;
                 document.getElementById('warning-count').innerText = warnCount;
             }
         });
     }
+    
     setInterval(fetchMapData, 2000);
 
 
@@ -987,7 +910,6 @@
             const area = parseFloat("{{ st.cover_area_sqm|default:0 }}");
             const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0; // 3km default
 
-            // Station Icon
             const el = document.createElement('div');
             el.innerHTML = '<i class="fas fa-building-shield"></i>';
             el.style.cssText = `
@@ -1001,7 +923,6 @@
                 .setPopup(new maplibregl.Popup({offset: 25, className: 'fw-bold'}).setText(name))
                 .addTo(map);
 
-            // Coverage Zone Circle
             const sourceId = 'zone-{{ st.id }}';
             const circleData = createGeoJSONCircle([lng, lat], radius);
             

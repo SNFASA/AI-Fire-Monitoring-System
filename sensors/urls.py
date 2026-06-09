@@ -2,13 +2,22 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LoginView
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
-
+from django.views.generic import TemplateView
 from . import utils
 from .views import api, auth, dashboard, duties, maintenances, maps, reports, sensors
 
 app_name = "sensors"
 urlpatterns = [
     # utils
+    # 1. Serve Manifest from the sensors folder
+    path('manifest.json', TemplateView.as_view(
+        template_name='sensors/manifest.json',  # <-- Update this to include 'sensors/'
+        content_type='application/json'
+    ), name='manifest.json'),
+    path('sw.js', TemplateView.as_view(
+        template_name='sensors/sw.js', 
+        content_type='application/javascript'
+    ), name='sw.js'),
     path("api/token/", obtain_auth_token),
     path("get-live-logs/", utils.get_live_logs, name="get_live_logs"),
     path("test-log/", api.test_log, name="test_log"),
