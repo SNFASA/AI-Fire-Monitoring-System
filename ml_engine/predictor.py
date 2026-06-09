@@ -34,9 +34,6 @@ class FirePredictor:
         Inputs: 7 Raw Sensor Values
         Returns: 'Safe', 'Warning', or 'Fire'
         """
-
-        # Note: Inputs are logged in views.py now, so we focus on Logic here.
-
         if not self.model or not self.scaler:
             return "Safe"
 
@@ -64,10 +61,16 @@ class FirePredictor:
             features_scaled = self.scaler.transform(features)
 
             # 3. Get Probability
-            # This fixes the "fire_prob is not defined" error
-            fire_prob = self.model.predict_proba(features_scaled)[0][1]
-            prob_percent = round(fire_prob * 100, 1)
+            probabilities = self.model.predict_proba(features_scaled)[0]
+            
+            # Assuming class index 0 is 'Safe' and index 1 is 'Fire'
+            safe_prob = probabilities[0]
+            fire_prob = probabilities[1] 
+            
+            fire_percent = round(fire_prob * 100, 1)
+            safe_percent = round(safe_prob * 100, 1)
             model_name = type(self.model).__name__
+            
             # --- DECISION LOGIC ---
 
             # A. Hardware Override
@@ -80,13 +83,14 @@ class FirePredictor:
             # B. AI Confidence
             if fire_prob >= 0.80:
                 add_log(
-                    f"   🔥 DECISION: [FIRE] AI Confidence ({prob_percent}%) ({model_name})\n"
+                    f"   🔥 DECISION: [FIRE] AI Confidence ({fire_percent}%) ({model_name})\n"
                 )
                 return "Fire"
 
-            elif 0.40 <= fire_prob < 0.75:
+            
+            elif 0.40 <= fire_prob < 0.80: 
                 add_log(
-                    f"   ⚠️ DECISION: [WARNING] AI Confidence ({prob_percent}%) ({model_name})\n"
+                    f"   ⚠️ DECISION: [WARNING] AI Confidence ({fire_percent}%) ({model_name})\n"
                 )
                 return "Warning"
 
@@ -97,8 +101,9 @@ class FirePredictor:
                 )
                 return "Gas Leak"
 
+            
             add_log(
-                f"   ✅ DECISION: [SAFE] Confidence low ({prob_percent}%) ({model_name})\n"
+                f"   ✅ DECISION: [SAFE] Confidence: ({safe_percent}%) ({model_name})\n"
             )
             return "Safe"
 

@@ -1,14 +1,11 @@
 import math
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.utils import timezone
 
-from sensors.models import (
-    FireStation,
-    Report,
-    Address,
-    SatelliteHotspot,
-)
+from sensors.models import Address, FireStation, Report, SatelliteHotspot
+
 
 def check_coverage(fire_lat, fire_lon, hotspot_instance):
     """
@@ -60,7 +57,7 @@ def check_coverage(fire_lat, fire_lon, hotspot_instance):
                 state=station.address.state,
                 postal_code=station.address.postal_code,
                 latitude=fire_lat,
-                longitude=fire_lon
+                longitude=fire_lon,
             )
 
             # FIX 2: Instantiate using valid schema fields
@@ -73,7 +70,7 @@ def check_coverage(fire_lat, fire_lon, hotspot_instance):
                     f"Thermal Brightness: {hotspot_instance.brightness if hasattr(hotspot_instance, 'brightness') else 'N/A'}K\n"
                     f"Fire Radiative Power (FRP): {hotspot_instance.frp if hasattr(hotspot_instance, 'frp') else 'N/A'} MW"
                 ),
-                fire_type="Wildfire / Bushfire"
+                fire_type="Wildfire / Bushfire",
             )
 
             # FIX 3: Flattened payload structure mapping directly to FireAlertConsumer fields
@@ -88,12 +85,16 @@ def check_coverage(fire_lat, fire_lon, hotspot_instance):
                     "lng": float(fire_lon),
                     "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
                 }
-                
+
                 # Dynamic group routing paths
-                async_to_sync(channel_layer.group_send)(f"station_{station.id}", payload)
+                async_to_sync(channel_layer.group_send)(
+                    f"station_{station.id}", payload
+                )
                 async_to_sync(channel_layer.group_send)("station_all", payload)
-                
-                print(f"📡 WebSocket alert broadcasted to station_{station.id} and station_all successfully.")
+
+                print(
+                    f"📡 WebSocket alert broadcasted to station_{station.id} and station_all successfully."
+                )
             except Exception as e:
                 print(f"❌ WebSocket group_send failed: {e}")
 
@@ -110,8 +111,12 @@ if __name__ == "__main__":
         target_lat = latest_hotspot.location.y
         target_lon = latest_hotspot.location.x
 
-        print(f"🚀 Running coverage test on SatelliteHotspot ID #{latest_hotspot.id} at ({target_lat}, {target_lon})")
+        print(
+            f"🚀 Running coverage test on SatelliteHotspot ID #{latest_hotspot.id} at ({target_lat}, {target_lon})"
+        )
         check_coverage(target_lat, target_lon, latest_hotspot)
-        
+
     except SatelliteHotspot.DoesNotExist:
-        print("❌ Error: No SatelliteHotspot entries found in the database to execute test pipeline.")
+        print(
+            "❌ Error: No SatelliteHotspot entries found in the database to execute test pipeline."
+        )

@@ -1,27 +1,28 @@
-import pandas as pd
-import numpy as np
-import pickle
 import os
+import pickle
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import (
     accuracy_score,
-    precision_score,
-    recall_score,
+    auc,
+    confusion_matrix,
     f1_score,
-    roc_auc_score,
     mean_absolute_error,
     mean_squared_error,
-    confusion_matrix,
+    precision_score,
+    recall_score,
+    roc_auc_score,
     roc_curve,
-    auc,
 )
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 
 # --- CONFIGURATION ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

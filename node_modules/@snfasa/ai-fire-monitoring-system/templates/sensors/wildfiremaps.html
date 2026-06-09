@@ -1,0 +1,497 @@
+{% extends "sensors/layout/master.html" %}
+{% load static %}
+
+{% block title %}Wildfire Intelligence | VIIRS{% endblock %}
+
+{% block content %}
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* --- B2B Dashboard Container --- */
+    .dashboard-container { padding: 1.5rem 2rem; max-width: 100%; }
+    
+    /* --- Map Layout --- */
+    .map-wrapper { 
+        width: 100%; 
+        height: calc(100vh - 180px); 
+        min-height: 650px;           
+        position: relative; 
+        border-radius: 16px; 
+        overflow: hidden; 
+        background: #111214; 
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08); 
+        border: 1px solid #e2e8f0;
+    }
+    #map { width: 100%; height: 100%; }
+    
+    /* --- Enterprise Map Popups --- */
+    .maplibregl-popup-content { 
+        color: #1e293b !important; 
+        font-family: system-ui, -apple-system, sans-serif;
+        font-weight: 500; 
+        font-size: 13px; 
+        border-radius: 12px; 
+        padding: 16px; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+        border: 1px solid rgba(0,0,0,0.05); 
+    }
+
+    /* --- Floating Dashboard Widgets (Glassmorphism) --- */
+    .map-widget {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        border-radius: 12px;
+    }
+    
+    /* Positioning */
+    .map-overlay-top-left { position: absolute; top: 20px; left: 20px; z-index: 10; }
+    .map-overlay-top-right { position: absolute; top: 20px; right: 60px; z-index: 10; }
+    .map-overlay-top-center { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10; }
+    .map-overlay-bottom-left { position: absolute; bottom: 30px; left: 20px; z-index: 10; }
+    .map-overlay-bottom-center { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; pointer-events: none; }
+    
+    /* --- Layer Switcher Button --- */
+    .map-layer-btn { 
+        width: 46px; height: 46px; 
+        display: flex; justify-content: center; align-items: center; 
+        cursor: pointer; font-size: 1.2rem; color: #475569; 
+        transition: all 0.2s ease; border: none;
+    }
+    .map-layer-btn:hover { color: #0d6efd; background: #ffffff; }
+    
+    /* --- KPI Status Panel --- */
+    .status-panel { display: flex; gap: 12px; padding: 8px; }
+    .status-kpi { 
+        padding: 10px 16px; 
+        border-radius: 8px; 
+        color: white; 
+        font-weight: 700; 
+        display: flex; flex-direction: column; 
+        min-width: 120px;
+    }
+    .kpi-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; margin-bottom: 2px; }
+    .kpi-value { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+    .status-fire { background: linear-gradient(135deg, #dc3545, #b02a37); }
+    .status-warn { background: linear-gradient(135deg, #fd7e14, #d96400); }
+    
+    /* --- NASA Satellite Legend --- */
+    .map-legend-container { padding: 18px 22px; width: 280px; font-family: system-ui, -apple-system, sans-serif; color: #334155; }
+    .legend-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 12px; }
+    .legend-item:last-child { margin-bottom: 0; }
+    .legend-square-pixel { border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-shrink: 0; }
+
+    .map-lockout-overlay { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
+    .map-wrapper { 
+        width: 100%; 
+        height: calc(100vh - 220px); /* Slightly smaller to fit the footer text */
+        min-height: 600px;           
+        position: relative; 
+        border-radius: 16px; 
+        overflow: hidden; 
+        background: #111214; 
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08); 
+        border: 1px solid #e2e8f0;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="row align-items-end mb-4">
+        <div class="col-md-5 col-lg-6 mb-3 mb-md-0">
+            <h3 class="fw-bolder mb-1"><i class="fas fa-satellite-dish text-primary me-2"></i> Wildfire Intelligence</h3>
+            <p class="text-muted mb-0 small fw-medium">Real-time VIIRS telemetry and spatial analysis</p>
+        </div>
+        
+        <div class="col-md-7 col-lg-6 d-flex justify-content-md-end align-items-center gap-3">
+            
+            <div class="bg-white px-3 py-2 d-flex align-items-center shadow-sm rounded-pill border">
+                <i class="fas fa-clock text-primary me-2"></i>
+                <span class="fw-bold text-dark small me-2 d-none d-sm-inline">Timeframe:</span>
+                <select id="timeFilter" class="form-select form-select-sm border-0 fw-bold shadow-none bg-transparent p-0" style="color: #475569; width: 130px; cursor: pointer;" onchange="updateTimeFilter()">
+                    <option value="1">Last 24 Hours</option>
+                    <option value="2">Last 48 Hours</option>
+                    <option value="3">Last 3 Days</option>
+                    <option value="4">Last 4 Days</option>
+                    <option value="5" selected>Last 5 Days</option>
+                </select>
+            </div>
+
+            <span class="badge bg-white text-dark border px-3 py-2 fs-6 shadow-sm rounded-pill d-none d-lg-inline-block">
+                <i class="fas fa-shield-alt text-primary me-2"></i> {{ user_profile.station.name|default:"HQ Command" }}
+            </span>
+        </div>
+    </div>
+
+    <div class="map-wrapper mb-3"> 
+        {% if missing_station_gps %}
+            <div id="setup-overlay" class="map-lockout-overlay d-flex justify-content-center align-items-center position-absolute w-100 h-100" style="z-index: 2000;">
+                <div id="step-1" class="setup-step text-center p-5 bg-white rounded-4 shadow-lg" style="max-width: 480px;">
+                    <i class="fas fa-map-marker-alt fa-3x mb-3 text-primary"></i>
+                    <h4 class="fw-bolder">Station Coordinates Required</h4>
+                    <p class="text-muted mb-4 small">Your jurisdiction is not yet mapped. This is required to calculate satellite hotspot proximity and regional dispatch routing.</p>
+                    <button class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm" onclick="startStationSetup()">
+                        <i class="fas fa-location-arrow me-2"></i> Initialize Location
+                    </button>
+                </div>
+                <div id="step-2" class="setup-step text-center mt-3" style="display:none;">
+                    <div class="alert alert-primary shadow-lg border-0 fw-bold rounded-pill px-4">
+                        <i class="fas fa-crosshairs me-2 fa-spin"></i> Click on the map where <b>{{ user_profile.station.name }}</b> is located.
+                    </div>
+                    <button class="btn btn-light rounded-pill shadow-sm fw-bold border" onclick="location.reload()">Cancel</button>
+                </div>
+            </div>
+        {% endif %}
+        
+        <div id="map">
+            <div class="map-overlay-top-left dropdown">
+                <button class="map-layer-btn map-widget" type="button" id="layerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-layer-group"></i>
+                </button>
+                <ul class="dropdown-menu shadow-lg border-0 rounded-4 mt-2 p-2" aria-labelledby="layerDropdown">
+                    <li><h6 class="dropdown-header fw-bold text-uppercase small text-muted">Base Map Layer</h6></li>
+                    <li><button class="dropdown-item fw-bold py-2 rounded" onclick="switchStyle('dark', this)"><i class="fas fa-moon text-secondary me-2"></i> Dark Mode (FIRMS)</button></li>
+                    <li><button class="dropdown-item fw-bold py-2 rounded" onclick="switchStyle('satellite', this)"><i class="fas fa-satellite text-success me-2"></i> Satellite Imagery</button></li>
+                    <li><button class="dropdown-item fw-bold py-2 rounded" onclick="switchStyle('streets', this)"><i class="fas fa-map text-primary me-2"></i> Streets (Light)</button></li>
+                </ul>
+            </div>
+
+            <div class="map-overlay-top-right">
+                <div class="status-panel map-widget">
+                    <div class="status-kpi status-fire" title="High Threat Hotspots (FRP > 50MW)">
+                        <span class="kpi-title">High Intensity</span>
+                        <span class="kpi-value"><i class="fas fa-fire-alt"></i> <span id="high-threat-count">0</span></span>
+                    </div>
+                    <div class="status-kpi status-warn" title="Standard Anomalies">
+                        <span class="kpi-title">Thermal Anomalies</span>
+                        <span class="kpi-value"><i class="fas fa-exclamation-circle"></i> <span id="standard-threat-count">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-overlay-bottom-left">
+                <div class="map-legend-container map-widget">
+                    <div class="legend-title"><i class="fas fa-satellite-dish text-primary"></i> NASA VIIRS (375m)</div>
+                    <div class="legend-item"><div class="legend-square-pixel" style="background:#dc3545; width:14px; height:14px;"></div> High Intensity (FRP > 50)</div>
+                    <div class="legend-item"><div class="legend-square-pixel" style="background:#ff7a00; width:14px; height:14px;"></div> Standard Thermal Anomaly</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center px-3">
+        <p class="text-muted mb-0" style="font-size: 0.8rem;">
+            <i class="fas fa-info-circle text-primary me-1"></i>
+            <strong>Telemetry Disclaimer:</strong> NASA FIRMS data is subject to orbital pass intervals. Processing delays of 3-6 hours are normal. Heavy cloud cover may obscure thermal signatures.
+        </p>
+    </div>
+</div>
+
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+    // --- 1. GIS LAYERS CONFIGURATION ---
+    const STYLES = { 
+        'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', 
+        'streets': 'https://tiles.openfreemap.org/styles/liberty', 
+        'satellite': { 'version': 8, 'sources': { 'raster-tiles': { 'type': 'raster', 'tiles': ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], 'tileSize': 256 } }, 'layers': [{'id': 'simple-tiles', 'type': 'raster', 'source': 'raster-tiles'}] }
+    };
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const rawLat = "{{ station_lat|default:'' }}";
+    const rawLng = "{{ station_lng|default:'' }}";
+    const FALLBACK_VIEW = [101.9758, 4.2105]; 
+    const centerCoords = (rawLat && rawLng) ? [parseFloat(rawLng), parseFloat(rawLat)] : FALLBACK_VIEW;
+
+    // Analytics counters & Data State
+    let highThreatCount = 0;
+    let standardThreatCount = 0;
+    let satelliteHotspotsGeoJSON = { "type": "FeatureCollection", "features": [] };
+
+    // --- 2. MAP INITIALIZATION ---
+    const map = new maplibregl.Map({ 
+        container: 'map', 
+        style: STYLES.dark, 
+        center: centerCoords, 
+        zoom: (rawLat && rawLng) ? 10 : 5, 
+        pitch: 45, 
+        antialias: true 
+    });
+
+    map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+    const geolocate = new maplibregl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true
+    });
+    map.addControl(geolocate, 'bottom-right');
+    map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'bottom-right');
+
+    // --- 3. HARDWARE ACCELERATED WEBGL GIS LAYERS ---
+    map.on('load', () => {
+        if (!rawLat || !rawLng) { geolocate.trigger(); }
+
+        map.addSource('satellite-hotspots', { type: 'geojson', data: satelliteHotspotsGeoJSON });
+
+        map.addLayer({
+            'id': 'hotspots-canvas-layer',
+            'type': 'circle',
+            'source': 'satellite-hotspots',
+            'paint': {
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 9, 8, 16, 35],
+                'circle-color': ['case', ['>=', ['get', 'frp'], 50.0], '#dc3545', '#ff7a00'],
+                'circle-stroke-width': 1,
+                'circle-stroke-color': 'rgba(255,255,255,0.7)',
+                'circle-opacity': 0.85,
+                'circle-pitch-alignment': 'map'
+            }
+        });
+
+        // Initialize Map Data
+        fetchHotspots(document.getElementById('timeFilter').value);
+
+        // Interactive mouse map pointers
+        map.on('click', 'hotspots-canvas-layer', (e) => {
+            const properties = e.features[0].properties;
+            const geomCoords = e.features[0].geometry.coordinates.slice();
+            const tempCelcius = (parseFloat(properties.brightness || 0) - 273.15).toFixed(1);
+            const isHighThreat = properties.frp >= 50.0;
+
+            const popupView = `
+                <div style="font-family: inherit;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="rounded-circle" style="width:10px; height:10px; background:${isHighThreat ? '#dc3545' : '#ff7a00'};"></div>
+                        <h6 class="fw-bold mb-0 text-dark">NASA VIIRS Anomaly</h6>
+                    </div>
+                    <span class="badge ${isHighThreat ? 'bg-danger' : 'bg-secondary'} mb-3 w-100 py-2">375m Spatial Resolution</span>
+                    <div class="small text-muted mb-1">COORDINATES</div>
+                    <p class="fw-medium text-dark mb-3">${geomCoords[1].toFixed(5)}, ${geomCoords[0].toFixed(5)}</p>
+                    <div class="row g-2 text-center">
+                        <div class="col-6">
+                            <div class="p-2 bg-light rounded border">
+                                <div class="small text-muted" style="font-size:0.65rem;">FRP (MW)</div>
+                                <div class="fw-bold ${isHighThreat ? 'text-danger' : 'text-dark'}">${properties.frp}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 bg-light rounded border">
+                                <div class="small text-muted" style="font-size:0.65rem;">TEMP (°C)</div>
+                                <div class="fw-bold text-dark">${tempCelcius}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            new maplibregl.Popup({ offset: 12, maxWidth: '250px' }).setLngLat(geomCoords).setHTML(popupView).addTo(map);
+        });
+
+        map.on('mouseenter', 'hotspots-canvas-layer', () => { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', 'hotspots-canvas-layer', () => { map.getCanvas().style.cursor = ''; });
+    });
+
+    // --- 4. DYNAMIC DATA INGESTION ---
+    function fetchHotspots(days) {
+        // Reset state
+        satelliteHotspotsGeoJSON.features = [];
+        highThreatCount = 0;
+        standardThreatCount = 0;
+        updateCounters();
+
+        fetch("{% url 'sensors:wildfire_api' %}", { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ days: days })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            if (data.success && data.active_hotspots) {
+                data.active_hotspots.forEach(hotspot => addHotspotToGeoJSON(hotspot, false));
+                if(map.getSource('satellite-hotspots')){
+                    map.getSource('satellite-hotspots').setData(satelliteHotspotsGeoJSON);
+                }
+                updateCounters();
+            }
+        }).catch(err => {
+            console.error("Error fetching telemetry:", err);
+            // Optionally show user feedback, e.g., a toast or badge
+        });
+    }
+    function updateTimeFilter() {
+        const selectedDays = document.getElementById('timeFilter').value;
+        fetchHotspots(selectedDays);
+    }
+
+    function addHotspotToGeoJSON(payload, triggerCanvasUpdate = true) {
+        const frpVal = parseFloat(payload.frp || 0);
+        
+        if (frpVal >= 50.0) { highThreatCount++; } 
+        else { standardThreatCount++; }
+
+        const featureNode = {
+            "type": "Feature",
+            "geometry": { "type": "Point", "coordinates": [parseFloat(payload.longitude), parseFloat(payload.latitude)] },
+            "properties": { "report_id": payload.report_id, "frp": frpVal, "brightness": parseFloat(payload.brightness || 0) }
+        };
+
+        satelliteHotspotsGeoJSON.features.push(featureNode);
+        
+        if (triggerCanvasUpdate && map.getSource('satellite-hotspots')) {
+            map.getSource('satellite-hotspots').setData(satelliteHotspotsGeoJSON);
+            updateCounters();
+        }
+    }
+
+    function updateCounters() {
+        document.getElementById('high-threat-count').innerText = highThreatCount;
+        document.getElementById('standard-threat-count').innerText = standardThreatCount;
+    }
+
+    // --- 5. LIVE WEBSOCKET CORRELATION ---
+    const stationId = "{{ user_profile.station.id|default:'1' }}";
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const wsUrl = `${wsProtocol}${window.location.host}/ws/alerts/${stationId}/`;
+    const fireSocket = new WebSocket(wsUrl);
+
+    fireSocket.onmessage = function(e) {
+        const packet = JSON.parse(e.data);
+        
+        // Aligns to server contract types ('fire_alert')
+        if (packet.type === 'fire_alert') {
+            
+            // Transform backend keys ('lat', 'lng') into what your GeoJSON formatter expects
+            const unifiedPayload = {
+                report_id: packet.report_id,
+                latitude: parseFloat(packet.lat),
+                longitude: parseFloat(packet.lng),
+                address: packet.address,
+                owner_name: packet.owner_name,
+                timestamp: packet.timestamp
+            };
+
+            // Add to map layer
+            addHotspotToGeoJSON(unifiedPayload, true);
+            
+            // Center view on the new satellite-spotted event coordinates
+            map.flyTo({ 
+                center: [unifiedPayload.longitude, unifiedPayload.latitude], 
+                zoom: 11, 
+                essential: true 
+            });
+        }
+    };
+
+    // --- 6. STYLE SWITCHER ENGINE ---
+    window.switchStyle = function(styleName, btn) {
+        const layerBtnIcon = document.querySelector('#layerDropdown i');
+        layerBtnIcon.classList.add('fa-spin');
+        map.setStyle(STYLES[styleName]);
+        
+        map.once('styledata', () => {
+            layerBtnIcon.classList.remove('fa-spin');
+            if (!map.getSource('satellite-hotspots')) {
+                map.addSource('satellite-hotspots', { type: 'geojson', data: satelliteHotspotsGeoJSON });
+                map.addLayer({
+                    'id': 'hotspots-canvas-layer', 'type': 'circle', 'source': 'satellite-hotspots',
+                    'paint': {
+                        'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 9, 8, 16, 35],
+                        'circle-color': ['case', ['>=', ['get', 'frp'], 50.0], '#dc3545', '#ff7a00'],
+                        'circle-stroke-width': 1, 'circle-stroke-color': 'rgba(255,255,255,0.7)', 'circle-opacity': 0.85, 'circle-pitch-alignment': 'map'
+                    }
+                });
+            }
+        });
+    };
+
+    // --- 7. STATION SETUP & JURISDICTION RINGS ---
+    window.startStationSetup = function() {
+        document.getElementById('setup-overlay').style.background = 'transparent';
+        document.getElementById('setup-overlay').style.pointerEvents = 'none';
+        document.getElementById('step-2').style.display = 'block';
+        document.getElementById('step-1').style.display = 'none';
+        window.isSetupMode = true;
+    };
+
+    map.on('click', (e) => {
+        if (!window.isSetupMode) return;
+        const clickedLat = e.lngLat.lat;
+        const clickedLng = e.lngLat.lng;
+        const stationName = "{{ user_profile.station.name|escapejs|default:'Station' }}";
+
+        if (confirm(`Pin ${stationName} exactly at this location?`)) {
+            fetch("{% url 'sensors:update_station_coords' %}", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ lat: clickedLat, lng: clickedLng })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) { location.reload(); } 
+                else { alert("Error: " + data.error); }
+            }).catch(err => { alert("Connection error. Please try again."); });
+        }
+    });
+
+    map.on('load', function() {
+        {% for st in all_stations %}
+        (function() {
+            const lng = parseFloat("{{ st.address.longitude }}");
+            const lat = parseFloat("{{ st.address.latitude }}");
+            if (isNaN(lng) || isNaN(lat)) return; 
+
+            const name = "{{ st.name|escapejs }}";
+            const area = parseFloat("{{ st.cover_area_sqm|default:0 }}");
+            const radius = area > 0 ? Math.sqrt(area / Math.PI) / 1000 : 3.0;
+
+            const el = document.createElement('div');
+            el.innerHTML = '<i class="fas fa-building-shield"></i>';
+            el.style.cssText = `background: #0d6efd; width: 36px; height: 36px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4); font-size: 14px; cursor: pointer; z-index: 10;`;
+            
+            new maplibregl.Marker({ element: el }).setLngLat([lng, lat])
+                .setPopup(new maplibregl.Popup({offset: 25, className: 'fw-bold border-0 shadow-sm rounded-3'}).setText(name)).addTo(map);
+
+            const sourceId = 'zone-{{ st.id }}';
+            const circleData = createGeoJSONCircle([lng, lat], radius);
+            
+            if(circleData) {
+                map.addSource(sourceId, circleData);
+                map.addLayer({ 'id': sourceId + '-fill', 'type': 'fill', 'source': sourceId, 'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.08 } });
+                map.addLayer({ 'id': sourceId + '-line', 'type': 'line', 'source': sourceId, 'paint': { 'line-color': '#0d6efd', 'line-width': 1.5, 'line-dasharray': [4, 4] } });
+            }
+        })();
+        {% endfor %}
+    });
+
+    function createGeoJSONCircle(center, radiusInKm, points = 64) {
+        if(!center || isNaN(center[0])) return null;
+        const coords = { latitude: center[1], longitude: center[0] };
+        const ret = [];
+        const distanceX = radiusInKm / (111.320 * Math.cos(coords.latitude * Math.PI / 180));
+        const distanceY = radiusInKm / 110.574;
+        for(let i=0; i<points; i++) {
+            let theta = (i/points)*(2*Math.PI);
+            ret.push([coords.longitude + (distanceX * Math.cos(theta)), coords.latitude + (distanceY * Math.sin(theta))]);
+        }
+        ret.push(ret[0]);
+        return { "type": "geojson", "data": { "type": "FeatureCollection", "features": [{ "type": "Feature", "geometry": { "type": "Polygon", "coordinates": [ret] } }] } };
+    }
+</script>
+{% endblock %}

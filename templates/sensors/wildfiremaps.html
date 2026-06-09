@@ -174,8 +174,18 @@
             <div class="map-overlay-bottom-left">
                 <div class="map-legend-container map-widget">
                     <div class="legend-title"><i class="fas fa-satellite-dish text-primary"></i> NASA VIIRS (375m)</div>
-                    <div class="legend-item"><div class="legend-square-pixel" style="background:#dc3545; width:14px; height:14px;"></div> High Intensity (FRP > 50)</div>
-                    <div class="legend-item"><div class="legend-square-pixel" style="background:#ff7a00; width:14px; height:14px;"></div> Standard Thermal Anomaly</div>
+                    <div class="legend-item">
+                        <div class="legend-square-pixel" style="background:#ef5350; border: 1.5px solid #b71c1c; width:14px; height:14px; border-radius: 50%;"></div> 
+                        Severe Threat (FRP > 50)
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-square-pixel" style="background:#ffb74d; border: 1.5px solid #e65100; width:14px; height:14px; border-radius: 50%;"></div> 
+                        Moderate Anomaly (FRP 20-50)
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-square-pixel" style="background:#ffee58; border: 1.5px solid #f57f17; width:14px; height:14px; border-radius: 50%;"></div> 
+                        Minor Anomaly (FRP < 20)
+                    </div>
                 </div>
             </div>
         </div>
@@ -191,6 +201,7 @@
 
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
 <script>
     // --- 1. GIS LAYERS CONFIGURATION ---
     const STYLES = { 
@@ -227,10 +238,10 @@
     // --- 2. MAP INITIALIZATION ---
     const map = new maplibregl.Map({ 
         container: 'map', 
-        style: STYLES.dark, 
+        style: STYLES.satellite, // Default to top-down satellite
         center: centerCoords, 
         zoom: (rawLat && rawLng) ? 10 : 5, 
-        pitch: 45, 
+        pitch: 0, // Flat tactical view
         antialias: true 
     });
 
@@ -244,70 +255,111 @@
     map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'bottom-right');
 
     // --- 3. HARDWARE ACCELERATED WEBGL GIS LAYERS ---
+    function initializeHotspotLayers() {
+        if (!map.getSource('satellite-hotspots')) {
+            map.addSource('satellite-hotspots', { type: 'geojson', data: satelliteHotspotsGeoJSON });
+        }
+
+        // LAYER 1: The soft outer glow
+        if (!map.getLayer('hotspots-glow')) {
+            map.addLayer({
+                'id': 'hotspots-glow',
+                'type': 'circle',
+                'source': 'satellite-hotspots',
+                'paint': {
+                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 4, 9, 12, 16, 40],
+                    'circle-color': [
+                        'step', ['to-number', ['get', 'frp'], 0], // BUGFIX: Forces FRP to act as a number safely
+                        '#ffeb3b',     // Minor Threat: Yellow
+                        20, '#ff9800', // Moderate Threat: Orange
+                        50, '#f44336'  // Severe Threat: Red
+                    ],
+                    'circle-blur': 0.8,
+                    'circle-opacity': 0.5
+                }
+            });
+        }
+
+        // LAYER 2: The sharp inner core
+        if (!map.getLayer('hotspots-core')) {
+            map.addLayer({
+                'id': 'hotspots-core',
+                'type': 'circle',
+                'source': 'satellite-hotspots',
+                'paint': {
+                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 2, 9, 6, 16, 20],
+                    'circle-color': [
+                        'step', ['to-number', ['get', 'frp'], 0],
+                        '#ffee58',     // Inner Yellow
+                        20, '#ffb74d', // Inner Orange
+                        50, '#ef5350'  // Inner Red
+                    ],
+                    'circle-stroke-width': 1.5,
+                    'circle-stroke-color': [
+                        'step', ['to-number', ['get', 'frp'], 0],
+                        '#f57f17',     // Dark Yellow border
+                        20, '#e65100', // Dark Orange border
+                        50, '#b71c1c'  // Dark Red border
+                    ],
+                    'circle-opacity': 0.95
+                }
+            });
+        }
+
+        // Rebind click events
+        if (!map._listeners?.click?.find?.(l => l.layerId === 'hotspots-core')) {
+            map.on('click', 'hotspots-core', (e) => {
+                const properties = e.features[0].properties;
+                const geomCoords = e.features[0].geometry.coordinates.slice();
+                const tempCelcius = (parseFloat(properties.brightness || 0) - 273.15).toFixed(1);
+                const frpNum = parseFloat(properties.frp || 0);
+                const isHighThreat = frpNum >= 50.0;
+
+                const popupView = `
+                    <div style="font-family: inherit;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="rounded-circle" style="width:10px; height:10px; background:${isHighThreat ? '#dc3545' : '#ff7a00'};"></div>
+                            <h6 class="fw-bold mb-0 text-dark">NASA VIIRS Anomaly</h6>
+                        </div>
+                        <span class="badge ${isHighThreat ? 'bg-danger' : 'bg-secondary'} mb-3 w-100 py-2">375m Spatial Resolution</span>
+                        <div class="small  mb-1">COORDINATES</div>
+                        <p class="fw-medium text-dark mb-3">${geomCoords[1].toFixed(5)}, ${geomCoords[0].toFixed(5)}</p>
+                        <div class="row g-2 text-center">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded border">
+                                    <div class="small " style="font-size:0.65rem;">FRP (MW)</div>
+                                    <div class="fw-bold ${isHighThreat ? 'text-danger' : 'text-dark'}">${frpNum}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded border">
+                                    <div class="small " style="font-size:0.65rem;">TEMP (°C)</div>
+                                    <div class="fw-bold text-dark">${tempCelcius}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                new maplibregl.Popup({ offset: 12, maxWidth: '250px' }).setLngLat(geomCoords).setHTML(popupView).addTo(map);
+            });
+
+            map.on('mouseenter', 'hotspots-core', () => { map.getCanvas().style.cursor = 'pointer'; });
+            map.on('mouseleave', 'hotspots-core', () => { map.getCanvas().style.cursor = ''; });
+        }
+    }
+
     map.on('load', () => {
         if (!rawLat || !rawLng) { geolocate.trigger(); }
-
-        map.addSource('satellite-hotspots', { type: 'geojson', data: satelliteHotspotsGeoJSON });
-
-        map.addLayer({
-            'id': 'hotspots-canvas-layer',
-            'type': 'circle',
-            'source': 'satellite-hotspots',
-            'paint': {
-                'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 9, 8, 16, 35],
-                'circle-color': ['case', ['>=', ['get', 'frp'], 50.0], '#dc3545', '#ff7a00'],
-                'circle-stroke-width': 1,
-                'circle-stroke-color': 'rgba(255,255,255,0.7)',
-                'circle-opacity': 0.85,
-                'circle-pitch-alignment': 'map'
-            }
-        });
-
-        // Initialize Map Data
-        fetchHotspots(document.getElementById('timeFilter').value);
-
-        // Interactive mouse map pointers
-        map.on('click', 'hotspots-canvas-layer', (e) => {
-            const properties = e.features[0].properties;
-            const geomCoords = e.features[0].geometry.coordinates.slice();
-            const tempCelcius = (parseFloat(properties.brightness || 0) - 273.15).toFixed(1);
-            const isHighThreat = properties.frp >= 50.0;
-
-            const popupView = `
-                <div style="font-family: inherit;">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <div class="rounded-circle" style="width:10px; height:10px; background:${isHighThreat ? '#dc3545' : '#ff7a00'};"></div>
-                        <h6 class="fw-bold mb-0 text-dark">NASA VIIRS Anomaly</h6>
-                    </div>
-                    <span class="badge ${isHighThreat ? 'bg-danger' : 'bg-secondary'} mb-3 w-100 py-2">375m Spatial Resolution</span>
-                    <div class="small text-muted mb-1">COORDINATES</div>
-                    <p class="fw-medium text-dark mb-3">${geomCoords[1].toFixed(5)}, ${geomCoords[0].toFixed(5)}</p>
-                    <div class="row g-2 text-center">
-                        <div class="col-6">
-                            <div class="p-2 bg-light rounded border">
-                                <div class="small text-muted" style="font-size:0.65rem;">FRP (MW)</div>
-                                <div class="fw-bold ${isHighThreat ? 'text-danger' : 'text-dark'}">${properties.frp}</div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-2 bg-light rounded border">
-                                <div class="small text-muted" style="font-size:0.65rem;">TEMP (°C)</div>
-                                <div class="fw-bold text-dark">${tempCelcius}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            new maplibregl.Popup({ offset: 12, maxWidth: '250px' }).setLngLat(geomCoords).setHTML(popupView).addTo(map);
-        });
-
-        map.on('mouseenter', 'hotspots-canvas-layer', () => { map.getCanvas().style.cursor = 'pointer'; });
-        map.on('mouseleave', 'hotspots-canvas-layer', () => { map.getCanvas().style.cursor = ''; });
+        
+        initializeHotspotLayers();
+        
+        // BUGFIX: Ensure we actually fetch the data when the map finishes loading!
+        const initialDays = document.getElementById('timeFilter') ? document.getElementById('timeFilter').value : 5;
+        fetchHotspots(initialDays);
     });
 
     // --- 4. DYNAMIC DATA INGESTION ---
     function fetchHotspots(days) {
-        // Reset state
         satelliteHotspotsGeoJSON.features = [];
         highThreatCount = 0;
         standardThreatCount = 0;
@@ -323,18 +375,18 @@
             return res.json();
         })
         .then(data => {
+            console.log("Hotspot Data Received:", data); // DEBUGGING: Check your browser console
             if (data.success && data.active_hotspots) {
                 data.active_hotspots.forEach(hotspot => addHotspotToGeoJSON(hotspot, false));
+                
                 if(map.getSource('satellite-hotspots')){
                     map.getSource('satellite-hotspots').setData(satelliteHotspotsGeoJSON);
                 }
                 updateCounters();
             }
-        }).catch(err => {
-            console.error("Error fetching telemetry:", err);
-            // Optionally show user feedback, e.g., a toast or badge
-        });
+        }).catch(err => console.error("Error fetching telemetry:", err));
     }
+    
     function updateTimeFilter() {
         const selectedDays = document.getElementById('timeFilter').value;
         fetchHotspots(selectedDays);
@@ -361,8 +413,8 @@
     }
 
     function updateCounters() {
-        document.getElementById('high-threat-count').innerText = highThreatCount;
-        document.getElementById('standard-threat-count').innerText = standardThreatCount;
+        if(document.getElementById('high-threat-count')) document.getElementById('high-threat-count').innerText = highThreatCount;
+        if(document.getElementById('standard-threat-count')) document.getElementById('standard-threat-count').innerText = standardThreatCount;
     }
 
     // --- 5. LIVE WEBSOCKET CORRELATION ---
@@ -373,11 +425,7 @@
 
     fireSocket.onmessage = function(e) {
         const packet = JSON.parse(e.data);
-        
-        // Aligns to server contract types ('fire_alert')
         if (packet.type === 'fire_alert') {
-            
-            // Transform backend keys ('lat', 'lng') into what your GeoJSON formatter expects
             const unifiedPayload = {
                 report_id: packet.report_id,
                 latitude: parseFloat(packet.lat),
@@ -386,37 +434,27 @@
                 owner_name: packet.owner_name,
                 timestamp: packet.timestamp
             };
-
-            // Add to map layer
             addHotspotToGeoJSON(unifiedPayload, true);
-            
-            // Center view on the new satellite-spotted event coordinates
-            map.flyTo({ 
-                center: [unifiedPayload.longitude, unifiedPayload.latitude], 
-                zoom: 11, 
-                essential: true 
-            });
+            map.flyTo({ center: [unifiedPayload.longitude, unifiedPayload.latitude], zoom: 11, essential: true });
         }
     };
 
-    // --- 6. STYLE SWITCHER ENGINE ---
+    // --- 6. STYLE SWITCHER ENGINE (BUGFIXED) ---
     window.switchStyle = function(styleName, btn) {
         const layerBtnIcon = document.querySelector('#layerDropdown i');
-        layerBtnIcon.classList.add('fa-spin');
+        if(layerBtnIcon) layerBtnIcon.classList.add('fa-spin');
+        
         map.setStyle(STYLES[styleName]);
         
+        // Wait for the new basemap to load, then aggressively re-inject our custom layers
         map.once('styledata', () => {
-            layerBtnIcon.classList.remove('fa-spin');
-            if (!map.getSource('satellite-hotspots')) {
-                map.addSource('satellite-hotspots', { type: 'geojson', data: satelliteHotspotsGeoJSON });
-                map.addLayer({
-                    'id': 'hotspots-canvas-layer', 'type': 'circle', 'source': 'satellite-hotspots',
-                    'paint': {
-                        'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 9, 8, 16, 35],
-                        'circle-color': ['case', ['>=', ['get', 'frp'], 50.0], '#dc3545', '#ff7a00'],
-                        'circle-stroke-width': 1, 'circle-stroke-color': 'rgba(255,255,255,0.7)', 'circle-opacity': 0.85, 'circle-pitch-alignment': 'map'
-                    }
-                });
+            if(layerBtnIcon) layerBtnIcon.classList.remove('fa-spin');
+            
+            initializeHotspotLayers();
+            
+            // Force the data to refresh on the newly recreated source
+            if (map.getSource('satellite-hotspots')) {
+                map.getSource('satellite-hotspots').setData(satelliteHotspotsGeoJSON);
             }
         });
     };
@@ -471,7 +509,7 @@
             const sourceId = 'zone-{{ st.id }}';
             const circleData = createGeoJSONCircle([lng, lat], radius);
             
-            if(circleData) {
+            if(circleData && !map.getSource(sourceId)) {
                 map.addSource(sourceId, circleData);
                 map.addLayer({ 'id': sourceId + '-fill', 'type': 'fill', 'source': sourceId, 'paint': { 'fill-color': '#0d6efd', 'fill-opacity': 0.08 } });
                 map.addLayer({ 'id': sourceId + '-line', 'type': 'line', 'source': sourceId, 'paint': { 'line-color': '#0d6efd', 'line-width': 1.5, 'line-dasharray': [4, 4] } });

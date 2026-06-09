@@ -26,7 +26,6 @@ class ReportCoverageTest(TestCase):
         self.report = ReportFactory(station=self.station)
 
         # 2. Setup Users
-        # FIX 2: Override Django's post_save signal by explicitly setting fields and calling .save()
         self.ff = UserProfileFactory()
         self.ff.role = "firefighter"
         self.ff.station = self.station
@@ -63,7 +62,6 @@ class ReportCoverageTest(TestCase):
         }
         response = self.client.post(self.detail_url, data)
 
-        # FIX 3: View redirects back to the detail page upon successful update, not the main list!
         self.assertRedirects(response, self.detail_url)
 
         self.report.refresh_from_db()
@@ -83,15 +81,12 @@ class ReportCoverageTest(TestCase):
             "description": "New Emergency",
             "images": [image],
         }
-
         # Bypass strict form validation for this specific test
         with patch("sensors.forms.ReportCreateForm.is_valid", return_value=True):
             response = self.client.post(reverse("sensors:create_report"), data)
 
         new_report = Report.objects.last()
         self.assertEqual(new_report.description, "New Emergency")
-
-    # --- Deletion & Disk Cleanup Tests ---
 
     @patch("os.path.isfile")
     @patch("os.remove")
@@ -121,7 +116,6 @@ class ReportCoverageTest(TestCase):
         qdict_post.setlist("delete_images", [str(img_obj.id)])
         request.POST = qdict_post
 
-        # FIX: Use QueryDict for FILES instead of a standard Python dict {}
         request.FILES = QueryDict(mutable=True)
 
         # Call the function directly
@@ -130,3 +124,75 @@ class ReportCoverageTest(TestCase):
         # Ensure the image was actually deleted from the database
         self.assertEqual(ReportImage.objects.filter(id=img_obj.id).count(), 0)
         self.assertTrue(mock_remove.called)
+    
+    def test_edit_report_commander_approval_logic(self):
+        """Covers commander status updates and is_approved toggle."""
+        self.ff.rank = "PBK"
+        self.ff.save()
+        self.client.force_login(self.ff.user)
+        
+        url = reverse("sensors:edit_report", args=[self.report.id])
+        data = {
+            "status": "Confirmed",
+            "is_approved": "on",
+            "description": "Commander approved this.",
+            "fire_type": "Class A",
+            "cause": "Unknown",
+            "station": self.station.id,        
+            "address": self.station.address.id, # <--- FIX: Use the guaranteed station address
+        }
+        self.client.post(url, data)
+        
+        self.report.refresh_from_db()
+        self.assertTrue(self.report.is_approved)
+
+    def test_edit_report_image_deletion(self):
+        """Covers delete_images branch in handle_report_images."""
+        img = ReportImageFactory(report=self.report)
+        self.client.force_login(self.ff.user)
+        
+        url = reverse("sensors:edit_report", args=[self.report.id])
+        data = {
+            "status": "System Detected",
+            "fire_type": "Class A",
+            "cause": "Unknown",
+            "description": "delete image test",
+            "station": self.station.id,        
+            "address": self.station.address.id, # <--- FIX: Use the guaranteed station address
+            "delete_images": [img.id]
+        }
+        with patch("os.remove"):
+            self.client.post(url, data)
+        
+        self.assertEqual(ReportImage.objects.filter(id=img.id).count(), 0)
+
+    def test_reports_view_firefighter_filtering(self):
+        """Covers firefighter filtering by station."""
+        # Create a report for a DIFFERENT station
+        other_station = FireStationFactory()
+        ReportFactory(station=other_station)
+        
+        self.client.force_login(self.ff.user)
+        response = self.client.get(reverse("sensors:reports"))
+        
+        # Should only see the one report assigned to self.station (via setup)
+        # and NOT the one for the other_station
+        self.assertEqual(len(response.context["reports"]), 1)
+        self.assertEqual(response.context["reports"][0].station, self.station)
+
+    def test_report_detail_permission_denied(self):
+        """Covers PermissionDenied if firefighter accesses wrong station report."""
+        other_report = ReportFactory(station=FireStationFactory())
+        
+        self.client.force_login(self.ff.user)
+        response = self.client.get(reverse("sensors:report_detail", args=[other_report.id]))
+        self.assertEqual(response.status_code, 403)
+    
+    def test_report_detail_public_unauthorized(self):
+        """Covers public user trying to view report they don't own."""
+        # report belongs to station, no owner explicitly set in factory
+        self.client.force_login(self.public_user.user)
+        response = self.client.get(reverse("sensors:report_detail", args=[self.report.id]))
+        self.assertEqual(response.status_code, 403)
+    
+    

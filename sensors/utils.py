@@ -11,7 +11,7 @@ from django.utils import timezone
 from twilio.rest import Client
 
 from .logger import get_logs
-from .models import FireStation, Report, Address
+from .models import Address, FireStation, Report
 
 
 def get_live_logs(request):
@@ -114,7 +114,11 @@ def get_sensor_status(sensor):
     if status.replace(" ", "").lower() == "gasleak":
         return "Gas Leak"
 
-    return status
+    time_threshold = timezone.now() - timedelta(minutes=5)
+    if sensor.updated < time_threshold:
+        return "Offline"
+     
+    return status, sensor.last_status
 
 
 def process_hotspot_coverage(hotspot):
@@ -162,10 +166,10 @@ def process_hotspot_coverage(hotspot):
             wildfire_address = Address.objects.create(
                 street="Satellite Detected Hotspot Area",
                 city="Wildfire Zone",
-                state=station.address.state,  # Inherit the state from the responding station
+                state=station.address.state,
                 postal_code=station.address.postal_code,
                 latitude=fire_lat,
-                longitude=fire_lon
+                longitude=fire_lon,
             )
 
             # 2. Create the Official Report using valid model fields
@@ -178,10 +182,9 @@ def process_hotspot_coverage(hotspot):
                     f"Thermal Brightness: {hotspot.brightness}K\n"
                     f"Fire Radiative Power (FRP): {hotspot.frp} MW"
                 ),
-                fire_type="Wildfire / Bushfire"
+                fire_type="Wildfire / Bushfire",
             )
 
-            # FIX 2: Flatten the payload to exactly match what FireAlertConsumer expects
             try:
                 channel_layer = get_channel_layer()
                 payload = {
@@ -193,14 +196,16 @@ def process_hotspot_coverage(hotspot):
                     "lng": float(fire_lon),
                     "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
                 }
-                
+
                 # Broadcast to both the specific station group and the unified general dashboard
                 async_to_sync(channel_layer.group_send)(
                     f"station_{station.id}", payload
                 )
                 async_to_sync(channel_layer.group_send)("station_all", payload)
-                
-                print(f"📡 [SATELLITE TASK] Dispatched alert for Report #{report.id} to Station {station.name}")
+
+                print(
+                    f"📡 [SATELLITE TASK] Dispatched alert for Report #{report.id} to Station {station.name}"
+                )
             except Exception as e:
                 print(f"❌ WebSocket Error for Station {station.id}: {e}")
 

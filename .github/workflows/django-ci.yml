@@ -124,6 +124,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install unittest-xml-reporting
           pip install -r requirements.txt
           pip install coverage psycopg2-binary
 
@@ -138,7 +139,11 @@ jobs:
         run: python manage.py migrate
 
       - name: Run Tests
+        env:
+          TEST_RUNNER: xmlrunner.extra.djangotestrunner.XMLTestRunner
+          TEST_OUTPUT_DIR: test-reports
         run: |
+          python manage.py test --testrunner=$TEST_RUNNER
           coverage run --branch manage.py test
           coverage report -m
           coverage xml
@@ -149,6 +154,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: SNFASA/AI-Fire-Monitoring-System
+          files: ./test-reports/*.xml
           fail_ci_if_error: false
       - name: Upload Coverage Artifact
         uses: actions/upload-artifact@v7

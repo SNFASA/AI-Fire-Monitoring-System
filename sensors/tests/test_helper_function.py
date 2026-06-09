@@ -19,7 +19,6 @@ class GetSensorStatusTestCase(TestCase):
         # 1. Create User (Signal automatically creates UserProfile here)
         self.user = User.objects.create_user(username="testuser", password="pass123")
 
-        # 2. FIX: Fetch the auto-created profile instead of creating a new one
         self.profile = self.user.userprofile
         self.profile.role = "public"
         self.profile.save()

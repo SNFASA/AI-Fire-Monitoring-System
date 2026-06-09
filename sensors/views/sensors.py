@@ -113,27 +113,43 @@ def add_sensor(request):
 @require_POST
 def update_sensor_position(request):
     """
-    Updates the X/Y coordinates of a sensor on the map.
+    Updates the X/Y coordinates of a sensor on the map layout blueprint.
     """
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            # 1. MOVED: The get() query MUST be inside the try block
-            sensor = Sensor.objects.get(id=data["sensor_id"], owner__user=request.user)
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "error": "Method not allowed"}, status=405
+        )
 
-            sensor.x_position = data["x"]
-            sensor.y_position = data["y"]
-            sensor.save()
+    try:
+        data = json.loads(request.body)
 
-            return JsonResponse({"success": True})
+        # This securely isolates the query loop to the logged-in user context
+        sensor = Sensor.objects.get(id=data["sensor_id"], owner__user=request.user)
 
-        except (Sensor.DoesNotExist, KeyError, ValueError):
-            # Returns JSON failure instead of crashing (500)
-            return JsonResponse(
-                {"success": False, "message": "Sensor not found or access denied"}
-            )
+        sensor.x_position = data["x"]
+        sensor.y_position = data["y"]
+        sensor.save()
 
-    return JsonResponse({"success": False}, status=400)
+        return JsonResponse({"success": True})
+
+    except Sensor.DoesNotExist:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Access denied: Unauthorized sensor modification.",
+            },
+            status=403,
+        )
+
+    except (KeyError, ValueError) as e:
+        # Handle malformed dictionary payload parameters separately
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Malformed parameters data layout: {str(e)}",
+            },
+            status=400,
+        )
 
 
 @login_required

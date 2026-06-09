@@ -4,178 +4,318 @@
 {% block title %}Report #{{ report.id }} Details{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
+<div class="container mt-4 pb-5 mb-5" style="padding-bottom: 100px !important;">
     
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
     {% endif %}
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <h2 class="display-6 fw-bold text-danger mb-2">Report  #{{ report.id }} Details</h2>
-        </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
-            <a href="{% url 'sensors:reports' %}" class="btn btn-danger text-white btn-lg">
-                Report List
-            </a>
-        </div>
+
+    <div class="mb-4">
+        <a href="{% url 'sensors:reports' %}" class="text-decoration-none text-danger fw-bold mb-2 d-inline-block">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Reports
+        </a>
     </div>
-    <div class="row">
-        <div class="col-lg-10 offset-lg-1">
-            <div class="card shadow-lg">
-                
-                <div class="card-header text-white 
-                    {% if report.status == 'System Detected' %}bg-warning text-dark
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                <div>
+                    <h3 class="fw-bolder mb-1">
+                        {% if report.status == 'System Detected' %}
+                            <i class="fa-solid fa-robot text-danger me-1"></i> Automated Alert
+                        {% else %}
+                            <i class="fa-solid fa-fire text-danger me-1"></i> Incident Report
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted small mb-0">Record ID: #{{ report.id }}</p>
+                </div>
+                <span class="badge rounded-pill px-3 py-2 fw-bold shadow-sm
+                    {% if report.status == 'System Detected' %}bg-warning
                     {% elif report.status == 'Confirmed' %}bg-danger
                     {% elif report.status == 'False Alarm' %}bg-secondary
                     {% else %}bg-success{% endif %}">
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">
-                            {% if report.status == 'System Detected' %}
-                                <i class="fas fa-robot"></i> Automated Alert
-                            {% else %}
-                                <i class="fas fa-fire-extinguisher"></i> Incident Report
-                            {% endif %}
-                            #{{ report.id }}
-                        </h3>
-                        <span class="badge bg-light text-dark fs-6">
-                            Status: {{ report.get_status_display }}
-                        </span>
+                    {{ report.get_status_display }}
+                </span>
+            </div>
+
+            <div class="mb-4 px-2">
+                <h6 class="fw-bolder text-muted text-uppercase small mb-2 ms-1">AI Detection Snapshot</h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="card app-card h-100 text-center p-3 d-flex flex-column justify-content-center">
+                            <i class="fa-regular fa-clock text-primary fs-3 mb-2 opacity-75"></i>
+                            <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Time Detected</small>
+                            <strong class= "mt-1" style="font-size: 0.9rem;">{{ report.timestamp|date:"H:i, M d" }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card app-card h-100 text-center p-3 d-flex flex-column justify-content-center">
+                            <i class="fa-solid fa-temperature-half text-danger fs-3 mb-2 opacity-75"></i>
+                            <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Temperature</small>
+                            <strong class= "mt-1" style="font-size: 0.9rem;">{{ report.trigger_temperature|default:"--" }} °C</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card app-card h-100 text-center p-3 d-flex flex-column justify-content-center">
+                            <i class="fa-solid fa-cloud text-warning fs-3 mb-2 opacity-75"></i>
+                            <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Gas/Smoke</small>
+                            <strong class= "mt-1" style="font-size: 0.9rem;">{{ report.trigger_gas_level|default:"--" }} PPM</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card app-card h-100 text-center p-3 d-flex flex-column justify-content-center">
+                            <i class="fa-solid fa-location-dot text-success fs-3 mb-2 opacity-75"></i>
+                            <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Sensor</small>
+                            <strong class= "mt-1 text-truncate w-100 px-2" style="font-size: 0.9rem;">{{ report.trigger_sensor.name }}</strong>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="card-body">
+            <div class="mb-4 px-2">
+                <div class="d-flex justify-content-between align-items-end mb-2 ms-1">
+                    <h6 class="fw-bolder text-muted text-uppercase small mb-0">Attached Evidence</h6>
+                    {% if is_firefighter and report.images.all %}
+                        <small class="text-danger fw-bold" style="font-size: 0.7rem;">
+                            <i class="fa-solid fa-trash-can me-1"></i>Select to delete
+                        </small>
+                    {% endif %}
+                </div>
 
-                    <div class="alert alert-light border rounded p-3 mb-4">
-                        <h5 class="text-muted border-bottom pb-2"><i class="fas fa-microchip"></i> AI Detection Snapshot</h5>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Time Detected</small>
-                                <strong class="text-muted d-block">{{ report.timestamp|date:"M d, Y - H:i:s" }}</strong>
+                {% if report.images.all %}
+                    <div class="swipe-row gap-2 pb-2">
+                        {% for img in report.images.all %}
+                            <div class="swipe-item shadow-sm position-relative" style="width: 140px; height: 140px; border-radius: 12px; overflow: hidden;">
+                                
+                                <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover" alt="Evidence" onclick="openModal('{{ img.image.url }}')" style="cursor: pointer;">
+                                
+                                <div class="position-absolute bottom-0 start-0 w-100 p-1 text-center" style="background: linear-gradient(transparent, rgba(0,0,0,0.8)); pointer-events: none;">
+                                    <small class="fw-bold text-white" style="font-size: 0.65rem;">{{ img.uploaded_at|date:"M d, H:i" }}</small>
+                                </div>
+
+                                {% if is_firefighter %}
+                                    <div class="position-absolute top-0 end-0 p-2">
+                                        <input type="checkbox" name="delete_images" value="{{ img.id }}" form="reportForm" 
+                                               class="form-check-input border-2 border-white shadow-sm m-0" 
+                                               style="width: 1.4rem; height: 1.4rem; cursor: pointer; background-color: rgba(255,255,255,0.5);">
+                                    </div>
+                                {% endif %}
+                                
                             </div>
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Trigger Location</small>
-                                <strong class="text-muted d-block">{{ report.address }}</strong>
-                            </div>
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Sensor</small>
-                                <strong class="text-muted d-block">{{ report.trigger_sensor.name }}</strong>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Temperature</small>
-                                <strong class="text-danger">{{ report.trigger_temperature|default:"--" }} °C</strong>
-                            </div>
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Gas/Smoke Level</small>
-                                <strong class="text-danger">{{ report.trigger_gas_level|default:"--" }} PPM</strong>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
+                {% else %}
+                    <div class="card app-card p-4 text-center">
+                        <i class="fa-solid fa-camera text-muted opacity-50 fs-2 mb-2"></i>
+                        <p class="text-muted small mb-0">No scene photos uploaded yet.</p>
+                    </div>
+                {% endif %}
+            </div>
 
-                    <hr>
-
-                    <form method="POST" enctype="multipart/form-data">
+            <div class="mb-4 px-2">
+                <h6 class="fw-bolder text-muted text-uppercase small mb-2 ms-1">Incident Details</h6>
+                
+                {% if is_firefighter %}
+                    <form id="reportForm" method="POST" enctype="multipart/form-data" class="card app-card p-3">
                         {% csrf_token %}
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Incident Status</label>
-                                <select name="status" class="form-select" {% if not is_firefighter %}disabled{% endif %}>
+                        {% if user.userprofile.rank == 'KB' or user.userprofile.rank == 'PBK' %}
+                            <div class="mb-4 p-3 bg-danger-subtle border border-danger rounded-4 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bolder text-danger mb-0"><i class="fa-solid fa-stamp me-2"></i>Official Commander Approval</h6>
+                                    <small class="text-danger opacity-75" style="font-size: 0.75rem;">Toggle to officially verify and sign off on this report.</small>
+                                </div>
+                                <div class="form-check form-switch fs-3 mb-0">
+                                    <input class="form-check-input shadow-none" type="checkbox" role="switch" name="is_approved" id="isApproved" {% if report.is_approved %}checked{% endif %} style="cursor: pointer;">
+                                </div>
+                            </div>
+                        {% else %}
+                            {% if report.is_approved %}
+                                <div class="mb-4 p-3 bg-success-subtle border border-success rounded-4 d-flex align-items-center">
+                                    <i class="fa-solid fa-certificate text-success fs-2 me-3"></i>
+                                    <div>
+                                        <h6 class="fw-bolder text-success mb-0">Officially Approved</h6>
+                                        <small class="text-success opacity-75" style="font-size: 0.75rem;">Signed off by {{ report.approved_by.get_full_name|default:report.approved_by.username }}</small>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="mb-4 p-3 bg-warning-subtle border border-warning rounded-4 d-flex align-items-center">
+                                    <i class="fa-solid fa-clock-rotate-left text-warning-emphasis fs-2 me-3"></i>
+                                    <div>
+                                        <h6 class="fw-bolder text-warning-emphasis mb-0">Pending Approval</h6>
+                                        <small class="text-warning-emphasis opacity-75" style="font-size: 0.75rem;">Awaiting verification from KB or PBK.</small>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Incident Status</label>
+                            {% if user.userprofile.rank == 'KB' or user.userprofile.rank == 'PBK' %}
+                                <select name="status" class="form-select border-0 rounded-3 shadow-none p-2 fw-bold">
                                     <option value="System Detected" {% if report.status == 'System Detected' %}selected{% endif %}>System Detected (Pending)</option>
                                     <option value="Confirmed" {% if report.status == 'Confirmed' %}selected{% endif %}>Confirmed Real Fire</option>
                                     <option value="False Alarm" {% if report.status == 'False Alarm' %}selected{% endif %}>False Alarm</option>
                                     <option value="Resolved" {% if report.status == 'Resolved' %}selected{% endif %}>Resolved</option>
                                 </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Responding Station</label>
-                                <select name="station" class="form-select" {% if not is_firefighter %}disabled{% endif %}>
-                                    <option value="">-- Select Station --</option>
-                                    {% for station in stations %}
-                                        <option value="{{ station.id }}" {% if report.station and report.station.id == station.id %}selected{% endif %}>
-                                            {{ station.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            {% else %}
+                                <input type="hidden" name="status" value="{{ report.status }}">
+                                <div class="p-2 rounded-3 border d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">{{ report.get_status_display }}</span>
+                                    <span class="badge bg-secondary" style="font-size: 0.6rem;">Requires KB/PBK Approval</span>
+                                </div>
+                            {% endif %}
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Fire Type</label>
-                                <input type="text" name="fire_type" class="form-control" 
-                                       value="{{ report.fire_type|default:'' }}" 
-                                       placeholder="e.g. Electrical, Chemical"
-                                       {% if not is_firefighter %}disabled{% endif %}>
+                                <label for="fireType" class="form-label small fw-bold text-muted">Fire Type</label>
+                                <input type="text" name="fire_type" class="form-control border-0 rounded-3 shadow-none fw-bold" id="fireType" value="{{ report.fire_type|default:'' }}" placeholder="e.g. Electrical">
                             </div>
+                            
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Cause</label>
-                                <input type="text" name="cause" class="form-control" 
-                                       value="{{ report.cause|default:'' }}" 
-                                       placeholder="e.g. Short Circuit, Overheating"
-                                       {% if not is_firefighter %}disabled{% endif %}>
+                                <label for="fireCause" class="form-label small fw-bold text-muted">Suspected Cause</label>
+                                <input type="text" name="cause" class="form-control border-0 rounded-3 shadow-none fw-bold" id="fireCause" value="{{ report.cause|default:'' }}" placeholder="e.g. Short Circuit">
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Officer's Description / Notes</label>
-                            <textarea name="description" class="form-control" rows="4" 
-                                      placeholder="Enter detailed report here..."
-                                      {% if not is_firefighter %}disabled{% endif %}>{{ report.description|default:'' }}</textarea>
-                        </div>
-
-                        {% if is_firefighter %}
-                        <div class="mb-4 p-3  border rounded">
-                            <label class="form-label fw-bold"><i class="fas fa-camera"></i> Upload Evidence Photos</label>
-                            <input type="file" name="images" class="form-control" multiple accept="image/*">
-                            <small class="text-muted">You can select multiple files at once.</small>
-                        </div>
-                        {% endif %}
-
-                        {% if report.images.count > 0 %}
-                        <div class="mb-4">
-                            <h6 class="fw-bold border-bottom pb-2">Attached Evidence ({{ report.images.count }})</h6>
-                            <div class="row g-2">
-                                {% for img in report.images.all %}
-                                <div class="col-6 col-md-3">
-                                    <a href="{{ img.image.url }}" target="_blank">
-                                        <img src="{{ img.image.url }}" class="img-fluid rounded thumbnail-img" 
-                                             style="height: 150px; width: 100%; object-fit: cover; border: 2px solid #ddd;">
-                                    </a>
-                                    <div class="text-muted small mt-1">Uploaded: {{ img.uploaded_at|date:"M d, H:i" }}</div>
-                                </div>
+                            <label class="form-label small fw-bold text-muted">Responding Station</label>
+                            <select name="station" class="form-select border-0 rounded-3 shadow-none p-2 fw-bold">
+                                <option value="">-- Select Station --</option>
+                                {% for station in stations %}
+                                    <option value="{{ station.id }}" {% if report.station and report.station.id == station.id %}selected{% endif %}>
+                                        {{ station.name }}
+                                    </option>
                                 {% endfor %}
-                            </div>
+                            </select>
                         </div>
-                        {% endif %}
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'sensors:reports' %}" class="btn btn-outline-warning ">Back to List</a>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted">Officer's Notes / Description</label>
+                            <textarea name="description" class="form-control border-0 rounded-3 shadow-none p-3" rows="3" placeholder="Enter detailed operation report...">{{ report.description|default:'' }}</textarea>
+                        </div>
+
+                        <h6 class="fw-bolder text-muted text-uppercase small mb-2">Add Scene Photos</h6>
+                        <div class="upload-dropzone position-relative d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded-4">
+                            <div class="rounded-circle shadow-sm bg-white d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                                <i class="fa-solid fa-cloud-arrow-up fs-4 text-danger"></i>
+                            </div>
+                            <span class="fw-bold">Tap to attach evidence</span>
+                            <small class="text-muted mt-1">Select multiple if needed</small>
+                            <input type="file" name="images" id="pictureInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" multiple onchange="showUploadCount()" style="cursor: pointer;">
+                        </div>
+                        <div id="fileCountDisplay" class="text-center mt-2 fw-bold text-success d-none mb-3"></div>
+
+                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fa-solid fa-trash-can me-1"></i> Delete
+                            </button>
                             
-                            {% if is_firefighter %}
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-save"></i> Update & Confirm Report
-                                </button>
-                            {% endif %}
+                            <button type="submit" class="btn btn-danger rounded-pill px-5 py-2 fw-bold shadow-sm w-100 w-md-auto ms-2">
+                                <i class="fa-solid fa-check-circle me-2"></i> Save Changes
+                            </button>
                         </div>
                     </form>
 
-                </div>
-                
-                <div class="card-footer text-muted small">
-                    In Charge: {{ report.in_charge.get_full_name|default:"Unassigned" }} | Last Updated: {{ report.updated|timesince }} ago
-                </div>
+                {% else %}
+                    <div class="card app-card mb-3">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex flex-column py-3 border-0">
+                                <small class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Fire Type</small>
+                                <span class="fw-bold fs-6 mt-1">{{ report.fire_type|default:"Under Investigation" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex flex-column py-3">
+                                <small class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Suspected Cause</small>
+                                <span class="fw-bold fs-6 mt-1">{{ report.cause|default:"Under Investigation" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex flex-column py-3">
+                                <small class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">Responding Station</small>
+                                <span class="fw-bold fs-6 mt-1">{{ report.station.name|default:"Awaiting Dispatch" }}</span>
+                            </li>
+                        </ul>
+                    </div>
 
+                    <div class="card app-card p-3">
+                        <small class="text-muted fw-bold text-uppercase mb-2" style="font-size: 0.65rem;">Official Notes</small>
+                        <p class="mb-0 {% if not report.description %}fst-italic text-muted{% endif %}" style="line-height: 1.6; font-size: 0.9rem;">
+                            {{ report.description|default:"No official notes have been recorded yet." }}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="text-center text-muted small mt-4 mb-5">
+                Officer In Charge: <strong>{{ report.in_charge.get_full_name|default:report.in_charge.username|default:"Pending" }}</strong><br>
+                Last Updated: {{ report.updated|timesince }} ago
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-danger border-0 p-4">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="bg-danger-subtle text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                    <i class="fa-solid fa-trash-can fs-1"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Delete Report #{{ report.id }}?</h5>
+                <p class="text-muted mb-0">This action cannot be undone. All attached evidence photos and official notes will be permanently lost.</p>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0 justify-content-center gap-2">
+                <button type="button" class="btn  border rounded-pill px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'sensors:delete_report' report.id %}" method="POST" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">Yes, Delete Permanently</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close btn-close-white ms-auto shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 text-center mt-2">
+                <img id="modalImage" src="" class="img-fluid rounded-4 shadow-lg w-100" style="max-height: 80vh; object-fit: contain; background: rgba(0,0,0,0.5);">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Image Preview Modal
+    function openModal(imageUrl) {
+        document.getElementById('modalImage').src = imageUrl;
+        var myModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        myModal.show();
+    }
+
+    // Dropzone logic to show how many images are ready
+    function showUploadCount() {
+        var input = document.getElementById('pictureInput');
+        var display = document.getElementById('fileCountDisplay');
+        
+        if(input.files && input.files.length > 0) {
+            display.classList.remove('d-none');
+            display.innerHTML = '<i class="fa-solid fa-check text-success me-1"></i> ' + input.files.length + ' file(s) ready to upload';
+        } else {
+            display.classList.add('d-none');
+        }
+    }
+</script>
 {% endblock %}

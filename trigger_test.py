@@ -1,4 +1,5 @@
 import json
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
@@ -13,7 +14,7 @@ test_payload = {
     "owner_phone": "+6011-39771785",
     "lat": 1.8532,
     "lng": 103.0864,
-    "timestamp": "2026-05-22 02:30:00"
+    "timestamp": "2026-05-22 02:30:00",
 }
 
 async_to_sync(channel_layer.group_send)(f"station_{station_id}", test_payload)

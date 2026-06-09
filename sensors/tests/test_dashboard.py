@@ -104,3 +104,75 @@ class DashboardCoverageTest(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["success"], False)
+    
+    def test_get_dashboard_sensor_data_offline_fallback(self):
+        """Covers the branch where a sensor has no logs ('Offline')."""
+        # Create a sensor with no logs
+        empty_sensor = SensorFactory(owner=self.public_user.userprofile, name="Empty")
+        
+        self.client.login(username=self.public_user.username, password="password123")
+        response = self.client.get(reverse("sensors:dashboard_data"))
+        
+        # Check that the Empty sensor returns 'Offline' status
+        data = response.json()
+        empty_data = next(s for s in data["sensors"] if s["name"] == "Empty")
+        self.assertEqual(empty_data["status"], "Offline")
+        self.assertEqual(empty_data["temp"], "N/A")
+
+    def test_get_dashboard_sensor_data_null_values(self):
+        """Covers the case where log exists but values are 0.0 (simulating missing valid data)."""
+        SensorDataLogFactory(sensor=self.public_sensor, dht22_temp=0.0, humidity=0.0)
+        
+        self.client.login(username=self.public_user.username, password="password123")
+        response = self.client.get(reverse("sensors:dashboard_data"))
+        
+        data = response.json()
+        sensor_data = next(s for s in data["sensors"] if s["id"] == self.public_sensor.id)
+        # Because 0.0 is not None, the view formats it. We assert it matches the formatted output.
+        self.assertEqual(sensor_data["temp"], "0.0")
+        self.assertEqual(sensor_data["hum"], "0.0")
+    
+    def test_dashboard_view_full_context(self):
+        """Covers Maintenance and Report context queries."""
+        MaintenanceFactory(status="Pending")
+        ReportFactory()
+        
+        self.client.login(username=self.staff_user.username, password="password123")
+        response = self.client.get(reverse("sensors:dashboard"))
+        
+        self.assertEqual(response.context["maintenance_pending"], 1)
+        self.assertGreaterEqual(response.context["reports_count"], 1)
+    
+    def test_delete_sensor_ajax_non_existent_id(self):
+        """Covers the strict DoesNotExist path."""
+        self.client.login(username=self.public_user.username, password="password123")
+        
+        url = reverse("sensors:delete_sensor_ajax", args=[99999])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 404)
+    
+    def test_delete_sensor_get_request(self):
+        """Covers the if request.method != "POST" branch in delete_sensor."""
+        self.client.login(username=self.public_user.username, password="password123")
+        
+        url = reverse("sensors:delete_sensor", args=[self.public_sensor.id])
+        # Send a GET request instead of a POST request
+        response = self.client.get(url)
+        
+        # It should simply redirect to dashboard without deleting the sensor
+        self.assertRedirects(response, reverse("sensors:dashboard"))
+        # Verify the sensor still exists
+        self.assertTrue(Sensor.objects.filter(id=self.public_sensor.id).exists())
+    
+    def test_get_dashboard_sensor_data_firefighter_role(self):
+        """Covers the 'else' branch in get_dashboard_sensor_data where user is not 'public'."""
+        self.client.login(username=self.staff_user.username, password="password123")
+        
+        # Firefighter should see ALL sensors (public_sensor and other_sensor)
+        response = self.client.get(reverse("sensors:dashboard_data"))
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        
+        # Verify they can see at least 2 sensors (the ones created in setUp)
+        self.assertGreaterEqual(len(data["sensors"]), 2)

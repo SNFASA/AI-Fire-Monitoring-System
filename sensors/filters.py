@@ -16,7 +16,7 @@ class SensorFilter(django_filters.FilterSet):
         # If the user clicks "All", or no status is sent, return everything
         if value == "All" or not value:
             return queryset
-            
+
         # Otherwise, filter by the status we annotated in the view
         return queryset.filter(current_status__iexact=value)
 
@@ -33,10 +33,10 @@ class MaintenanceFilter(django_filters.FilterSet):
     frequency = django_filters.CharFilter(method="filter_frequency")
     search = django_filters.CharFilter(method="custom_search")
     start_date = django_filters.DateFilter(
-        field_name="scheduled_date", lookup_expr="date__gte"
+        field_name="scheduled_date", lookup_expr="gte"
     )
     end_date = django_filters.DateFilter(
-        field_name="actual_date", lookup_expr="date__lte"
+        field_name="actual_date", lookup_expr="lte"
     )
 
     class Meta:

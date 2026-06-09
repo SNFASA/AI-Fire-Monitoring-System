@@ -1,15 +1,24 @@
-from rest_framework.authtoken.views import obtain_auth_token
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LoginView
 from django.urls import path
-
+from rest_framework.authtoken.views import obtain_auth_token
+from django.views.generic import TemplateView
 from . import utils
 from .views import api, auth, dashboard, duties, maintenances, maps, reports, sensors
 
 app_name = "sensors"
 urlpatterns = [
     # utils
-    path('api/token/', obtain_auth_token),
+    # 1. Serve Manifest from the sensors folder
+    path('manifest.json', TemplateView.as_view(
+        template_name='sensors/manifest.json',  # <-- Update this to include 'sensors/'
+        content_type='application/json'
+    ), name='manifest.json'),
+    path('sw.js', TemplateView.as_view(
+        template_name='sensors/sw.js', 
+        content_type='application/javascript'
+    ), name='sw.js'),
+    path("api/token/", obtain_auth_token),
     path("get-live-logs/", utils.get_live_logs, name="get_live_logs"),
     path("test-log/", api.test_log, name="test_log"),
     path("api/send-data/", api.receive_sensor_data, name="receive_data"),
@@ -102,6 +111,7 @@ urlpatterns = [
         maintenances.delete_maintenance,
         name="delete_maintenance",
     ),
+    path("maintenance/filter/", maintenances.filter_maintenances, name="filter_maintenances"),
     # Reports
     path("reports/", reports.reports_view, name="reports"),
     path("reports/<int:report_id>/", reports.report_detail, name="report_detail"),
@@ -142,7 +152,7 @@ urlpatterns = [
         sensors.update_sensor_position,
         name="update_sensor_pos",
     ),
-    path('api/filters_sensor/', api.filters_sensor_view, name='filter_sensors'),
+    path("api/filters_sensor/", api.filters_sensor_view, name="filter_sensors"),
     # Duties
     path("duty/", duties.duty, name="duty"),
     path("api/mobilize/<int:report_id>/", duties.mobilize_team, name="mobilize_team"),

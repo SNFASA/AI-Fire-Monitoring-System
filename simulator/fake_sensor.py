@@ -1,6 +1,7 @@
 import json
 import random
 import time
+
 import requests
 
 # Point this directly to your local Django API
@@ -25,6 +26,7 @@ SENSORS_CONFIG = [
     {"id": 79, "location": "Bedroom3"},
 ]
 
+
 class VirtualESP32:
     def __init__(self, sensor_id, location):
         self.id = sensor_id
@@ -39,7 +41,7 @@ class VirtualESP32:
         self.lpg = 300
         self.co = 150
         self.air_quality = 200
-        self.flame_val = 4095 # Active-LOW: 4095 means NO FLAME
+        self.flame_val = 4095  # Active-LOW: 4095 means NO FLAME
 
     def update(self):
         # --- STATE MACHINE LOGIC ---
@@ -51,7 +53,7 @@ class VirtualESP32:
 
         elif self.state == "Warning":
             self.fire_timer -= 1
-            if random.randint(0, 100) > 70:  
+            if random.randint(0, 100) > 70:
                 # 30% chance gas leak turns into an active fire
                 self.state = "Fire"
                 self.fire_timer = 20
@@ -73,7 +75,7 @@ class VirtualESP32:
             self.methane = random.randint(1500, 3000)
             self.lpg = random.randint(1500, 3000)
             self.co = random.randint(1200, 2500)
-            self.flame_val = random.randint(100, 600) # LOW = Flame detected!
+            self.flame_val = random.randint(100, 600)  # LOW = Flame detected!
 
         elif self.state == "Warning":
             # Gas spikes, Temp stays normal, Flame stays high (NO FLAME)
@@ -104,18 +106,19 @@ class VirtualESP32:
             "humidity": round(self.humidity, 2),
         }
 
+
 if __name__ == "__main__":
     sensors = [VirtualESP32(c["id"], c["location"]) for c in SENSORS_CONFIG]
     print("🚀 Booting Virtual ESP32 Swarm... (Ctrl+C to stop)")
-    
+
     while True:
         for s in sensors:
             payload = s.update()
-            
+
             try:
                 # Send data to Django just like the physical hardware!
                 response = requests.post(API_URL, json=payload, timeout=5)
-                
+
                 # Determine display color
                 status_txt = "SAFE"
                 if s.state == "Fire":
@@ -131,4 +134,4 @@ if __name__ == "__main__":
             except requests.exceptions.RequestException as e:
                 print(f"[{s.id}] ❌ Connection Failed: Is Django running?")
 
-        time.sleep(3) # Send batch every 3 seconds
+        time.sleep(3)  # Send batch every 3 seconds

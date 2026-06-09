@@ -20,7 +20,6 @@ from ..forms import HouseLayoutForm
 from ..models import FireStation, Houselayout, SatelliteHotspot, Sensor, UserProfile
 from ..utils import get_sensor_status
 
-
 # ==========================================
 # 3. MAP DATA
 # ==========================================
@@ -37,7 +36,6 @@ def firefighter_map_data(request):
     users = UserProfile.objects.filter(role="public").select_related("address")
 
     for profile in users:
-        # CRITICAL FIX: Ignore if Lat/Lng is None to prevent map crash
         if (
             profile.address
             and profile.address.latitude is not None
@@ -49,14 +47,21 @@ def firefighter_map_data(request):
 
             for s in sensors:
                 s_status = get_sensor_status(s)
+                
+                # Priority 1: Fire overrides everything
                 if s_status == "Fire":
                     house_status = "Fire"
                     break
-                elif s_status == "gas leak" and house_status != "Fire":
-                    house_status = "gas leak"
+                    
+                # Priority 2: Gas Leak or Warning
+                elif s_status in ["Gas Leak", "Warning"] and house_status != "Fire":
+                    house_status = s_status
+                    
+                # Priority 3: Offline tracking
                 elif s_status == "Offline":
                     has_offline = True
 
+            # If no active emergencies are found, but a sensor is dead, mark house as Offline
             if house_status == "Safe" and has_offline and sensors.exists():
                 house_status = "Offline"
 
@@ -66,7 +71,7 @@ def firefighter_map_data(request):
                     "owner": profile.user.username,
                     "lat": profile.address.latitude,
                     "lng": profile.address.longitude,
-                    "status": house_status,
+                    "status": house_status, # This will now accurately pass "Warning" or "Gas Leak"
                 }
             )
 
@@ -209,20 +214,13 @@ def get_victim_layout(request, user_id):
 def delete_layout_ajax(request, layout_id):
     if request.method == "POST":
         try:
-            # Note: I changed 'owner' to 'user'.
-            # If your models.py uses 'owner', change this back to owner=request.user
             layout = get_object_or_404(Houselayout, id=layout_id, user=request.user)
 
             layout.delete()
-
-            # Since we are using an HTML form now, we don't need the JSON stuff.
-            # We just send a success message and redirect!
             messages.success(request, "Layout has been successfully deleted.")
             return redirect("sensors:maps")
 
         except Exception as e:
-            # THIS IS CRITICAL: If it fails, look at your terminal!
-            # It will print the exact reason it crashed.
             print(f"🚨 ERROR DELETING LAYOUT: {e}")
 
             messages.error(
@@ -328,7 +326,7 @@ def wildfire_map_view(request):
         )
 
     user_profile = request.user.userprofile
-    
+
     # Defensive defaults for the template contract
     station_lat = None
     station_lng = None
@@ -340,7 +338,9 @@ def wildfire_map_view(request):
         if addr and addr.latitude is not None and addr.longitude is not None:
             station_lat = float(addr.latitude)
             station_lng = float(addr.longitude)
-            missing_station_gps = False  # Coordinate validation passed, suppress setup overlay
+            missing_station_gps = (
+                False  # Coordinate validation passed, suppress setup overlay
+            )
 
     context = {
         "user_profile": user_profile,
@@ -385,8 +385,6 @@ def wildfire_api_view(request):
 
     lat = station.address.latitude
     lng = station.address.longitude
-
-    # FAIL FAST: Check coordinates before hitting the database
     if lat is None or lng is None:
         return JsonResponse(
             {"success": False, "error": "GPS coordinates are missing."}, status=404

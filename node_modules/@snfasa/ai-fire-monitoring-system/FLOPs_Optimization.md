@@ -1,7 +1,7 @@
 # FLOPs Analysis and Optimization in Fire Detection Machine Learning System
 
 ## 1. Introduction
-In this project, an ensemble machine learning model is used to classify fire-related conditions into three classes: **Safe**, **Fire**, and **Warning (Gas Leak)**.  
+In this project, an ensemble machine learning model is used to classify fire-related conditions into three classes: **Safe**, **Fire**, and **Warning (gas leak)**.  
 The model is trained using sensor data collected from multiple environmental sensors.
 
 This document explains:
