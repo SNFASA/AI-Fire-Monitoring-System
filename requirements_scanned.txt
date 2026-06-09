@@ -1,7 +1,7 @@
 asgiref==3.11.1
 channels==4.3.2
 diagrams==0.25.1
-Django==6.0.5
+Django==6.0.6
 django_environ==0.13.0
 djangorestframework==3.17.1
 factory_boy==3.3.3
