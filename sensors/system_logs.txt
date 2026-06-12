@@ -62688,3 +62688,828 @@
    ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
 
 [DATA] Sensor 2: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1616, C:208)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:150, L:1223, C:208)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:167, L:1627, C:206)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:171, L:1585, C:156)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:161, L:903, C:144)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:161, L:1266, C:147)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:171, L:1213, C:154)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:155, L:1440, C:128)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:160, L:1365, C:145)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:157, L:1299, C:144)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:161, L:1353, C:144)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1257, C:144)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1202, C:144)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1296, C:147)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:160, L:1454, C:142)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:158, L:1392, C:138)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:162, L:1457, C:144)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:160, L:1515, C:141)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:151, L:1088, C:139)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:155, L:1019, C:138)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:164, L:1223, C:139)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:163, L:1635, C:138)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1221, C:137)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:163, L:1006, C:240)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1891, C:233)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1631, C:228)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:157, L:1569, C:223)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:160, L:1099, C:228)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:151, L:1599, C:224)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:156, L:1509, C:224)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1403, C:218)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:156, L:1420, C:221)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:155, L:1535, C:225)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:161, L:894, C:218)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:155, L:1415, C:224)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:155, L:806, C:223)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:156, L:1088, C:226)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:150, L:1344, C:227)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:151, L:1616, C:223)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:161, L:1008, C:235)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:155, L:1571, C:224)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:153, L:1273, C:225)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:151, L:1403, C:221)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:150, L:1394, C:227)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:158, L:1386, C:229)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1164, C:226)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:160, L:1214, C:229)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:151, L:938, C:226)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:150, L:1479, C:221)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1481, C:237)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:150, L:848, C:219)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1249, C:222)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:160, L:1143, C:230)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:149, L:1260, C:222)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1397, C:226)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1595, C:230)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1575, C:221)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1289, C:232)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1443, C:235)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:154, L:1481, C:227)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:160, L:1136, C:238)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:151, L:1065, C:228)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:151, L:1319, C:237)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:162, L:1071, C:240)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:162, L:1834, C:254)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:158, L:1501, C:240)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:159, L:1246, C:242)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:165, L:955, C:252)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:156, L:2062, C:237)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:158, L:1490, C:240)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:157, L:969, C:244)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:157, L:1508, C:240)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:158, L:1535, C:241)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:155, L:1362, C:241)
+
+[DATA] Sensor 80: Gas Leak
+☣️ DECISION: [GAS LEAK] High PPM detected (M:155, L:982, C:240)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe

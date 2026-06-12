@@ -33,7 +33,8 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '72.62.76.194', 'ai-fms.sydnbl.my']
+CSRF_TRUSTED_ORIGINS = ['https://ai-fms.sydnbl.my']
 # Authentication settings
 LOGIN_REDIRECT_URL = "sensors:home"
 LOGIN_URL = "sensors:login"
@@ -58,8 +59,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "django_q",
-    "django_celery_results",
-    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -332,15 +331,18 @@ TWILIO_WHATSAPP_FROM = env("TWILIO_WHATSAPP_FROM")
 TWILIO_CONTENT_SID = env("TWILIO_CONTENT_SID")
 
 
-# Celery Configuration (Points to local RabbitMQ)
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/1"
-CELERY_RESULT_BACKEND = "django-db"
-CELERY_CACHE_BACKEND = "django-cache"
-# Ensure Celery accepts JSON payloads
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# Django-Q Configuration
+Q_CLUSTER = {
+    'name': 'Djangonaut',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 600,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'orm': 'default'  # Use your database as the message broker
+}
 
 MAP_KEY = env("MAP_KEY")
 REGION_BBOX = env("REGION_BBOX")
@@ -348,9 +350,6 @@ REGION_BBOX = env("REGION_BBOX")
 if not os.getenv("GITHUB_ACTIONS") and os.name == "nt":
     GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"
     GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
-
-
-ALLOWED_HOSTS = ["192.168.0.3", "localhost", "127.0.0.1"]
 
 Q_CLUSTER = {
     "name": "HDBMS_Cluster",

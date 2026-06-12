@@ -21,13 +21,21 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from django.views.generic import RedirectView
-
+from django.views.generic import TemplateView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("", include("sensors.urls", namespace="sensors")),
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path("favicon.ico", RedirectView.as_view(url="/static/images/favicon.png")),
+    path('manifest.json', TemplateView.as_view(
+        template_name='sensors/manifest.json',  # <-- Added 'sensors/'
+        content_type='application/json'
+    ), name='manifest.json'),
+    path('sw.js', TemplateView.as_view(
+        template_name='sensors/sw.js',          # <-- Added 'sensors/'
+        content_type='application/javascript'
+    ), name='sw.js'),
 ]
 
 # Serve static and media files in development

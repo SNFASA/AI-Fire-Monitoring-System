@@ -4,7 +4,7 @@ import time
 import requests  # <--- The key difference (HTTP instead of MQTT)
 
 # CONFIGURATION
-DJANGO_URL = "http://127.0.0.1:8000/api/send-data/"
+DJANGO_URL = "http://ai-fms.sydnbl.my/api/send-data/"
 
 # IDs must match your Database IDs
 SENSORS_CONFIG = [
@@ -13,6 +13,7 @@ SENSORS_CONFIG = [
     {"id": 3, "location": "Bedroom2"},
     {"id": 4, "location": "Bedroom3"},
     {"id": 5, "location": "Living Room"},
+    {"id": 80, "location": "RealSensor1"},
 ]
 
 
