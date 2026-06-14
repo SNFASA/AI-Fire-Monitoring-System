@@ -255,18 +255,9 @@ JAZZMIN_SETTINGS = {
         "sensors.address",
         "sensors.sensor",
         "sensors.sensordatalog",
+        "sensors.satellitehotspot",
+        "sensors.countryboundary",
     ],
-    # Custom links to append to app groups, keyed on app name
-    "custom_links": {
-        "books": [
-            {
-                "name": "Make Messages",
-                "url": "make_messages",
-                "icon": "fas fa-comments",
-                "permissions": ["books.view_book"],
-            }
-        ]
-    },
     # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free&v=5.0.0,5.0.1,5.0.10,5.0.11,5.0.12,5.0.13,5.0.2,5.0.3,5.0.4,5.0.5,5.0.6,5.0.7,5.0.8,5.0.9,5.1.0,5.1.1,5.2.0,5.3.0,5.3.1,5.4.0,5.4.1,5.4.2,5.13.0,5.12.0,5.11.2,5.11.1,5.10.0,5.9.0,5.8.2,5.8.1,5.7.2,5.7.1,5.7.0,5.6.3,5.5.0,5.4.2
     # for the full list of 5.13.0 free icon classes
     "icons": {
@@ -282,6 +273,8 @@ JAZZMIN_SETTINGS = {
         "sensors.address": "fas fa-map-marker-alt",
         "sensors.sensor": "fas fa-signal",
         "sensors.sensordatalog": "fas fa-chart-line",
+        "sensors.satellitehotspot": "fas fa-satellite",
+        "sensors.countryboundary": "fas fa-globe",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
@@ -334,15 +327,15 @@ TWILIO_CONTENT_SID = env("TWILIO_CONTENT_SID")
 
 # Django-Q Configuration
 Q_CLUSTER = {
-    'name': 'Djangonaut',
-    'workers': 4,
-    'recycle': 500,
-    'timeout': 600,
+    'name': 'FireMonitoring_Cluster',
+    'workers': 1,        
+    'recycle': 50,      
+    'timeout': 120,
+    'retry': 140,      
     'compress': True,
-    'save_limit': 250,
-    'queue_limit': 500,
-    'cpu_affinity': 1,
-    'orm': 'default'  # Use your database as the message broker
+    'save_limit': 100,   
+    'queue_limit': 50,   
+    'django_redis': 'default',    
 }
 
 MAP_KEY = env("MAP_KEY")
@@ -352,15 +345,12 @@ if not os.getenv("GITHUB_ACTIONS") and os.name == "nt":
     GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll"
     GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll"
 
-Q_CLUSTER = {
-    "name": "HDBMS_Cluster",
-    "workers": 4,
-    "recycle": 500,
-    "timeout": 60,
-    "compress": True,
-    "save_limit": 250,
-    "queue_limit": 500,
-    "label": "Django Q Backend",
-    # Change this line to use the Django ORM database as the broker
-    "orm": "default",
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
 }

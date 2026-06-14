@@ -230307,3 +230307,2190 @@
    ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
 
 [DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+☣️ DECISION: [GAS LEAK] High PPM detected (M:2947, L:300, C:744)
+
+[DATA] Sensor 80: Gas Leak
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe
+   ✅ DECISION: [SAFE] Confidence: (100.0%) (DecisionTreeClassifier)
+
+[DATA] Sensor 80: Safe

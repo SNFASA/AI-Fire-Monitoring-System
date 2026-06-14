@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.gis import admin as gis_admin
 from django.utils.html import format_html
 
 from .models import (
@@ -11,6 +12,8 @@ from .models import (
     Sensor,
     SensorDataLog,
     UserProfile,
+    CountryBoundary,
+    SatelliteHotspot,
 )
 
 # Register your models here.
@@ -151,6 +154,30 @@ class DutyAssignmentAdmin(admin.ModelAdmin):
 
     user_profile.short_description = "Firefighter"
 
+# ==========================================
+# Country Boundary Admin
+# =========================================
+# Use gis_admin.GISModelAdmin to get a map widget for the Polygon
+class CountryBoundaryAdmin(gis_admin.GISModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+ 
+# ==========================================
+# Satellite Hotspot Admin
+# =========================================
+# Use gis_admin.GISModelAdmin to get a map widget for the Point
+class SatelliteHotspotAdmin(gis_admin.GISModelAdmin):
+    # Display the actual fields from your model!
+    list_display = ("satellite", "confidence", "frp", "acq_date", "acq_time", "location_coords")
+    list_filter = ("satellite", "confidence", "acq_date")
+    
+    # Custom function to cleanly display the coordinates in the table
+    def location_coords(self, obj):
+        if obj.location:
+            return f"Lat: {obj.location.y}, Lon: {obj.location.x}"
+        return "Unknown"
+    
+    location_coords.short_description = "Coordinates"
 
 # ==========================================
 # Registering all Admins
@@ -162,4 +189,6 @@ admin.site.register(Sensor, SensorAdmin)
 admin.site.register(SensorDataLog, SensorDataLogAdmin)
 admin.site.register(Maintenance, MaintenanceAdmin)
 admin.site.register(Report, ReportAdmin)
+admin.site.register(SatelliteHotspot, SatelliteHotspotAdmin)
+admin.site.register(CountryBoundary, CountryBoundaryAdmin)
 admin.site.register(DutyAssignment, DutyAssignmentAdmin)
