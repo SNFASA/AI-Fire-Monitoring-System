@@ -1,0 +1,13 @@
+/* static/css/custom_admin.css */
+
+/* Target the image inside the login logo container */
+.login-logo img {
+    height: 300px !important;  /* Change this value */
+    width: auto !important;    /* Maintains aspect ratio */
+    max-width: 100%;           /* Prevents it from overflowing */
+}
+
+/* Optional: Adjust the spacing around the logo if needed */
+.login-logo {
+    margin-bottom: 20px;
+}
