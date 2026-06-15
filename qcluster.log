@@ -1,0 +1,50 @@
+nohup: ignoring input
+✅ HDBMS 7-Feature Model Loaded.
+19:33:59 [Q] INFO Q Cluster cardinal-social-california-mississippi starting.
+19:33:59 [Q] INFO Process-c24a8fa9ab074090ade1015d88dcc01b ready for work at 373537
+19:33:59 [Q] INFO Process-f8075a7384434d248d2a60be7e0b5259 ready for work at 373538
+19:33:59 [Q] INFO Process-cd572f23cf054f87889e15f58944ddc0 monitoring at 373539
+19:33:59 [Q] INFO Process-b6efaeccb747457d93e49487aace351b pushing tasks at 373540
+19:33:59 [Q] INFO Process-ad6fe8b87bf74ba8ac6c473fb0c9f5d1 guarding cluster cardinal-social-california-mississippi [django_q:FireMonitoring_Cluster:q]
+19:33:59 [Q] INFO Q Cluster cardinal-social-california-mississippi [django_q:FireMonitoring_Cluster:q] running.
+06:58:08 [Q] ERROR Could not create task from schedule
+Traceback (most recent call last):
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: SSL connection has been closed unexpectedly
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django_q/scheduler.py", line 40, in scheduler
+    for s in (
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 400, in __iter__
+    self._fetch_all()
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/root/AI-Fire-Monitoring-System/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: SSL connection has been closed unexpectedly
+

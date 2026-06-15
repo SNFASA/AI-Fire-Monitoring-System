@@ -191,9 +191,31 @@
                 
                 const socket = new WebSocket(ws_url);
 
-                socket.onopen = () => console.log("✅ WebSocket Connected (Firefighter Channel)");
+                let heartbeatInterval; // Variable to hold our heartbeat timer
+
+                socket.onopen = () => {
+                    console.log("✅ WebSocket Connected (Firefighter Channel)");
+                    
+                    // START THE HEARTBEAT: Send an invisible ping every 30 seconds
+                    heartbeatInterval = setInterval(() => {
+                        if (socket.readyState === WebSocket.OPEN) {
+                            socket.send(JSON.stringify({ "type": "ping" }));
+                        }
+                    }, 30000); // 30,000 milliseconds = 30 seconds
+                };
+
+                // Clear the heartbeat if the server disconnects, and optionally attempt reconnect
+                socket.onclose = (e) => {
+                    console.log("❌ WebSocket Disconnected. Attempting to reconnect in 5s...");
+                    clearInterval(heartbeatInterval);
+                    setTimeout(() => {
+                        // Optional: Write a function to re-run the WebSocket connection here
+                        window.location.reload(); 
+                    }, 5000);
+                };
                 
                 socket.onmessage = function(e) {
+                    console.log("🚨 INCOMING WEBSOCKET MESSAGE:", e.data);
                     const data = JSON.parse(e.data);
                     if (data.type === 'fire_alert') {
                         // 1. Play Sound

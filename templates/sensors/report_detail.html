@@ -251,8 +251,13 @@
             </div>
 
             <div class="text-center text-muted small mt-4 mb-5">
-                Officer In Charge: <strong>{{ report.in_charge.get_full_name|default:report.in_charge.username|default:"Pending" }}</strong><br>
-                Last Updated: {{ report.updated|timesince }} ago
+                Officer In Charge: <strong>
+                    {% if report.in_charge %}
+                        {{ report.in_charge.get_full_name|default:report.in_charge.username }}
+                    {% else %}
+                        Pending
+                    {% endif %}
+                </strong><br>
             </div>
 
         </div>

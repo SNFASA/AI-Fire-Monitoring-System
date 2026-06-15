@@ -74,7 +74,7 @@
                         <input type="text" name="last_name" class="form-control rounded-3" value="{{ u_form.last_name.value|default:'' }}" placeholder="Last Name" required>
                     </div>
                     
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label fw-bold small mb-1 text-muted">Email Address</label>
                         <input type="email" name="email" class="form-control rounded-3 {% if u_form.email.errors %}is-invalid{% endif %}" value="{{ u_form.email.value|default:user.email }}" placeholder="Email" required>
                         {% if u_form.email.errors %}
@@ -91,7 +91,14 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold small mb-1 text-muted">Phone Number</label>
-                        <input type="text" name="phone_number" class="form-control rounded-3" value="{{ p_form.phone_number.value|default:'' }}" placeholder="Phone Number" required>
+                        <input type="text" name="phone_number" class="form-control rounded-3" value="{{ p_form.phone_number.value|default:'' }}" placeholder="0123456789" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small mb-1 text-muted">Telegram Chat ID</label>
+                        <input type="text" name="telegram_chat_id" class="form-control rounded-3" value="{{ p_form.telegram_chat_id.value|default:'' }}" placeholder="e.g. 123456789" required>
+                        <div class="form-text mt-0" style="font-size: 0.70rem;">
+                            Message <strong>@userinfobot</strong> to find your ID.
+                        </div>
                     </div>
                 </div>
             </div>

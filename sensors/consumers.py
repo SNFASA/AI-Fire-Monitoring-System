@@ -13,14 +13,17 @@ class FireAlertConsumer(AsyncWebsocketConsumer):
         is_allowed = await self.check_station_access(user, self.station_id)
 
         if is_allowed:
+            # 1. Join specific station group
             self.group_name = f"station_{self.station_id}"
             await self.channel_layer.group_add(self.group_name, self.channel_name)
+            
+            # 2. Join the global alerts group (Crucial for Gas Leaks / Warnings!)
+            await self.channel_layer.group_add("station_all", self.channel_name)
+            
             await self.accept()
-            print(f"✅ WebSocket Connected: Station {self.station_id}")
+            print(f"✅ WebSocket Connected: Station {self.station_id} & Global Channel")
         else:
-            print(
-                f"❌ WebSocket Denied: User not authorized for Station {self.station_id}"
-            )
+            print(f"❌ WebSocket Denied: User not authorized for Station {self.station_id}")
             await self.close()
 
     # This wrapper allows async consumers to talk to the sync database safely
@@ -38,6 +41,8 @@ class FireAlertConsumer(AsyncWebsocketConsumer):
         # Only discard if the group_name was successfully created
         if hasattr(self, "group_name"):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        # Always discard from the global group upon disconnect
+        await self.channel_layer.group_discard("station_all", self.channel_name)
 
     # Receive message from group (Triggered by Views)
     async def fire_alert(self, event):
@@ -45,13 +50,15 @@ class FireAlertConsumer(AsyncWebsocketConsumer):
             text_data=json.dumps(
                 {
                     "type": "fire_alert",
-                    "report_id": event["report_id"],
-                    "address": event["address"],
-                    "owner_name": event["owner_name"],
-                    "owner_phone": event["owner_phone"],
-                    "lat": event["lat"],
-                    "lng": event["lng"],
-                    "timestamp": event["timestamp"],
+                    # Safely extract variables using .get() to prevent crashes
+                    "report_id": event.get("report_id"),
+                    "alert_type": event.get("alert_type", "Fire"), # Default to 'Fire' if missing
+                    "address": event.get("address", "Unknown Address"),
+                    "owner_name": event.get("owner_name", "Unknown Owner"),
+                    "owner_phone": event.get("owner_phone", "No Phone"),
+                    "lat": event.get("lat", 0.0),
+                    "lng": event.get("lng", 0.0),
+                    "timestamp": event.get("timestamp", ""),
                 }
             )
         )

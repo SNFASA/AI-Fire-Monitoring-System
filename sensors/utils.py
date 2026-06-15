@@ -1,7 +1,7 @@
 import json
 import math
 from datetime import timedelta
-
+import requests
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.conf import settings
@@ -49,49 +49,43 @@ def find_nearest_station(victim_lat, victim_lng):
     return nearest_station
 
 
-def send_sms_broadcast(phone_numbers, message_text):
-    print("--- INITIATING WHATSAPP BROADCAST ---")
-    try:
-        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+def send_telegram_broadcast(chat_ids, message_text):
+    """
+    Blasts an emergency alert to a list of Telegram Chat IDs.
+    """
+    print("--- INITIATING TELEGRAM BROADCAST ---")
+    
+    # Grab the token from your Django settings
+    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', None)
+    if not bot_token:
+        print("❌ TELEGRAM_BOT_TOKEN missing in settings.")
+        return
 
-        # Prepare Template Variables
-        if "Loc:" in message_text:
-            clean_location = message_text.split("Loc:")[1].split(".")[0].strip()
-        else:
-            clean_location = "Unknown Location"
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
 
-        current_time = timezone.now().strftime("%I:%M %p")
+    for chat_id in chat_ids:
+        # Skip if the user hasn't linked their Telegram yet
+        if not chat_id:
+            continue
 
-        # Send the raw dictionary
-        content_vars = json.dumps({"1": clean_location, "2": current_time})
-
-        for number in phone_numbers:
-            if not number:
-                continue
-
-            clean_num = str(number).strip()
-            if clean_num.startswith("whatsapp:"):
-                formatted_num = clean_num
-            elif clean_num.startswith("+"):
-                formatted_num = f"whatsapp:{clean_num}"
-            elif clean_num.startswith("60") and len(clean_num) > 9:
-                formatted_num = f"whatsapp:+{clean_num}"
-            elif clean_num.startswith("0"):
-                formatted_num = f"whatsapp:+60{clean_num[1:]}"
+        try:
+            payload = {
+                "chat_id": str(chat_id).strip(),
+                "text": message_text,
+                "parse_mode": "HTML" # Allows us to use <b>bold</b> and <i>italics</i> in alerts
+            }
+            
+            # Send the request directly to Telegram's servers
+            response = requests.post(url, json=payload, timeout=5)
+            
+            if response.status_code == 200:
+                print(f"✅ Telegram Sent to Chat ID: {chat_id}")
             else:
-                formatted_num = f"whatsapp:+60{clean_num}"
-
-            print(f"Sending WhatsApp to {formatted_num}...")
-            msg = client.messages.create(
-                from_=settings.TWILIO_WHATSAPP_FROM,
-                to=formatted_num,
-                content_sid=settings.TWILIO_CONTENT_SID,
-                content_variables=content_vars,
-            )
-            print(f"✅ WhatsApp Sent! SID: {msg.sid}")
-
-    except Exception as e:
-        print(f"❌ WhatsApp Failed: {e}")
+                print(f"❌ Telegram Failed for {chat_id}: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Telegram Request Failed: {e}")
+            
     print("--------------------------------")
 
 

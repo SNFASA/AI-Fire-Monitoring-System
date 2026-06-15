@@ -93,7 +93,7 @@ class UserProfile(models.Model):
         help_text="Specific role on the truck (e.g., Nozzleman)",
     )
     on_duty = models.BooleanField(default=False)
-
+    telegram_chat_id = models.CharField(max_length=50, blank=True, null=True, help_text="User's or Firefighter's unique Telegram Chat ID")
     # --- Timestamps ---
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

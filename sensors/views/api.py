@@ -23,7 +23,7 @@ from ..models import (
     SensorDataLog,
     UserProfile,
 )
-from ..utils import haversine, send_sms_broadcast
+from ..utils import haversine, send_telegram_broadcast
 
 predictor = FirePredictor()
 
@@ -111,90 +111,67 @@ def receive_sensor_data(request):
         )
         sensor.last_status = ml_result
         sensor.save(update_fields=["last_status", "updated"])
+
         # 4. ALERT TRIAGE LOGIC
-        if ml_result in ["Fire", "Gas Leak", "Warning"] and sensor.owner.address:
+        if ml_result in ["Fire", "Gas Leak", "Warning"] and getattr(sensor.owner, 'address', None):
             user_address = sensor.owner.address
+            channel_layer = get_channel_layer() # Prepare WebSocket sender
 
             # --- A. SECURE COORDINATE CHECK ---
             if user_address.latitude is None or user_address.longitude is None:
-                if sensor.owner.phone_number:
+                if getattr(sensor.owner, 'telegram_chat_id', None):
                     signer = TimestampSigner()
                     signed_id = signer.sign(str(sensor.owner.id))
-                    relative_url = reverse(
-                        "sensors:update_location_link", args=[signed_id]
-                    )
+                    relative_url = reverse("sensors:update_location_link", args=[signed_id])
                     update_url = request.build_absolute_uri(relative_url)
+                    msg = (f"🚨 EMERGENCY: {ml_result.upper()} detected!\n\n"
+                           f"We need your GPS coordinates for potential BOMBA dispatch. Click here: {update_url}")
+                    send_telegram_broadcast([sensor.owner.telegram_chat_id], msg)
 
-                    msg = (
-                        f"🚨 EMERGENCY: {ml_result.upper()} detected!\n\n"
-                        f"We need your GPS coordinates to dispatch BOMBA. "
-                        f"Click here: {update_url}"
-                    )
-                    send_sms_broadcast([sensor.owner.phone_number], msg)
-
-                # FIX: Even if they have no GPS, we MUST ring the physical buzzer!
-                override_alarm = (
-                    True if ml_result in ["Fire", "Warning", "Gas Leak"] else False
-                )
-                return JsonResponse({"fire_override": override_alarm})
-
-            # --- B. DEDUPLICATION ---
+            # --- B. DEDUPLICATION (UPDATED) ---
             active_report = Report.objects.filter(
                 address=user_address,
                 status__in=["System Detected", "Confirmed"],
             ).first()
 
             if active_report:
-                active_report.save()  # Triggers auto-now updated_at
+                # If a report ALREADY exists, keep updating it regardless of status
+                active_report.save()
                 print(f"ℹ️ Alert updated for Report #{active_report.id}")
+                
+                payload = {
+                    "type": "fire_alert",
+                    "report_id": active_report.id,
+                    "alert_type": ml_result, # Send current status to frontend
+                    "address": f"{user_address.street}, {user_address.city}",
+                    "owner_name": sensor.owner.user.username,
+                    "owner_phone": sensor.owner.phone_number,
+                    "lat": float(user_address.latitude) if user_address.latitude else 0.0,
+                    "lng": float(user_address.longitude) if user_address.longitude else 0.0,
+                    "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                async_to_sync(channel_layer.group_send)("station_all", payload)
+                if active_report.station:
+                    async_to_sync(channel_layer.group_send)(f"station_{active_report.station.id}", payload)
 
-            # --- C. BRANCH: FIRE DISPATCH ---
+            # --- C. BRANCH: NEW FIRE DISPATCH (CREATES REPORT) ---
             elif ml_result == "Fire":
                 # Find candidate stations
                 stations = FireStation.objects.select_related("address").all()
                 station_distances = []
                 for station in stations:
-                    if station.address.latitude and station.address.longitude:
+                    if station.address.latitude and station.address.longitude and user_address.latitude:
                         dist = haversine(
-                            user_address.latitude,
-                            user_address.longitude,
-                            station.address.latitude,
-                            station.address.longitude,
+                            user_address.latitude, user_address.longitude,
+                            station.address.latitude, station.address.longitude,
                         )
                         station_distances.append((dist, station))
 
                 station_distances.sort(key=lambda x: x[0])
-
-                # Optimized: Single DB hit for all active staff in nearby stations
-                now = timezone.now()
-                active_staff_all = DutyAssignment.objects.filter(
-                    firefighter__station__in=[s for d, s in station_distances],
-                    start_time__lte=now,
-                    end_time__gte=now,
-                    is_active=True,
-                ).select_related("firefighter", "firefighter__station")
-
-                target_station = None
-                target_staff = []
-
-                for dist, station in station_distances:
-                    staff = [
-                        d
-                        for d in active_staff_all
-                        if d.firefighter.station_id == station.id
-                    ]
-                    if staff:
-                        target_station = station
-                        target_staff = staff
-                        print(f"✅ Active Station Found: {station.name} ({dist:.2f}km)")
-                        break
-
-                # Fallback to nearest station regardless of duty logs
-                if not target_station and station_distances:
-                    target_station = station_distances[0][1]
+                target_station = station_distances[0][1] if station_distances else None
 
                 if target_station:
-                    # Create Official Report
+                    # ✅ OFFICIAL FIRE: Create the Dispatch Report
                     new_report = Report.objects.create(
                         status="System Detected",
                         address=user_address,
@@ -206,57 +183,66 @@ def receive_sensor_data(request):
                         description=f"Automated AI Fire Alert at {user_address.street}.",
                     )
 
-                    # WebSocket Notification
-                    channel_layer = get_channel_layer()
                     payload = {
                         "type": "fire_alert",
                         "report_id": new_report.id,
+                        "alert_type": "Fire",
                         "address": f"{user_address.street}, {user_address.city}",
                         "owner_name": sensor.owner.user.username,
                         "owner_phone": sensor.owner.phone_number,
-                        "lat": float(user_address.latitude),
-                        "lng": float(user_address.longitude),
+                        "lat": float(user_address.latitude) if user_address.latitude else 0.0,
+                        "lng": float(user_address.longitude) if user_address.longitude else 0.0,
                         "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
                     }
-                    async_to_sync(channel_layer.group_send)(
-                        f"station_{target_station.id}", payload
-                    )
+                    async_to_sync(channel_layer.group_send)(f"station_{target_station.id}", payload)
                     async_to_sync(channel_layer.group_send)("station_all", payload)
 
-                    # SMS Broadcast to Firefighters and Owner
-                    staff_phones = [
-                        d.firefighter.phone_number
-                        for d in target_staff
-                        if d.firefighter.phone_number
-                    ]
-                    if staff_phones:
-                        send_sms_broadcast(
-                            staff_phones,
-                            f"🔥 FIRE ALERT! {user_address.street}. Station {target_station.name} mobilized.",
-                        )
+                    # SMS Broadcast to Firefighters
+                    now = timezone.now()
+                    active_staff = DutyAssignment.objects.filter(
+                        firefighter__station=target_station,
+                        start_time__lte=now,
+                        end_time__gte=now,
+                        is_active=True,
+                    ).select_related("firefighter")
+                    
+                    staff_chat_ids = [d.firefighter.telegram_chat_id for d in active_staff if d.firefighter.telegram_chat_id]
+                    if staff_chat_ids:
+                        send_telegram_broadcast(staff_chat_ids, f"🔥 FIRE ALERT! {user_address.street}. Station {target_station.name} mobilized.")
 
-                    if sensor.owner.phone_number:
-                        send_sms_broadcast(
-                            [sensor.owner.phone_number],
-                            f"URGENT: Fire detected at your property. Bomba mobilized.",
-                        )
+            # --- D. BRANCH: EARLY WARNING / GAS LEAK (NO REPORT CREATED) ---
+            elif ml_result in ["Gas Leak", "Warning"]:
+                print(f"⚠️ {ml_result} detected! Alerting dashboard WITHOUT creating dispatch report.")
+                
+                # Send WebSocket Notification directly to the dashboard
+                payload = {
+                    "type": "fire_alert",
+                    "report_id": None, # Null because no report exists yet!
+                    "alert_type": ml_result,
+                    "address": f"{user_address.street}, {user_address.city}",
+                    "owner_name": sensor.owner.user.username,
+                    "owner_phone": sensor.owner.phone_number,
+                    "lat": float(user_address.latitude) if user_address.latitude else 0.0,
+                    "lng": float(user_address.longitude) if user_address.longitude else 0.0,
+                    "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                async_to_sync(channel_layer.group_send)("station_all", payload)
+                
+                # Send SMS Warning to the homeowner
+                if getattr(sensor.owner, 'telegram_chat_id', None):
+                    if ml_result == "Gas Leak":
+                        msg = f"⚠️ GAS LEAK: High gas detected at {user_address.street}. Please ventilate immediately."
+                    else:
+                        msg = f"⚠️ WARNING: Unusual heat/smoke detected at {user_address.street}. Please check your property."
+                    send_telegram_broadcast([sensor.owner.telegram_chat_id], msg)
 
-            # --- D. BRANCH: GAS LEAK (Owner-only Alert) ---
-            elif ml_result == "Gas Leak":
-                if sensor.owner.phone_number:
-                    gas_msg = f"⚠️ GAS LEAK: High gas detected at {user_address.street}. Please ventilate and check your home."
-                    send_sms_broadcast([sensor.owner.phone_number], gas_msg)
-                print(f"☣️ Gas Leak Notification sent for Sensor {sensor_id_raw}")
-
+        # Final Return (Happens for all conditions)
         override_alarm = True if ml_result in ["Fire", "Warning", "Gas Leak"] else False
-
-        # Send a 200 OK success response back with the override command
         return JsonResponse({"fire_override": override_alarm})
 
     except Exception as e:
         print(f"❌ Error in receive_sensor_data: {e}")
         return JsonResponse({"error": str(e)}, status=500)
-
 
 def update_location_from_link(request, signed_id):
     signer = TimestampSigner()

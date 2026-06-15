@@ -107,6 +107,7 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT"),
+        'CONN_MAX_AGE': 60,
     }
 }
 
@@ -314,7 +315,14 @@ JAZZMIN_SETTINGS = {
     "USE_I18N": False,
 }
 
-CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # core/settings.py (Scroll to bottom)
 
@@ -324,11 +332,13 @@ TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN")
 TWILIO_WHATSAPP_FROM = env("TWILIO_WHATSAPP_FROM")
 TWILIO_CONTENT_SID = env("TWILIO_CONTENT_SID")
 
+# Telegram Chat Bot
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
 
 # Django-Q Configuration
 Q_CLUSTER = {
     'name': 'FireMonitoring_Cluster',
-    'workers': 1,        
+    'workers': 2,        
     'recycle': 50,      
     'timeout': 120,
     'retry': 140,      

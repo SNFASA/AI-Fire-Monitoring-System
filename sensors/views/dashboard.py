@@ -74,17 +74,9 @@ def get_dashboard_sensor_data(request):
     else:
         sensor_qs = Sensor.objects.all()
 
-    # 2. Portable "Latest Log" Fetch
-    # Instead of PostgreSQL-specific .distinct(), we use a Subquery.
-    # We find the latest log ID for each specific sensor.
-    latest_log_id = (
-        SensorDataLog.objects.filter(sensor=OuterRef("sensor"))
-        .order_by("-timestamp")
-        .values("id")[:1]
-    )
-
-    # Filter the logs to only those whose ID matches the latest for that sensor
-    latest_readings = SensorDataLog.objects.filter(id__in=Subquery(latest_log_id))
+    # 2. The Optimized PostgreSQL Fetch
+    # This grabs the absolute latest log for each sensor in milliseconds
+    latest_readings = SensorDataLog.objects.order_by("sensor_id", "-timestamp").distinct("sensor_id")
 
     # 3. Prefetch the readings into the dynamic queryset
     sensors = sensor_qs.prefetch_related(
@@ -93,21 +85,14 @@ def get_dashboard_sensor_data(request):
 
     data = []
     for s in sensors:
-        # Access the prefetched attribute
         log = s.latest_log_list[0] if s.latest_log_list else None
 
         data.append(
             {
                 "id": s.id,
                 "name": s.name,
-                "temp": (
-                    f"{log.dht22_temp:.1f}"
-                    if log and log.dht22_temp is not None
-                    else "N/A"
-                ),
-                "hum": (
-                    f"{log.humidity:.1f}" if log and log.humidity is not None else "N/A"
-                ),
+                "temp": f"{log.dht22_temp:.1f}" if log and log.dht22_temp is not None else "N/A",
+                "hum": f"{log.humidity:.1f}" if log and log.humidity is not None else "N/A",
                 "status": log.status if log else "Offline",
             }
         )

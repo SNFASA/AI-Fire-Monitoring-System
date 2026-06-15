@@ -35,6 +35,7 @@ class ProfileUpdateForm(forms.ModelForm):
         model = UserProfile
         fields = [
             "phone_number",
+            "telegram_chat_id",
             "profile_picture",
             "station",
             "rank",
@@ -53,6 +54,7 @@ class ProfileUpdateForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "e.g. Nozzleman"}
             ),
             "phone_number": forms.TextInput(attrs={"class": "form-control"}),
+            "telegram_chat_id": forms.TextInput(attrs={"class": "form-control"}),
             "profile_picture": forms.FileInput(attrs={"class": "form-control"}),
         }
 
