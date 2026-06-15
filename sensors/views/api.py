@@ -82,7 +82,7 @@ def receive_sensor_data(request):
             methane, lpg, co, air_quality, flame_val, dht22_temp, humidity
         )
         ml_result = normalize_ml_result(raw_ml_result)
-
+        
         print(f"📡 [DATA] Sensor {sensor_id_raw} | Status: {ml_result}")
         add_log(f"[DATA] Sensor {sensor_id_raw}: {ml_result}")
 

@@ -217,18 +217,40 @@
                 socket.onmessage = function(e) {
                     console.log("🚨 INCOMING WEBSOCKET MESSAGE:", e.data);
                     const data = JSON.parse(e.data);
+                    
                     if (data.type === 'fire_alert') {
-                        // 1. Play Sound
-                        siren.play().catch(e => console.log("Audio blocked by browser policy"));
                         
-                        // 2. Populate Modal
-                        document.getElementById('g_alert_owner').innerText = data.owner_name;
-                        document.getElementById('g_alert_phone').innerText = data.owner_phone;
-                        document.getElementById('g_alert_address').innerText = data.address;
-                        document.getElementById('g_current_report_id').value = data.report_id;
+                        // --- BRANCH A: FULL FIRE DISPATCH ---
+                        if (data.alert_type === 'Fire') {
+                            // 1. Play Sound
+                            siren.play().catch(e => console.log("Audio blocked by browser policy"));
+                            
+                            // 2. Populate Modal
+                            document.getElementById('g_alert_owner').innerText = data.owner_name;
+                            document.getElementById('g_alert_phone').innerText = data.owner_phone;
+                            document.getElementById('g_alert_address').innerText = data.address;
+                            document.getElementById('g_current_report_id').value = data.report_id;
 
-                        // 3. Show Modal
-                        new bootstrap.Modal(document.getElementById('globalFireAlertModal')).show();
+                            // 3. Show Red Fire Modal
+                            new bootstrap.Modal(document.getElementById('globalFireAlertModal')).show();
+                        } 
+                        
+                        // --- BRANCH B: EARLY WARNING / GAS LEAK ---
+                        else if (data.alert_type === 'Gas Leak' || data.alert_type === 'Warning') {
+                            
+                            // Build a clean HTML message for the popup
+                            let warningMessage = `
+                                <div class="text-start p-3 bg-light border rounded">
+                                    <i class="fas fa-map-marker-alt text-danger me-2"></i><strong>Address:</strong> ${data.address}<br>
+                                    <i class="fas fa-user text-muted me-2 mt-2"></i><strong>Owner:</strong> ${data.owner_name}<br>
+                                    <i class="fas fa-phone text-muted me-2 mt-2"></i><strong>Contact:</strong> ${data.owner_phone}
+                                </div>
+                                <p class="mt-3 mb-0 text-muted small">No dispatch report has been created yet. Please contact the homeowner to ensure they are safe and ventilating the area.</p>
+                            `;
+                            
+                            // Trigger your built-in generic yellow warning modal!
+                            showPopup('warning', `${data.alert_type.toUpperCase()} DETECTED`, warningMessage);
+                        }
                     }
                 };
 
