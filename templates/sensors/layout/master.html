@@ -237,19 +237,28 @@
                         
                         // --- BRANCH B: EARLY WARNING / GAS LEAK ---
                         else if (data.alert_type === 'Gas Leak' || data.alert_type === 'Warning') {
+                            // 1. Play Sound (Optional: Use a different sound if preferred)
+                            siren.play().catch(e => console.log("Audio alert initiated"));
                             
-                            // Build a clean HTML message for the popup
-                            let warningMessage = `
-                                <div class="text-start p-3 bg-light border rounded">
-                                    <i class="fas fa-map-marker-alt text-danger me-2"></i><strong>Address:</strong> ${data.address}<br>
-                                    <i class="fas fa-user text-muted me-2 mt-2"></i><strong>Owner:</strong> ${data.owner_name}<br>
-                                    <i class="fas fa-phone text-muted me-2 mt-2"></i><strong>Contact:</strong> ${data.owner_phone}
-                                </div>
-                                <p class="mt-3 mb-0 text-muted small">No dispatch report has been created yet. Please contact the homeowner to ensure they are safe and ventilating the area.</p>
-                            `;
+                            // 2. Reuse Fire Modal Structure for consistency
+                            const fireModal = document.getElementById('globalFireAlertModal');
+                            const modalHeader = fireModal.querySelector('.modal-header');
+                            const modalTitle = fireModal.querySelector('.modal-title');
+                            const modalIcon = fireModal.querySelector('.fa-bell');
                             
-                            // Trigger your built-in generic yellow warning modal!
-                            showPopup('warning', `${data.alert_type.toUpperCase()} DETECTED`, warningMessage);
+                            // Style as Warning (Yellow/Orange theme)
+                            modalHeader.className = 'modal-header bg-warning text-dark';
+                            modalTitle.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i> ${data.alert_type.toUpperCase()} DETECTED`;
+                            modalIcon.className = 'fas fa-exclamation-triangle fa-4x text-warning animate-pulse';
+                            
+                            // Populate Data
+                            document.getElementById('g_alert_owner').innerText = data.owner_name;
+                            document.getElementById('g_alert_phone').innerText = data.owner_phone;
+                            document.getElementById('g_alert_address').innerText = data.address;
+                            document.getElementById('g_current_report_id').value = data.report_id;
+                            
+                            // 3. Show the modal
+                            new bootstrap.Modal(fireModal).show();
                         }
                     }
                 };

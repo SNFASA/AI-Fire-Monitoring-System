@@ -4,6 +4,7 @@
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
 <div class="container mt-4 mb-5 pb-4">
     
     {% if messages %}
@@ -221,7 +222,6 @@
     </div>
 </div>
 {% endif %}
-
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
     // --- UI Error Handling ---
@@ -270,18 +270,23 @@
         // 2. Add Native GPS "Current Location" Button
         const geolocate = new maplibregl.GeolocateControl({
             positionOptions: { enableHighAccuracy: true },
-            trackUserLocation: false, // Don't keep tracking, just ping once
-            showUserLocation: false   // Hide the default blue dot, we will use our red marker
+            trackUserLocation: false,
+            showUserLocation: false
         });
         map.addControl(geolocate, 'bottom-right');
 
         // Create a custom red pin for the marker
         const el = document.createElement('div');
         el.innerHTML = '<i class="fa-solid fa-location-dot" style="color:#df2020; font-size:35px; text-shadow: 0px 2px 4px rgba(0,0,0,0.4);"></i>';
-        el.style.transform = "translate(0, -15px)"; // Adjust so the tip of the pin points exactly at the coord
         
+        // FIX: Removed the manual el.style.transform here!
+
         // Add Draggable Marker
-        marker = new maplibregl.Marker({ element: el, draggable: true })
+        marker = new maplibregl.Marker({ 
+            element: el, 
+            draggable: true,
+            anchor: 'bottom' // FIX: This natively tells MapLibre to point the bottom of the pin at the coordinate
+        })
             .setLngLat([lng, lat])
             .addTo(map);
 
@@ -295,7 +300,6 @@
             updateLocationData(e.lngLat);
         });
 
-        // When the GPS button is clicked and location found, update marker & form
         geolocate.on('geolocate', function(e) {
             const newLngLat = { lng: e.coords.longitude, lat: e.coords.latitude };
             marker.setLngLat(newLngLat);
@@ -303,7 +307,7 @@
         });
     }
 
-    // Call Reverse Geocoding API (Nominatim) with explicit error handling
+    // Call Reverse Geocoding API (Nominatim)
     function updateLocationData(lngLat) {
         document.getElementById('latInput').value = lngLat.lat.toFixed(6);
         document.getElementById('lngInput').value = lngLat.lng.toFixed(6);
@@ -329,11 +333,11 @@
             })
             .catch(error => {
                 console.warn("Geocoding failed:", error);
-                showGeocodeError("Could not automatically pull address data (Rate limited or offline). Please enter the details manually.");
+                showGeocodeError("Could not automatically pull address data. Please enter the details manually.");
             });
     }
 
-    // Search Address Logic with explicit error handling
+    // Search Address Logic
     document.getElementById('mapSearchBtn').addEventListener('click', function() {
         let query = document.getElementById('mapSearchInput').value;
         if (!query) return;
@@ -363,8 +367,17 @@
 
     // Fix MapLibre rendering issue inside hidden Bootstrap tabs
     document.getElementById('location-tab').addEventListener('shown.bs.tab', function (e) {
-        initMap();
-        if (map) map.resize(); // Forces map to stretch to fit the newly visible container
+        // FIX: Wait for the tab to be 100% visible before doing ANYTHING with the map
+        setTimeout(() => {
+            if (!mapInitialized) {
+                initMap(); 
+            } else if (map) {
+                map.resize();
+                let lat = parseFloat(document.getElementById('latInput').value) || 3.0738;
+                let lng = parseFloat(document.getElementById('lngInput').value) || 101.5183;
+                map.setCenter([lng, lat]);
+            }
+        }, 150);
     });
 
 </script>

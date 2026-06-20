@@ -175,15 +175,15 @@
                 <div class="map-legend-container map-widget">
                     <div class="legend-title"><i class="fas fa-satellite-dish text-primary"></i> NASA VIIRS (375m)</div>
                     <div class="legend-item">
-                        <div class="legend-square-pixel" style="background:#ef5350; border: 1.5px solid #b71c1c; width:14px; height:14px; border-radius: 50%;"></div> 
+                        <div class="legend-square-pixel" style="background:#ef5350; border: 1.5px solid #b71c1c; width:12px; height:12px;"></div> 
                         Severe Threat (FRP > 50)
                     </div>
                     <div class="legend-item">
-                        <div class="legend-square-pixel" style="background:#ffb74d; border: 1.5px solid #e65100; width:14px; height:14px; border-radius: 50%;"></div> 
+                        <div class="legend-square-pixel" style="background:#ffb74d; border: 1.5px solid #e65100; width:12px; height:12px;"></div> 
                         Moderate Anomaly (FRP 20-50)
                     </div>
                     <div class="legend-item">
-                        <div class="legend-square-pixel" style="background:#ffee58; border: 1.5px solid #f57f17; width:14px; height:14px; border-radius: 50%;"></div> 
+                        <div class="legend-square-pixel" style="background:#ffee58; border: 1.5px solid #f57f17; width:12px; height:12px;"></div> 
                         Minor Anomaly (FRP < 20)
                     </div>
                 </div>
@@ -254,59 +254,67 @@
     map.addControl(geolocate, 'bottom-right');
     map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'bottom-right');
 
+    // Helper function to build sharp square textures programmatically
+    function createSquarePixelTexture(color, borderColor) {
+        const size = 10; // Fixed size in pixels on screen. Adjust this to make pixels bigger/smaller
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        // Crisp solid square fill
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, size, size);
+        
+        // Clean outer border stroke
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(0, 0, size, size);
+        
+        return ctx.getImageData(0, 0, size, size);
+    }
+
     // --- 3. HARDWARE ACCELERATED WEBGL GIS LAYERS ---
     function initializeHotspotLayers() {
+        // Generate and register pixel textures if they are missing from the current active map style
+        if (!map.hasImage('pixel-yellow')) {
+            map.addImage('pixel-yellow', createSquarePixelTexture('#ffee58', '#f57f17'));
+        }
+        if (!map.hasImage('pixel-orange')) {
+            map.addImage('pixel-orange', createSquarePixelTexture('#ffb74d', '#e65100'));
+        }
+        if (!map.hasImage('pixel-red')) {
+            map.addImage('pixel-red', createSquarePixelTexture('#ef5350', '#b71c1c'));
+        }
+
         if (!map.getSource('satellite-hotspots')) {
             map.addSource('satellite-hotspots', { type: 'geojson', data: satelliteHotspotsGeoJSON });
         }
 
-        // LAYER 1: The soft outer glow
-        if (!map.getLayer('hotspots-glow')) {
-            map.addLayer({
-                'id': 'hotspots-glow',
-                'type': 'circle',
-                'source': 'satellite-hotspots',
-                'paint': {
-                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 4, 9, 12, 16, 40],
-                    'circle-color': [
-                        'step', ['to-number', ['get', 'frp'], 0], // BUGFIX: Forces FRP to act as a number safely
-                        '#ffeb3b',     // Minor Threat: Yellow
-                        20, '#ff9800', // Moderate Threat: Orange
-                        50, '#f44336'  // Severe Threat: Red
-                    ],
-                    'circle-blur': 0.8,
-                    'circle-opacity': 0.5
-                }
-            });
-        }
-
-        // LAYER 2: The sharp inner core
+        // Deploy the high-performance symbol engine
         if (!map.getLayer('hotspots-core')) {
             map.addLayer({
                 'id': 'hotspots-core',
-                'type': 'circle',
+                'type': 'symbol',
                 'source': 'satellite-hotspots',
+                'layout': {
+                    'icon-image': [
+                        'step', ['to-number', ['get', 'frp'], 0],
+                        'pixel-yellow',   // FRP < 20
+                        20, 'pixel-orange', // FRP 20-50
+                        50, 'pixel-red'     // FRP >= 50
+                    ],
+                    'icon-size': 1.0,
+                    'icon-allow-overlap': true,    // CRITICAL: Keeps all 5,000+ pixels visible when zoomed out
+                    'icon-ignore-placement': true  // Prevents MapLibre from hiding colliding data points
+                },
                 'paint': {
-                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 2, 9, 6, 16, 20],
-                    'circle-color': [
-                        'step', ['to-number', ['get', 'frp'], 0],
-                        '#ffee58',     // Inner Yellow
-                        20, '#ffb74d', // Inner Orange
-                        50, '#ef5350'  // Inner Red
-                    ],
-                    'circle-stroke-width': 1.5,
-                    'circle-stroke-color': [
-                        'step', ['to-number', ['get', 'frp'], 0],
-                        '#f57f17',     // Dark Yellow border
-                        20, '#e65100', // Dark Orange border
-                        50, '#b71c1c'  // Dark Red border
-                    ],
-                    'circle-opacity': 0.95
+                    'icon-opacity': 0.9 // High structural visibility over satellite imagery
                 }
             });
         }
 
-        // Rebind click events
+        // Rebind map interaction click handlers to our symbol layer
         if (!map._listeners?.click?.find?.(l => l.layerId === 'hotspots-core')) {
             map.on('click', 'hotspots-core', (e) => {
                 const properties = e.features[0].properties;
@@ -322,18 +330,18 @@
                             <h6 class="fw-bold mb-0 text-dark">NASA VIIRS Anomaly</h6>
                         </div>
                         <span class="badge ${isHighThreat ? 'bg-danger' : 'bg-secondary'} mb-3 w-100 py-2">375m Spatial Resolution</span>
-                        <div class="small  mb-1">COORDINATES</div>
+                        <div class="small mb-1">COORDINATES</div>
                         <p class="fw-medium text-dark mb-3">${geomCoords[1].toFixed(5)}, ${geomCoords[0].toFixed(5)}</p>
                         <div class="row g-2 text-center">
                             <div class="col-6">
                                 <div class="p-2 bg-light rounded border">
-                                    <div class="small " style="font-size:0.65rem;">FRP (MW)</div>
+                                    <div class="small" style="font-size:0.65rem;">FRP (MW)</div>
                                     <div class="fw-bold ${isHighThreat ? 'text-danger' : 'text-dark'}">${frpNum}</div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="p-2 bg-light rounded border">
-                                    <div class="small " style="font-size:0.65rem;">TEMP (°C)</div>
+                                    <div class="small" style="font-size:0.65rem;">TEMP (°C)</div>
                                     <div class="fw-bold text-dark">${tempCelcius}</div>
                                 </div>
                             </div>
@@ -391,7 +399,26 @@
         const selectedDays = document.getElementById('timeFilter').value;
         fetchHotspots(selectedDays);
     }
+    function create375mSquare(lng, lat) {
+        // VIIRS Spatial Resolution is 375m. Half of that is 187.5m.
+        const halfSide = 187.5; 
+        
+        // 1 degree of latitude is roughly 111.32 km (111,320 meters)
+        const latOffset = halfSide / 111320.0;
+        // Longitude distance shrinks as you move away from the equator
+        const lngOffset = halfSide / (111320.0 * Math.cos(lat * Math.PI / 180));
 
+        // Return a closed polygon loop (Bottom-Left, Bottom-Right, Top-Right, Top-Left, Close)
+        return [
+            [
+                [lng - lngOffset, lat - latOffset], 
+                [lng + lngOffset, lat - latOffset], 
+                [lng + lngOffset, lat + latOffset], 
+                [lng - lngOffset, lat + latOffset], 
+                [lng - lngOffset, lat - latOffset]  
+            ]
+        ];
+    }
     function addHotspotToGeoJSON(payload, triggerCanvasUpdate = true) {
         const frpVal = parseFloat(payload.frp || 0);
         
@@ -400,8 +427,15 @@
 
         const featureNode = {
             "type": "Feature",
-            "geometry": { "type": "Point", "coordinates": [parseFloat(payload.longitude), parseFloat(payload.latitude)] },
-            "properties": { "report_id": payload.report_id, "frp": frpVal, "brightness": parseFloat(payload.brightness || 0) }
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [parseFloat(payload.longitude), parseFloat(payload.latitude)] 
+            },
+            "properties": { 
+                "report_id": payload.report_id, 
+                "frp": frpVal, 
+                "brightness": parseFloat(payload.brightness || 0) 
+            }
         };
 
         satelliteHotspotsGeoJSON.features.push(featureNode);
@@ -432,7 +466,9 @@
                 longitude: parseFloat(packet.lng),
                 address: packet.address,
                 owner_name: packet.owner_name,
-                timestamp: packet.timestamp
+                timestamp: packet.timestamp,
+                frp: parseFloat(packet.frp || 0),             // Included to maintain live threat levels
+                brightness: parseFloat(packet.brightness || 0) // Included to maintain live calculations
             };
             addHotspotToGeoJSON(unifiedPayload, true);
             map.flyTo({ center: [unifiedPayload.longitude, unifiedPayload.latitude], zoom: 11, essential: true });
