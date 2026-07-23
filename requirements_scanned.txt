@@ -11,7 +11,7 @@ locustio==0.999
 matplotlib==3.8.4
 numpy==2.5.1
 paho_mqtt==2.1.0
-pandas==3.0.4
+pandas==3.0.5
 pytz==2025.2
 Requests==2.34.2
 scikit_learn==1.8.0
