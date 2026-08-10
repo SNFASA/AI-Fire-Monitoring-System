@@ -3,7 +3,7 @@ channels==4.3.2
 diagrams==0.25.1
 Django==6.0.5
 django_environ==0.14.0
-djangorestframework==3.17.1
+djangorestframework==3.18.0
 factory_boy==3.3.3
 firebase_admin==7.5.0
 joblib==1.5.2
