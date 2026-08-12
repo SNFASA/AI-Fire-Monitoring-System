@@ -9,7 +9,7 @@ firebase_admin==7.5.0
 joblib==1.5.2
 locustio==0.999
 matplotlib==3.8.4
-numpy==2.5.1
+numpy==2.5.2
 paho_mqtt==2.1.0
 pandas==3.0.4
 pytz==2025.2
