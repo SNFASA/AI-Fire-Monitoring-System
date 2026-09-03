@@ -6,7 +6,7 @@ django_environ==0.14.0
 djangorestframework==3.17.1
 factory_boy==3.3.3
 firebase_admin==7.5.0
-joblib==1.5.2
+joblib==1.6.0
 locustio==0.999
 matplotlib==3.8.4
 numpy==2.5.1
